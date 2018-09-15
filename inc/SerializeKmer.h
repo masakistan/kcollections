@@ -16,3 +16,4 @@ static const char COMP_TO_ASCII[4] = {'A', 'C', 'G', 'T'};
 Bkmer* serialize_kmer( char* kmer, int k, int bk );
 char* deserialize_bkmer( Bkmer* bkmer, int k, int bk );
 
+

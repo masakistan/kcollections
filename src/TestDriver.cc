@@ -8,6 +8,7 @@ int main()
     int bk = calc_bk( k );
 
     std::cout << "Testing kmer dictionary implementation!" << std::endl;
+    std::cout << "***************************************" << std::endl;
     Kdict* kd = new Kdict( k, bk );
 
     /****************************************************************
@@ -17,12 +18,30 @@ int main()
     Bkmer* bkmer = serialize_kmer( kmer, k, bk );
     for( int i = 0; i < bk; i++ )
     {
-        std::cout << unsigned( bkmer->bseq[ i ] ) << std::endl;
+        std::cout << "\t" << unsigned( bkmer->bseq[ i ] ) << std::endl;
     }
-    std::cout << "deserialized binary kmer: " << deserialize_bkmer( bkmer, k, bk ) << std::endl;
+    std::cout << "\tdeserialized binary kmer: " << deserialize_bkmer( bkmer, k, bk ) << std::endl;
     /****************************************************************
      * End serialization tests
      * *************************************************************/
+
+    /****************************************************************
+     * Test Uncompressed Container
+     * *************************************************************/
+    UContainer* uc = new UContainer();
+    uc->insert( *bkmer );
+    if( uc->contains_kmer( bkmer ) )
+    {
+        std::cout << "\tUC kmer contains success!" << std::endl;
+    }
+    else
+    {
+        std::cout << "\tUC kmer contains failed!" << std::endl;
+    }
+    /****************************************************************
+     * End uncompressed container tests
+     * *************************************************************/
+
 
 
     return 0;

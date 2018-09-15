@@ -21,7 +21,8 @@ void Kdict::insert( char* kmer )
 void Kdict::insert( Vertex* v, Bkmer* bkmer )
 {
     // check if item is in the uncompressed container
-    /*if( v->contains( bkmer ) )
+    UContainer* uc = v->get_uc();
+    if( uc->contains_kmer( bkmer ) )
     {
         // can skip, kmer already added
 
@@ -29,7 +30,7 @@ void Kdict::insert( Vertex* v, Bkmer* bkmer )
     
     // check all compressed containers
     // TODO: complete
-    for( CompressedContainer* cc : ccs )
+    /*for( CompressedContainer* cc : ccs )
     {
         // check if item is possibly in a compressed container
         if( cc.may_contain( ) )

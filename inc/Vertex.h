@@ -1,7 +1,7 @@
 #pragma once
 
-#include "UncompressedContainer.h"
-#include "CompressedContainer.h"
+#include "UContainer.h"
+#include "CContainer.h"
 
 class Vertex
 {
@@ -10,12 +10,13 @@ class Vertex
 
         // Containers
 
-        UncompressedContainer* uc;
+        UContainer* uc;
         //std::vector< CompressedContainer* >* ccs;
 
     public:
         Vertex();
         ~Vertex();
+        UContainer* get_uc();
 
 };
 

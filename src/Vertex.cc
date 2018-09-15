@@ -3,12 +3,17 @@
 Vertex::Vertex()
 {
     //ccs = new std::vector< CompressedContainer*>();
-    uc = new UncompressedContainer();
+    uc = new UContainer();
 }
 
 Vertex::~Vertex()
 {
     delete uc;
+}
+
+UContainer* Vertex::get_uc()
+{
+    return uc;
 }
 
 

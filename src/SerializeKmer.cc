@@ -56,3 +56,5 @@ char* deserialize_bkmer( Bkmer* bkmer, int k, int bk )
 
     return kmer;
 }
+
+
