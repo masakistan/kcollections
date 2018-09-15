@@ -14,6 +14,9 @@ file(GLOB SOURCES "src/*.cc")
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
+# set c++11
+set (CMAKE_CXX_STANDARD 11)
+
 # configure a header file to pass some of the CMake settings
 # to the source code
 #configure_file (
