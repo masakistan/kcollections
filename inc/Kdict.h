@@ -1,16 +1,17 @@
 #pragma once
 
 #include "SerializeKmer.h"
+#include "Helper.h"
 
 class Kdict
 {
     private:
-        int m_k, m_bk;
 
     public:
-        Kdict( int k );
-        insert( char* kmer );
+        const int m_k, m_bk;
 
+        Kdict( int k, int bk );
+        void insert( char* kmer );
 };
 
 

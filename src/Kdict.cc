@@ -1,20 +1,12 @@
-#incldue "Kdict.h"
+#include "Kdict.h"
 
-Kdict::Kdict( int k )
+Kdict::Kdict( int k, int bk ) : m_k( k ), m_bk( bk )
 {
-    m_k = k;
-    
-    // set binary k size
-    m_bk = k / 4;
-    if( k % 4 > 0 )
-    {
-        m_k++;
-    }
 }
 
 void Kdict::insert( char* kmer )
 {
-    uint8_t* bkmer = serializeKmer( kmer, m_k, m_bk );
+    uint8_t* bkmer = serialize_kmer( kmer, m_k, m_bk );
 }
 
 

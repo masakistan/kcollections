@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <sstream>
 
@@ -8,7 +9,8 @@ static const uint8_t MASK_INSERT[ 3 ][ 4 ] = {
         { 2, 8, 32, 128 },
         { 3, 12, 48, 192 }
     };
+static const char COMP_TO_ASCII[4] = {'A', 'C', 'G', 'T'};
 
-uint8_t* serializeKmer( char* kmer, int k, int bk );
-
+uint8_t* serialize_kmer( char* kmer, int k, int bk );
+char* deserialize_bkmer( uint8_t* bkmer, int k, int bk );
 
