@@ -10,9 +10,9 @@ CContainer::~CContainer()
     delete bf;
 }
 
-bool CContainer::may_contain()
+bool CContainer::may_contain( Bkmer* bkmer )
 {
-    return bf->may_contain();
+    return bf->may_contain( bkmer->bseq, BK );
 }
 
 

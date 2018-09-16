@@ -2,6 +2,8 @@
 
 #include "Container.h"
 #include "BloomFilter.h"
+#include "Bkmer.h"
+#include "Globals.h"
 
 class CContainer : public Container
 {
@@ -11,7 +13,7 @@ class CContainer : public Container
     public:
         CContainer();
         ~CContainer();
-        bool may_contain();
+        bool may_contain( Bkmer* bkmer );
 
 };
 

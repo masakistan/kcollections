@@ -33,7 +33,7 @@ void Kdict::insert( Vertex* v, Bkmer* bkmer )
     for( CContainer* cc : *ccs )
     {
         // check if item is possibly in a compressed container
-        if( cc->may_contain( ) )
+        if( cc->may_contain( bkmer ) )
         {
             // check if item is actually in compressed container
             /*if( cc.contains_prefix( ) )
