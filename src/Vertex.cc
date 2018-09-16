@@ -2,7 +2,7 @@
 
 Vertex::Vertex()
 {
-    //ccs = new std::vector< CompressedContainer*>();
+    ccs = new std::vector< CContainer*>();
     uc = new UContainer();
 }
 
@@ -14,6 +14,11 @@ Vertex::~Vertex()
 UContainer* Vertex::get_uc()
 {
     return uc;
+}
+
+std::vector< CContainer* >* Vertex::get_cc()
+{
+    return ccs;
 }
 
 
