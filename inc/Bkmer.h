@@ -13,7 +13,8 @@ class Bkmer
     public:
         Bkmer( int k, int bk );
         Bkmer( const Bkmer& other );
-        void emit_prefix( int pos );
+        uint8_t* emit_prefix( int len );
+        uint8_t* get_prefix( int len );
         ~Bkmer();
         bool operator<( Bkmer& other ) const;
         int get_bk() const;

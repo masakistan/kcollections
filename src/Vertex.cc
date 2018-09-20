@@ -62,8 +62,11 @@ void Vertex::burst_uc( Bkmer* bkmer )
     UContainer* nuc = new UContainer();
     CContainer* ncc = new CContainer();
 
+    uint8_t* sfpx;
+
     for( Bkmer uc_bkmer : *( uc->get_bkmers() ) )
     {
+        sfpx = uc_bkmer.get_prefix( Container::get_prefix_length() );
 
     }
 

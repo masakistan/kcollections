@@ -13,7 +13,7 @@ class CContainer : public Container
     private:
         BloomFilter* bf;
         bool contains_prefix( uint8_t* sfpx );
-        //std::vector
+        std::vector< SufClustData* >* m_suf_clust_data; 
 
     public:
         CContainer();

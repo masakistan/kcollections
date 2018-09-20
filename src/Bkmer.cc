@@ -18,14 +18,28 @@ Bkmer::Bkmer( const Bkmer& other )
     }
 }
 
-void Bkmer::emit_prefix( int pos )
+uint8_t* Bkmer::emit_prefix( int len )
 {
+    uint8_t* sfpx = get_prefix( len );
+
     for( int i = 0; i < m_bk; i++ )
     {
-        m_bseq[ i ] = m_bseq[ i + pos ];
+        m_bseq[ i ] = m_bseq[ i + len ];
     }
-    m_bk -= pos;
-    m_k = m_k - ( pos * 4 );
+    m_bk -= len;
+    m_k = m_k - ( len * 4 );
+
+    return sfpx;
+}
+
+uint8_t* Bkmer::get_prefix( int len )
+{
+    uint8_t* sfpx = ( uint8_t* ) calloc( len, sizeof( uint8_t ) );
+    for( int i = 0; i < len; i++ )
+    {
+        sfpx[ i ] = m_bseq[ i ];
+    }
+    return sfpx;
 }
 
 Bkmer::~Bkmer()
