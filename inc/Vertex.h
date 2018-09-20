@@ -3,6 +3,7 @@
 #include <vector>
 #include "UContainer.h"
 #include "CContainer.h"
+#include "Bkmer.h"
 
 class Vertex
 {
@@ -10,15 +11,14 @@ class Vertex
         int depth;
 
         // Containers
-
         UContainer* uc;
         std::vector< CContainer* >* ccs;
 
     public:
         Vertex();
         ~Vertex();
-        UContainer* get_uc();
-        std::vector< CContainer* >* get_cc();
+        void insert( Bkmer* bkmer );
+        void burst_uc( Bkmer* bkmer );
 
 };
 

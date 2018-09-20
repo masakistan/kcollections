@@ -20,7 +20,6 @@ class Kdict
         Kdict( int k, int bk );
         ~Kdict();
         void insert( char* kmer );
-        void insert( Vertex* v, Bkmer* bkmer );
 
 };
 

@@ -14,6 +14,8 @@ class UContainer : public Container
         UContainer();
         void insert( Bkmer bkmer );
         bool contains_kmer( Bkmer* bkmer );
+        bool is_full();
+        std::set< Bkmer >* get_bkmers();
 };
 
 

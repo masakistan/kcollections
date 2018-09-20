@@ -18,7 +18,7 @@ int main()
     Bkmer* bkmer = serialize_kmer( kmer, k, bk );
     for( int i = 0; i < bk; i++ )
     {
-        std::cout << "\t" << unsigned( bkmer->bseq[ i ] ) << std::endl;
+        std::cout << "\t" << unsigned( bkmer->get_bseq()[ i ] ) << std::endl;
     }
     std::cout << "\tdeserialized binary kmer: " << deserialize_bkmer( bkmer, k, bk ) << std::endl;
     /****************************************************************
