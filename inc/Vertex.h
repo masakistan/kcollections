@@ -18,6 +18,7 @@ class Vertex
     public:
         Vertex();
         ~Vertex();
+        void insert( Vertex* v, Bkmer* bkmer );
         void insert( Bkmer* bkmer );
         void burst_uc( Bkmer* bkmer );
 

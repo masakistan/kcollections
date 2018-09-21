@@ -8,14 +8,14 @@
 class UContainer : public Container
 {
     private:
-        std::set< Bkmer >* bkmers;
+        std::set< Bkmer* >* bkmers;
 
     public:
         UContainer();
-        void insert( Bkmer bkmer );
+        void insert( Bkmer* bkmer );
         bool contains_kmer( Bkmer* bkmer );
         bool is_full();
-        std::set< Bkmer >* get_bkmers();
+        std::set< Bkmer* >* get_bkmers();
 };
 
 

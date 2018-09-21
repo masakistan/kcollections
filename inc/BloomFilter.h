@@ -4,6 +4,7 @@
 #include <array>
 #include "MurmurHash3.h"
 #include "Globals.h"
+#include "Bkmer.h"
 
 
 inline uint64_t nthHash( uint8_t n,
@@ -25,7 +26,7 @@ class BloomFilter
     public:
         BloomFilter( uint64_t size, uint8_t nHashes);
         ~BloomFilter();
-        void add( const uint8_t* data, std::size_t len );
+        void add( const Bkmer* data );
         bool may_contain( const uint8_t* data, std::size_t len ) const;
 };
 

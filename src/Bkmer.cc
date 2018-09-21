@@ -18,9 +18,14 @@ Bkmer::Bkmer( const Bkmer& other )
     }
 }
 
-uint8_t* Bkmer::emit_prefix( int len )
+Bkmer* Bkmer::emit_prefix( int len )
 {
-    uint8_t* sfpx = get_prefix( len );
+    Bkmer* sfpx = get_prefix( len );
+
+    if( sfpx == NULL )
+    {
+        return sfpx;
+    }
 
     for( int i = 0; i < m_bk; i++ )
     {
@@ -28,18 +33,38 @@ uint8_t* Bkmer::emit_prefix( int len )
     }
     m_bk -= len;
     m_k = m_k - ( len * 4 );
+    resize();
 
     return sfpx;
 }
 
-uint8_t* Bkmer::get_prefix( int len )
+Bkmer* Bkmer::get_prefix( int len )
 {
-    uint8_t* sfpx = ( uint8_t* ) calloc( len, sizeof( uint8_t ) );
+    if( m_k == 0 )
+    {
+        return NULL;
+    }
+
+    Bkmer* sfpx = new Bkmer( *this );
+    sfpx->set_bk( len );
+    sfpx->set_k( m_k - len * 4 );
     for( int i = 0; i < len; i++ )
     {
-        sfpx[ i ] = m_bseq[ i ];
+        sfpx->m_bseq[ i ] = m_bseq[ i ];
     }
+    sfpx->resize();
     return sfpx;
+}
+
+void Bkmer::resize()
+{
+    uint8_t* nbseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
+    for( int i = 0; i < m_bk; i ++ )
+    {
+        nbseq[ i ] = m_bseq[ i ];
+    }
+    free( m_bseq );
+    m_bseq = nbseq;
 }
 
 Bkmer::~Bkmer()
@@ -67,12 +92,12 @@ bool Bkmer::operator<( Bkmer& other ) const
     return false;
 }
 
-int Bkmer::get_bk() const
+size_t Bkmer::get_bk() const
 {
     return m_bk;
 }
 
-int Bkmer::get_k() const
+size_t Bkmer::get_k() const
 {
     return m_k;
 }

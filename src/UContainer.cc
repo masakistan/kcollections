@@ -2,12 +2,12 @@
 
 UContainer::UContainer() : Container()
 {
-    bkmers = new std::set< Bkmer >();
+    bkmers = new std::set< Bkmer* >();
 }
 
-void UContainer::insert( Bkmer bkmer )
+void UContainer::insert( Bkmer* bkmer )
 {
-    //bkmers->insert( bkmer );
+    bkmers->insert( bkmer );
 }
 
 bool UContainer::contains_kmer( Bkmer* bkmer )
@@ -32,7 +32,7 @@ bool UContainer::is_full()
     }
 }
 
-std::set< Bkmer >* UContainer::get_bkmers()
+std::set< Bkmer* >* UContainer::get_bkmers()
 {
     return bkmers;
 }

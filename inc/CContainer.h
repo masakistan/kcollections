@@ -12,15 +12,16 @@ class CContainer : public Container
 {
     private:
         BloomFilter* bf;
-        bool contains_prefix( uint8_t* sfpx );
         std::vector< SufClustData* >* m_suf_clust_data; 
 
     public:
         CContainer();
         ~CContainer();
-        bool may_contain( uint8_t* sfpx );
-        void insert( uint8_t* sfpx );
-        Vertex* get_child_of( uint8_t* spfx );
+        bool may_contain( Bkmer* sfpx );
+        bool contains_prefix( Bkmer* sfpx );
+        void insert( Bkmer* sfpx );
+        Vertex* get_child_of( Bkmer* spfx );
+        bool is_full();
 
 };
 

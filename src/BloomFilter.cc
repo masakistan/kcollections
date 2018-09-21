@@ -10,7 +10,7 @@ BloomFilter::~BloomFilter()
     delete m_bits;
 }
 
-std::array< uint64_t, 2 > BloomFilter::hash( const uint8_t* data, std::size_t len ) const
+std::array< uint64_t, 2 > BloomFilter::hash( const uint8_t* data, const std::size_t len ) const
 {
   std::array< uint64_t, 2 > hashValue;
   MurmurHash3_x64_128( data, len, 0, hashValue.data() );
@@ -18,9 +18,9 @@ std::array< uint64_t, 2 > BloomFilter::hash( const uint8_t* data, std::size_t le
   return hashValue;
 }
 
-void BloomFilter::add(const uint8_t *data, std::size_t len)
+void BloomFilter::add(const Bkmer *data )
 {
-  auto hashValues = hash( data, len );
+  auto hashValues = hash( data->get_bseq(), data->get_bk() );
 
   for ( int n = 0; n < m_nHashes; n++ )
   {

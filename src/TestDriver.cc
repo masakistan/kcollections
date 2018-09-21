@@ -29,7 +29,7 @@ int main()
      * Test Uncompressed Container
      * *************************************************************/
     UContainer* uc = new UContainer();
-    uc->insert( *bkmer );
+    uc->insert( bkmer );
     if( uc->contains_kmer( bkmer ) )
     {
         std::cout << "\tUC kmer contains success!" << std::endl;

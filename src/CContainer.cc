@@ -12,25 +12,36 @@ CContainer::~CContainer()
     delete m_suf_clust_data;
 }
 
-bool CContainer::may_contain( uint8_t* sfpx )
+bool CContainer::may_contain( Bkmer* sfpx )
 {
-    return bf->may_contain( sfpx, SFPX_LEN );
+    return bf->may_contain( sfpx->get_bseq(), sfpx->get_bk() );
 }
 
-bool CContainer::contains_prefix( uint8_t* sfpx )
+bool CContainer::contains_prefix( Bkmer* sfpx )
 {
     return false;
 }
 
-void CContainer::insert( uint8_t* sfpx )
+void CContainer::insert( Bkmer* sfpx )
 {
-    bf->add( sfpx, SFPX_LEN );
+    bf->add( sfpx );
 }
 
-Vertex* CContainer::get_child_of( uint8_t* spfx )
+Vertex* CContainer::get_child_of( Bkmer* spfx )
 {
     return NULL;
 }
 
+bool CContainer::is_full()
+{
+    if( m_suf_clust_data->size() == s_capacity )
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
 
 

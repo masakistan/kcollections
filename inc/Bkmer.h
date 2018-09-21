@@ -8,17 +8,20 @@ class Bkmer
 {
     private:
         uint8_t* m_bseq;
-        unsigned int m_k, m_bk;
+        size_t m_k, m_bk;
+        void resize();
     
     public:
         Bkmer( int k, int bk );
         Bkmer( const Bkmer& other );
-        uint8_t* emit_prefix( int len );
-        uint8_t* get_prefix( int len );
+        Bkmer* emit_prefix( int len );
+        Bkmer* get_prefix( int len );
         ~Bkmer();
         bool operator<( Bkmer& other ) const;
-        int get_bk() const;
-        int get_k() const;
+        size_t get_bk() const;
+        size_t get_k() const;
+        void set_bk( size_t bk ){ m_bk = bk; }
+        void set_k( size_t k ) { m_k = k; }
         uint8_t* get_bseq() const;
         void set_bseq( uint8_t* bseq );
 };

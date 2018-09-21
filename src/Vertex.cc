@@ -14,13 +14,14 @@ Vertex::~Vertex()
 
 void Vertex::insert( Bkmer* bkmer )
 {
+    insert( this, bkmer );
+}
+
+void Vertex::insert( Vertex* v, Bkmer* bkmer )
+{
     // get prefix position
-    int pre_pos = SFPX_LEN;
-    uint8_t* sfpx = ( uint8_t* ) calloc( SFPX_LEN, sizeof( uint8_t ) );
-    for( int i = 0; i < SFPX_LEN; i++ )
-    {
-        sfpx[ i ] = bkmer->get_bseq()[ i ];
-    }
+    int sfpx_len = Container::get_prefix_length();
+    Bkmer* sfpx = bkmer->get_prefix( sfpx_len );
 
     // check if item is in the uncompressed container
     if( uc->contains_kmer( bkmer ) )
@@ -36,12 +37,21 @@ void Vertex::insert( Bkmer* bkmer )
         if( cc->may_contain( sfpx ) )
         {
             // check if item is actually in compressed container
-            /*if( cc.contains_prefix( ) )
+            if( cc->contains_prefix( sfpx ) )
             {
+                sfpx = bkmer->emit_prefix( sfpx_len );
+                Vertex* child_vertex = cc->get_child_of( sfpx );
+                insert( child_vertex, bkmer );
+                return;
             }
+            // if it was a false positive
             else
             {
-            }*/
+                cc->insert( sfpx );
+                Vertex* child_vertex = cc->get_child_of( sfpx );
+                bkmer->emit_prefix( sfpx_len );
+                insert( child_vertex, bkmer );
+            }
         }
     }
     
@@ -53,7 +63,7 @@ void Vertex::insert( Bkmer* bkmer )
     else
     {
         // add to uncompressed container
-        uc->insert( *bkmer );
+        uc->insert( bkmer );
     }
 }
 
@@ -61,13 +71,28 @@ void Vertex::burst_uc( Bkmer* bkmer )
 {
     UContainer* nuc = new UContainer();
     CContainer* ncc = new CContainer();
+    uc->insert( bkmer );
 
-    uint8_t* sfpx;
+    Bkmer* sfpx;
 
-    for( Bkmer uc_bkmer : *( uc->get_bkmers() ) )
+    for( Bkmer* uc_bkmer : *( uc->get_bkmers() ) )
     {
-        sfpx = uc_bkmer.get_prefix( Container::get_prefix_length() );
+        sfpx = uc_bkmer->get_prefix( Container::get_prefix_length() );
 
+        // check if compressed container is at capacity
+        if( !ncc->is_full() )
+        {
+            uc_bkmer->emit_prefix( Container::get_prefix_length() );
+            ncc->get_child_of( sfpx )->insert( uc_bkmer );
+        }
+        else if( !nuc->is_full() )
+        {
+            nuc->insert( uc_bkmer );
+        }
+        else
+        {
+            /// this is an error state
+        }
     }
 
     uc = nuc;
