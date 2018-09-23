@@ -16,8 +16,10 @@ class Bkmer
         Bkmer( const Bkmer& other );
         Bkmer* emit_prefix( int len );
         Bkmer* get_prefix( int len );
+        Bkmer* get_suffix( int pos );
         ~Bkmer();
-        bool operator<( Bkmer& other ) const;
+        bool operator<( const Bkmer& other );
+        bool operator==( const Bkmer& other );
         size_t get_bk() const;
         size_t get_k() const;
         void set_bk( size_t bk ){ m_bk = bk; }

@@ -18,7 +18,7 @@ std::array< uint64_t, 2 > BloomFilter::hash( const uint8_t* data, const std::siz
   return hashValue;
 }
 
-void BloomFilter::add(const Bkmer *data )
+void BloomFilter::add( const Bkmer *data )
 {
   auto hashValues = hash( data->get_bseq(), data->get_bk() );
 

@@ -56,6 +56,23 @@ Bkmer* Bkmer::get_prefix( int len )
     return sfpx;
 }
 
+Bkmer* Bkmer::get_suffix( int pos )
+{
+    if( m_k == 0 )
+    {
+        return NULL;
+    }
+
+    Bkmer* sf = new Bkmer( *this );
+    for( int i = pos; i < m_bk; i++ )
+    {
+        sf->m_bseq[ i - pos ] = m_bseq[ i ];
+    }
+    sf->set_bk( m_bk - pos );
+    sf->set_k( m_k - sf->get_bk() * 4 );
+    return sf;
+}
+
 void Bkmer::resize()
 {
     uint8_t* nbseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
@@ -72,7 +89,7 @@ Bkmer::~Bkmer()
     free( m_bseq );
 }
 
-bool Bkmer::operator<( Bkmer& other ) const
+bool Bkmer::operator<( const Bkmer& other )
 {
     for( int i = 0; i < BK; i++ )
     {
@@ -110,6 +127,24 @@ uint8_t* Bkmer::get_bseq() const
 void Bkmer::set_bseq( uint8_t* bseq )
 {
     m_bseq = bseq;
+}
+
+bool Bkmer::operator==( const BKmer& other ) 
+{
+    if( m_k != other.get_k() || m_bk != other.get_bk() )
+    {
+        return false;
+    }
+    
+    for( int i = 0; i < m_bk; i ++ )
+    {
+        if( m_bseq[ i ] != other.get_bseq()[ i ] )
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 
