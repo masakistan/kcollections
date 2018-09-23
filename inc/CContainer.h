@@ -15,14 +15,14 @@ class CContainer : public Container
         BloomFilter* bf;
         std::vector< bool >* m_pref;
         std::vector< SufClustData* >* m_suf_clust_data; 
-        const static int PREF_SIZE = (int) Math.pow(2, (double) Container.numBitsNeededForAlphabet() * Container.getPrfxPrefixLength());
+        const static int PREF_SIZE;
 
         int get_index_in_pref( Bkmer* bkmer );
         int hamming_weight( int index );
         int rank( int clust_num );
-        int get_index_in_pref( Bkmer* bkmer );
         int index_of( Bkmer* bkmer );
         void add_to_bloom_filter( Bkmer* bkmer );
+        int next_set_bit( int pos );
 
     public:
         CContainer();
@@ -35,11 +35,12 @@ class CContainer : public Container
 
         int size() { return m_suf_clust_data->size(); }
         BloomFilter* get_bf();
-        std::vector< bool >* get_suf_clust_data();
+        std::vector< SufClustData* >* get_suf_clust_data();
         std::vector< Bkmer* >* get_suf();
         std::vector< bool >* get_clust();
-        std::vector< Vector* >* get_child_vertices();
+        std::vector< Vertex* >* get_child_vertices();
         static int get_pref_size() { return PREF_SIZE; }
+        SufClustData* get_suf_clust_data_item( Bkmer* sfpx );
 
 };
 

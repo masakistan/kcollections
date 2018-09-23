@@ -5,6 +5,12 @@ BloomFilter::BloomFilter( uint64_t size, uint8_t nHashes ) : m_nHashes( nHashes 
     m_bits = new std::vector< bool >( size );
 }
 
+BloomFilter::BloomFilter( const BloomFilter& bf )
+{
+    m_bits = new std::vector< bool >( *bf.m_bits );
+    m_nHashes = bf.m_nHashes;
+}
+
 BloomFilter::~BloomFilter()
 {
     delete m_bits;

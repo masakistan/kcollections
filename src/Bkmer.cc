@@ -1,10 +1,32 @@
 #include "Bkmer.h"
 
-Bkmer::Bkmer( int k, int bk )
+Bkmer::Bkmer( int k, int bk, char* kmer )
 {
-    m_bseq = ( uint8_t* ) calloc( BK, sizeof( uint8_t ) );
-    m_k = K;
-    m_bk = BK;
+    m_k = k;
+    m_bk = bk;
+    m_bseq = ( uint8_t* ) calloc( bk, sizeof( uint8_t ) );
+    serialize_kmer( kmer );
+}
+
+void Bkmer::serialize_kmer( char* kmer )
+{
+    for( int pos = 0; pos < m_k; pos++ )
+    {
+        switch( kmer[ pos ] )
+        {
+            case 'a': break;
+            case 'A': break;
+            case 'c': m_bseq[ pos / 4 ] |= MASK_INSERT[ 0 ][ pos % 4 ]; break;
+            case 'C': m_bseq[ pos / 4 ] |= MASK_INSERT[ 0 ][ pos % 4 ]; break;
+            case 'g': m_bseq[ pos / 4 ] |= MASK_INSERT[ 1 ][ pos % 4 ]; break;
+            case 'G': m_bseq[ pos / 4 ] |= MASK_INSERT[ 1 ][ pos % 4 ]; break;
+            case 't': m_bseq[ pos / 4 ] |= MASK_INSERT[ 2 ][ pos % 4 ]; break;
+            case 'T': m_bseq[ pos / 4 ] |= MASK_INSERT[ 2 ][ pos % 4 ]; break;
+            default: std::ostringstream errMsg;
+                     errMsg << "Runtime Error: bad symbol \"" << kmer[ pos ] << "\" when serializing kmer";
+                     throw std::runtime_error( errMsg.str() );
+        }
+    }
 }
 
 Bkmer::Bkmer( const Bkmer& other )
@@ -129,7 +151,7 @@ void Bkmer::set_bseq( uint8_t* bseq )
     m_bseq = bseq;
 }
 
-bool Bkmer::operator==( const BKmer& other ) 
+bool Bkmer::operator==( const Bkmer& other ) 
 {
     if( m_k != other.get_k() || m_bk != other.get_bk() )
     {
@@ -145,6 +167,65 @@ bool Bkmer::operator==( const BKmer& other )
     }
 
     return true;
+}
+
+char Bkmer::char_at( int pos )
+{
+    int bases_to_process, cpos;
+    uint8_t pseq;
+
+    for( int i = 0; i < m_bk; i++ )
+    {
+        if( i == m_bk - 1 )
+        {
+            bases_to_process = m_k % 4;
+        }
+        else
+        {
+            bases_to_process = 4;
+        }
+
+        pseq = m_bseq[ i ];
+        for( int j = 0; j < bases_to_process; j++ )
+        {
+            cpos = ( i * 4 ) + j;
+            if( cpos == pos )
+            {
+                return COMP_TO_ASCII[ pseq & 0x3 ];
+            }
+        }
+    }
+
+    return 'N';
+}
+
+char* Bkmer::deserialize_seq()
+{
+    int bases_processed = 0, j, pos, bases_to_process;
+    char* kmer = ( char* ) malloc( sizeof( char ) * m_k );
+    uint8_t tbkmer;
+    
+    for( int i = 0; i < m_bk; i ++ )
+    {
+        if( i == m_bk - 1 )
+        {
+            bases_to_process = m_k % 4;
+        }
+        else
+        {
+            bases_to_process = 4;
+        }
+
+        tbkmer = m_bseq[ i ];
+        for( j = 0; j < bases_to_process; j ++ )
+        {
+            pos = ( i * 4 ) + j;
+            kmer[ pos ] = COMP_TO_ASCII[ tbkmer & 0x3 ];
+            tbkmer >>= 2;
+        }
+    }
+
+    return kmer;
 }
 
 

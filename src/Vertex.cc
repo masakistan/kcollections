@@ -17,6 +17,23 @@ void Vertex::insert( Bkmer* bkmer )
     insert( this, bkmer );
 }
 
+Vertex* get_child_of( CContainer* cc, Bkmer* sfpx )
+{
+    SufClustData* scd = cc->get_suf_clust_data_item( sfpx );
+    if( scd == NULL )
+    {
+        return NULL;
+    }
+
+    Vertex* child_vertex = scd->get_child_vertex();
+    if( child_vertex == NULL )
+    {
+        child_vertex = new Vertex();
+        scd->set_child_vertex( child_vertex );
+    }
+    return child_vertex;
+}
+
 void Vertex::insert( Vertex* v, Bkmer* bkmer )
 {
     // get prefix position

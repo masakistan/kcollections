@@ -14,7 +14,7 @@ Kdict::~Kdict()
 
 void Kdict::insert( char* kmer )
 {
-    Bkmer* bkmer = serialize_kmer( kmer, m_k, m_bk );
+    Bkmer* bkmer = new Bkmer( m_k, m_bk, kmer );
     root->insert( bkmer );
 }
 

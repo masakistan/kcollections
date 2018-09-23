@@ -4,7 +4,6 @@
 #include <vector>
 #include "Globals.h"
 #include "Bkmer.h"
-#include "SerializeKmer.h"
 #include "Vertex.h"
 #include "Helper.h"
 

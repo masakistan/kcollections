@@ -1,9 +1,9 @@
 #pragma once
 
 #include <vector>
-#include "Container.h"
 #include "UContainer.h"
 #include "CContainer.h"
+#include "SufClustData.h"
 #include "Bkmer.h"
 
 class Vertex
@@ -14,6 +14,8 @@ class Vertex
         // Containers
         UContainer* uc;
         std::vector< CContainer* >* ccs;
+
+        Vertex* get_child_of( CContainer* cc, Bkmer* sfpx );
 
     public:
         Vertex();

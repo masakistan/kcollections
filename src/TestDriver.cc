@@ -15,12 +15,12 @@ int main()
      * Test serialization and deserialization capabilities
      * *************************************************************/
     char* kmer = ( char* ) "AAATTCCAACCGTGTCTTCTCCATTAG";
-    Bkmer* bkmer = serialize_kmer( kmer, k, bk );
+    Bkmer* bkmer = new Bkmer( k, bk, kmer );
     for( int i = 0; i < bk; i++ )
     {
         std::cout << "\t" << unsigned( bkmer->get_bseq()[ i ] ) << std::endl;
     }
-    std::cout << "\tdeserialized binary kmer: " << deserialize_bkmer( bkmer, k, bk ) << std::endl;
+    std::cout << "\tdeserialized binary kmer: " << bkmer->deserialize_seq() << std::endl;
     /****************************************************************
      * End serialization tests
      * *************************************************************/

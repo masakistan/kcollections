@@ -1,9 +1,11 @@
 #include "SufClustData.h"
+#include "Vertex.h"
 
-SufClustData::SufClustData( uint8_t* sfpx_suffix, bool starts_cluster )
+SufClustData::SufClustData( Bkmer* sfpx_suffix, bool starts_cluster )
 {
     m_sfpx_suffix = sfpx_suffix;
     m_starts_cluster = starts_cluster;
+    //m_child_vertex = NULL;
     m_child_vertex = new Vertex();
 }
 
@@ -13,7 +15,12 @@ SufClustData::~SufClustData()
     delete m_child_vertex;
 }
 
-uint8_t* SufClustData::get_sfpx_suffix() const
+void SufClustData::set_child_vertex( Vertex* vertex )
+{
+    m_child_vertex = vertex;
+}
+
+Bkmer* SufClustData::get_sfpx_suffix() const
 {
     return m_sfpx_suffix;
 }

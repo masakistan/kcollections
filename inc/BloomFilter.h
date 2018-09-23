@@ -21,10 +21,12 @@ class BloomFilter
     private:
         std::vector<bool>* m_bits;
         uint8_t m_nHashes;
+
         std::array< uint64_t, 2 > hash( const uint8_t* data, std::size_t len ) const;
 
     public:
         BloomFilter( uint64_t size, uint8_t nHashes);
+        BloomFilter( const BloomFilter& bf );
         ~BloomFilter();
         void add( const Bkmer* data );
         bool may_contain( const uint8_t* data, std::size_t len ) const;

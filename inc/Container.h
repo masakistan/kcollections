@@ -19,7 +19,7 @@ class Container
         static int get_prefix_length(){ return s_prefix_length; }
         static int get_prfx_prefix_length(){ return s_prfx_prefix_length; }
         static int get_prfx_suffix_length(){ return s_prfx_suffix_length; }
-        //virtual void insert( uint8_t* sfpx ) = 0;
+        virtual void insert( Bkmer* sfpx ) = 0;
 
 };
 
