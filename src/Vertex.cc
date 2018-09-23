@@ -17,7 +17,7 @@ void Vertex::insert( Bkmer* bkmer )
     insert( this, bkmer );
 }
 
-Vertex* get_child_of( CContainer* cc, Bkmer* sfpx )
+/*Vertex* get_child_of( CContainer* cc, Bkmer* sfpx )
 {
     SufClustData* scd = cc->get_suf_clust_data_item( sfpx );
     if( scd == NULL )
@@ -32,7 +32,7 @@ Vertex* get_child_of( CContainer* cc, Bkmer* sfpx )
         scd->set_child_vertex( child_vertex );
     }
     return child_vertex;
-}
+}*/
 
 void Vertex::insert( Vertex* v, Bkmer* bkmer )
 {

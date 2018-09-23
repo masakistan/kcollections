@@ -15,7 +15,7 @@ class Vertex
         UContainer* uc;
         std::vector< CContainer* >* ccs;
 
-        Vertex* get_child_of( CContainer* cc, Bkmer* sfpx );
+        //Vertex* get_child_of( CContainer* cc, Bkmer* sfpx );
 
     public:
         Vertex();
