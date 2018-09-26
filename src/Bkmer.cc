@@ -111,7 +111,7 @@ Bkmer::~Bkmer()
     free( m_bseq );
 }
 
-bool Bkmer::operator<( const Bkmer& other )
+bool Bkmer::operator<( const Bkmer& other ) const
 {
     for( int i = 0; i < BK; i++ )
     {

@@ -2,27 +2,36 @@
 
 UContainer::UContainer() : Container()
 {
-    bkmers = new std::set< Bkmer* >();
+    m_bkmers = new std::set< Bkmer >();
+}
+
+UContainer::~UContainer()
+{
+    delete m_bkmers;
+}
+
+bool UContainer::contains( Bkmer* bkmer )
+{
+    std::set< Bkmer >::iterator index = m_bkmers->find( *bkmer );
+    if( index == m_bkmers->end() )
+    {
+        return false;
+    }
+    return true;
 }
 
 void UContainer::insert( Bkmer* bkmer )
 {
-    bkmers->insert( bkmer );
-}
-
-bool UContainer::contains_kmer( Bkmer* bkmer )
-{
-    //if( bkmers->find( *bkmer ) != bkmers->end() )
+    std::set< Bkmer >::iterator index = m_bkmers->find( *bkmer );
+    if( index == m_bkmers->end() )
     {
-        return true;
+        m_bkmers->insert( *bkmer );
     }
-
-    return false;
 }
 
 bool UContainer::is_full()
 {
-    if( bkmers->size() == s_capacity )
+    if( m_bkmers->size() == s_capacity )
     {
         return true;
     }
@@ -32,9 +41,9 @@ bool UContainer::is_full()
     }
 }
 
-std::set< Bkmer* >* UContainer::get_bkmers()
+std::set< Bkmer >* UContainer::get_bkmers()
 {
-    return bkmers;
+    return m_bkmers;
 }
 
 

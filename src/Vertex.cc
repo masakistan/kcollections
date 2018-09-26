@@ -2,37 +2,23 @@
 
 Vertex::Vertex()
 {
-    ccs = new std::vector< CContainer*>();
-    uc = new UContainer();
+    m_ccs = new std::vector< CContainer*>();
+    m_uc = new UContainer();
+    m_terminal_colors = new std::vector< bool >();
+    m_cardinality = 0;
 }
 
 Vertex::~Vertex()
 {
-    delete uc;
-    delete ccs;
+    delete m_uc;
+    delete m_ccs;
+    delete m_terminal_colors;
 }
 
 void Vertex::insert( Bkmer* bkmer )
 {
     insert( this, bkmer );
 }
-
-/*Vertex* get_child_of( CContainer* cc, Bkmer* sfpx )
-{
-    SufClustData* scd = cc->get_suf_clust_data_item( sfpx );
-    if( scd == NULL )
-    {
-        return NULL;
-    }
-
-    Vertex* child_vertex = scd->get_child_vertex();
-    if( child_vertex == NULL )
-    {
-        child_vertex = new Vertex();
-        scd->set_child_vertex( child_vertex );
-    }
-    return child_vertex;
-}*/
 
 void Vertex::insert( Vertex* v, Bkmer* bkmer )
 {
@@ -41,14 +27,14 @@ void Vertex::insert( Vertex* v, Bkmer* bkmer )
     Bkmer* sfpx = bkmer->get_prefix( sfpx_len );
 
     // check if item is in the uncompressed container
-    if( uc->contains_kmer( bkmer ) )
+    if( m_uc->contains_kmer( bkmer ) )
     {
         // can skip, kmer already added
         return;
     }
     
     // check all compressed containers
-    for( CContainer* cc : *ccs )
+    for( CContainer* cc : *m_ccs )
     {
         // check if item is possibly in a compressed container
         if( cc->may_contain( sfpx ) )
@@ -72,7 +58,7 @@ void Vertex::insert( Vertex* v, Bkmer* bkmer )
         }
     }
     
-    if( uc->is_full() )
+    if( m_uc->is_full() )
     {
         // burst container if necessary
         burst_uc( bkmer );
@@ -80,31 +66,72 @@ void Vertex::insert( Vertex* v, Bkmer* bkmer )
     else
     {
         // add to uncompressed container
-        uc->insert( bkmer );
+        m_uc->insert( bkmer );
     }
+}
+
+bool Vertex::contains( Bkmer* bkmer )
+{
+    return contains( this, bkmer );
+}
+
+bool Vertex::contains( Vertex* v, Bkmer* bkmer )
+{
+    UContainer* uc = v->get_uc();
+    std::vector< CContainer* >* ccs = v->get_ccs();
+
+    if( uc->contains( bkmer ) )
+    {
+        return true;
+    }
+
+    int sfpx_length = Container::get_prefix_length();
+    Bkmer* sfpx = bkmer->get_prefix( sfpx_length );
+
+    for( CContainer* cc : *( ccs ) )
+    {
+        if( cc->may_contain( sfpx ) && cc->contains_prefix( sfpx ) )
+        {
+            sfpx = bkmer->emit_prefix( sfpx_length );
+            Vertex* child_vertex = cc->get_child_of( sfpx );
+            return contains( child_vertex, bkmer );
+        }
+    }
+
+    return false;
+}
+
+bool contains_sequence( Bkmer* bkmer )
+{
+    std::set< Bkmer >::iterator index = m_bkmers->find( *bkmer );
+    if( index != m_bkmers->end() )
+    {
+        return true;
+    }
+    return contains_partial( bkmer->get_sequence() );
 }
 
 void Vertex::burst_uc( Bkmer* bkmer )
 {
     UContainer* nuc = new UContainer();
     CContainer* ncc = new CContainer();
-    uc->insert( bkmer );
+    m_uc->insert( bkmer );
 
     Bkmer* sfpx;
 
-    for( Bkmer* uc_bkmer : *( uc->get_bkmers() ) )
+    for( Bkmer uc_bkmer : *( m_uc->get_bkmers() ) )
     {
-        sfpx = uc_bkmer->get_prefix( Container::get_prefix_length() );
+        sfpx = uc_bkmer.get_prefix( Container::get_prefix_length() );
 
         // check if compressed container is at capacity
         if( !ncc->is_full() )
         {
-            uc_bkmer->emit_prefix( Container::get_prefix_length() );
-            ncc->get_child_of( sfpx )->insert( uc_bkmer );
+            uc_bkmer.emit_prefix( Container::get_prefix_length() );
+            ncc->get_child_of( sfpx )->insert( &uc_bkmer );
         }
         else if( !nuc->is_full() )
         {
-            nuc->insert( uc_bkmer );
+            nuc->insert( &uc_bkmer );
         }
         else
         {
@@ -112,8 +139,8 @@ void Vertex::burst_uc( Bkmer* bkmer )
         }
     }
 
-    uc = nuc;
-    ccs->push_back( ncc );
+    m_uc = nuc;
+    m_ccs->push_back( ncc );
 }
 
 
