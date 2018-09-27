@@ -3,6 +3,7 @@ project (Kdict)
 # The version number.
 set (Kdict_VERSION_MAJOR 0)
 set (Kdict_VERSION_MINOR 1)
+set(CMAKE_BUILD_TYPE Debug)
 
 # Add inc directory
 include_directories(inc)
