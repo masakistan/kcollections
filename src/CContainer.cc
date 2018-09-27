@@ -34,7 +34,7 @@ bool CContainer::contains_prefix( Bkmer* sfpx )
     Bkmer* sfpx_suffix = sfpx->get_suffix( Container::get_prfx_suffix_length() );
     int pref_index = get_index_in_pref( sfpx_prefix );
 
-    if( m_pref->at( pref_index ) == true )
+    if( m_pref->at( pref_index ) )
     {
         int cluster_num = hamming_weight( pref_index );
         int start = rank( cluster_num );
@@ -42,7 +42,7 @@ bool CContainer::contains_prefix( Bkmer* sfpx )
         while( pos < m_suf_clust_data->size()
                 && ( pos == start || m_suf_clust_data->at( pos )->is_cluster_start() == false ) )
         {
-            if( m_suf_clust_data->at( pos )->get_sfpx_suffix() == sfpx_suffix )
+            if( *( m_suf_clust_data->at( pos )->get_sfpx_suffix() ) == *sfpx_suffix )
             {
                 return true;
             }

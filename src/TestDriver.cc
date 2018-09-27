@@ -1,6 +1,28 @@
 #include <iostream>
 #include "Kdict.h"
 
+
+int test_cc_contain( CContainer* cc, Bkmer* bkmer )
+{
+    std::cout << "\t\tCompressed container stored" << bkmer->get_seq();
+    if( cc->may_contain( bkmer ) )
+    {
+        if( cc->contains_prefix( bkmer ) )
+        {
+            std::cout << " True!" << std::endl;
+        }
+        else
+        {
+            std::cout << " False positive!" << std::endl;
+        }
+    }
+    else
+    {
+        std::cout << " False!" << std::endl;
+    }
+    return 0;
+}
+
 int main()
 {
     // Testing Parameters
@@ -67,27 +89,9 @@ int main()
     {
         cc->insert( bkmer );
     }
-    
-    std::cout << "\t\tkmer may contain " << bkmer->get_seq();
-    if( cc->may_contain( bkmer ) )
-    {
-        std::cout << " True!" << std::endl;
-    }
-    else
-    {
-        std::cout << " False!" << std::endl;
-    }
 
-    std::cout << "\t\tkmer may contain " << bad_bkmer->get_seq();
-    if( cc->may_contain( bad_bkmer ) )
-    {
-        std::cout << " True!" << std::endl;
-    }
-    else
-    {
-        std::cout << " False!" << std::endl;
-    }
-
+    test_cc_contain( cc, bkmer );
+    test_cc_contain( cc, bad_bkmer );
     
     //std::cout << "\t\tUC size: " << uc->size() << std::endl;
 
