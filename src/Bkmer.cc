@@ -202,7 +202,7 @@ char Bkmer::char_at( int pos )
 char* Bkmer::deserialize_seq()
 {
     int bases_processed = 0, j, pos, bases_to_process;
-    char* kmer = ( char* ) malloc( sizeof( char ) * m_k );
+    char* kmer = ( char* ) malloc( sizeof( char ) * ( m_k + 1 ) );
     uint8_t tbkmer;
     
     for( int i = 0; i < m_bk; i ++ )
@@ -224,8 +224,14 @@ char* Bkmer::deserialize_seq()
             tbkmer >>= 2;
         }
     }
+    kmer[ m_k ] = '\0';
 
     return kmer;
+}
+
+char* Bkmer::get_seq()
+{
+    return deserialize_seq();
 }
 
 

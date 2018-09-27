@@ -38,6 +38,7 @@ class Bkmer
         void set_bseq( uint8_t* bseq );
         char char_at( int pos );
         char* deserialize_seq();
+        char* get_seq();
 };
 
 

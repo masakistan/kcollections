@@ -7,8 +7,8 @@ const int CContainer::PREF_SIZE = std::pow( 2, 4 * Container::get_prfx_prefix_le
 CContainer::CContainer() : Container()
 {
     bf = new BloomFilter( 10, 10 );
-    m_suf_clust_data = new std::vector< SufClustData* >( get_capacity() );
-    m_pref = new std::vector< bool >();
+    m_suf_clust_data = new std::vector< SufClustData* >();
+    m_pref = new std::vector< bool >( PREF_SIZE );
 }
 
 CContainer::~CContainer()

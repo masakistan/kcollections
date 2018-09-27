@@ -4,16 +4,24 @@ Vertex::Vertex()
 {
     m_ccs = new std::vector< CContainer*>();
     m_uc = new UContainer();
-    m_terminal_colors = new std::vector< bool >();
-    m_cardinality = 0;
+    //m_terminal_colors = new std::vector< bool >();
+    //m_cardinality = 0;
 }
 
 Vertex::~Vertex()
 {
     delete m_uc;
     delete m_ccs;
-    delete m_terminal_colors;
+    //delete m_terminal_colors;
 }
+
+/*std::vector< Container* >* get_containers()
+{
+    std::vector< Container* > conts = new std::vector< Container* >();
+    conts.push_back( 
+*/
+
+
 
 void Vertex::insert( Bkmer* bkmer )
 {
@@ -27,7 +35,7 @@ void Vertex::insert( Vertex* v, Bkmer* bkmer )
     Bkmer* sfpx = bkmer->get_prefix( sfpx_len );
 
     // check if item is in the uncompressed container
-    if( m_uc->contains_kmer( bkmer ) )
+    if( m_uc->contains( bkmer ) )
     {
         // can skip, kmer already added
         return;
@@ -78,13 +86,13 @@ bool Vertex::contains( Bkmer* bkmer )
 bool Vertex::contains( Vertex* v, Bkmer* bkmer )
 {
     UContainer* uc = v->get_uc();
-    std::vector< CContainer* >* ccs = v->get_ccs();
 
     if( uc->contains( bkmer ) )
     {
         return true;
     }
 
+    std::vector< CContainer* >* ccs = v->get_ccs();
     int sfpx_length = Container::get_prefix_length();
     Bkmer* sfpx = bkmer->get_prefix( sfpx_length );
 
@@ -99,16 +107,6 @@ bool Vertex::contains( Vertex* v, Bkmer* bkmer )
     }
 
     return false;
-}
-
-bool contains_sequence( Bkmer* bkmer )
-{
-    std::set< Bkmer >::iterator index = m_bkmers->find( *bkmer );
-    if( index != m_bkmers->end() )
-    {
-        return true;
-    }
-    return contains_partial( bkmer->get_sequence() );
 }
 
 void Vertex::burst_uc( Bkmer* bkmer )
