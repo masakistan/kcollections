@@ -19,6 +19,7 @@ class Kdict
         Kdict( int k, int bk );
         ~Kdict();
         void insert( char* kmer );
+        bool contains( char* kmer );
 
 };
 

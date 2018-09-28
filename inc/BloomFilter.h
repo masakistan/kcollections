@@ -30,6 +30,7 @@ class BloomFilter
         ~BloomFilter();
         void add( const Bkmer* data );
         bool may_contain( const uint8_t* data, std::size_t len ) const;
+        std::vector<bool>* get_bits() const { return m_bits; }
 };
 
 

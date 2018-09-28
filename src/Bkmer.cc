@@ -31,10 +31,12 @@ void Bkmer::serialize_kmer( char* kmer )
 
 Bkmer::Bkmer( const Bkmer& other )
 {
-    int o_bk = other.get_bk();
+
+    m_bk = other.get_bk();
+    m_k = other.get_k();
     uint8_t* o_bseq = other.get_bseq();
-    m_bseq = ( uint8_t* ) calloc( o_bk, sizeof( uint8_t ) );
-    for( int i = 0; i < o_bk; i++ )
+    m_bseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
+    for( int i = 0; i < m_bk; i++ )
     {
         m_bseq[ i ] = o_bseq[ i ];
     }
@@ -49,7 +51,7 @@ Bkmer* Bkmer::emit_prefix( int len )
         return sfpx;
     }
 
-    for( int i = 0; i < m_bk; i++ )
+    for( int i = 0; i < m_bk - 1; i++ )
     {
         m_bseq[ i ] = m_bseq[ i + len ];
     }
@@ -68,13 +70,15 @@ Bkmer* Bkmer::get_prefix( int len )
     }
 
     Bkmer* sfpx = new Bkmer( *this );
+    //std::cout << "before " << sfpx->get_seq() << std::endl;
     sfpx->set_bk( len );
-    sfpx->set_k( m_k - len * 4 );
+    sfpx->set_k( len * 4 );
     for( int i = 0; i < len; i++ )
     {
         sfpx->m_bseq[ i ] = m_bseq[ i ];
     }
     sfpx->resize();
+    //std::cout << "after " << sfpx->get_seq() << std::endl;
     return sfpx;
 }
 
@@ -86,19 +90,21 @@ Bkmer* Bkmer::get_suffix( int pos )
     }
 
     Bkmer* sf = new Bkmer( *this );
-    for( int i = pos; i < m_bk; i++ )
+    int bytes = m_bk - pos;
+    int removed = m_bk - bytes;
+    for( int i = 0; i < bytes; i++ )
     {
-        sf->m_bseq[ i - pos ] = m_bseq[ i ];
+        sf->m_bseq[ 0 ] = m_bseq[ i + pos ];
     }
-    sf->set_bk( m_bk - pos );
-    sf->set_k( m_k - sf->get_bk() * 4 );
+    sf->set_bk( bytes );
+    sf->set_k( m_k - ( removed * 4 ) );
     return sf;
 }
 
 void Bkmer::resize()
 {
     uint8_t* nbseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
-    for( int i = 0; i < m_bk; i ++ )
+    for( int i = 0; i < m_bk; i++ )
     {
         nbseq[ i ] = m_bseq[ i ];
     }
@@ -113,7 +119,7 @@ Bkmer::~Bkmer()
 
 bool Bkmer::operator<( const Bkmer& other ) const
 {
-    for( int i = 0; i < BK; i++ )
+    for( int i = 0; i < m_bk; i++ )
     {
         if(  unsigned( m_bseq[ i ] ) < unsigned( other.get_bseq()[ i ] ) )
         {
@@ -199,39 +205,40 @@ char Bkmer::char_at( int pos )
     return 'N';
 }
 
-char* Bkmer::deserialize_seq()
+char* Bkmer::deserialize_seq( int k, int bk, uint8_t* bseq )
 {
-    int bases_processed = 0, j, pos, bases_to_process;
-    char* kmer = ( char* ) malloc( sizeof( char ) * ( m_k + 1 ) );
+    int bases_processed = 0, j, pos, bases_in_byte, bases_to_process = k;
+    char* kmer = ( char* ) malloc( sizeof( char ) * ( k + 1 ) );
     uint8_t tbkmer;
     
-    for( int i = 0; i < m_bk; i ++ )
+    for( int i = 0; i < bk; i ++ )
     {
-        if( i == m_bk - 1 )
+        if( bases_to_process > 4 )
         {
-            bases_to_process = m_k % 4;
+            bases_in_byte = 4;
         }
         else
         {
-            bases_to_process = 4;
+            bases_in_byte = bases_to_process;
         }
 
-        tbkmer = m_bseq[ i ];
-        for( j = 0; j < bases_to_process; j ++ )
+        tbkmer = bseq[ i ];
+        for( j = 0; j < bases_in_byte; j++ )
         {
             pos = ( i * 4 ) + j;
             kmer[ pos ] = COMP_TO_ASCII[ tbkmer & 0x3 ];
             tbkmer >>= 2;
         }
+        bases_to_process -= bases_in_byte;
     }
-    kmer[ m_k ] = '\0';
+    kmer[ k ] = '\0';
 
     return kmer;
 }
 
 char* Bkmer::get_seq()
 {
-    return deserialize_seq();
+    return deserialize_seq( m_k, m_bk, m_bseq );
 }
 
 

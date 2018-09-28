@@ -17,7 +17,7 @@ class CContainer : public Container
         std::vector< SufClustData* >* m_suf_clust_data; 
         const static int PREF_SIZE;
 
-        int get_index_in_pref( Bkmer* bkmer );
+        unsigned int get_index_in_pref( Bkmer* bkmer );
         int hamming_weight( int index );
         int rank( int clust_num );
         int index_of( Bkmer* bkmer );
@@ -32,6 +32,7 @@ class CContainer : public Container
         bool contains_prefix( Bkmer* sfpx );
         void insert( Bkmer* sfpx );
         bool is_full();
+        char* index_to_pref( uint8_t index );
 
         int size() { return m_suf_clust_data->size(); }
         BloomFilter* get_bf();

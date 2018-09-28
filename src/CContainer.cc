@@ -1,12 +1,13 @@
 #include "CContainer.h"
 
-// the magic number is 4 for the number of bits needed to hold the entire
-// alphabet
-const int CContainer::PREF_SIZE = std::pow( 2, 4 * Container::get_prfx_prefix_length() );
+// length of prefix = 1 for 1 uint
+// each prefix holds 4 bases
+// there are 4 different possible bases
+const int CContainer::PREF_SIZE = std::pow( Container::get_prfx_prefix_length() * 4, 4 );
 
 CContainer::CContainer() : Container()
 {
-    bf = new BloomFilter( 10, 10 );
+    bf = new BloomFilter( 256, 5 );
     m_suf_clust_data = new std::vector< SufClustData* >();
     m_pref = new std::vector< bool >( PREF_SIZE );
 }
@@ -142,6 +143,7 @@ SufClustData* CContainer::get_suf_clust_data_item( Bkmer* sfpx )
 Vertex* CContainer::get_child_of( Bkmer* sfpx )
 {
     int index_of_child = index_of( sfpx );
+    //std::cout << "\tindex of " << sfpx->get_seq() << " at " << index_of_child << std::endl;
     if( index_of_child > -1 )
     {
         return m_suf_clust_data->at( index_of_child )->get_child_vertex();
@@ -243,10 +245,13 @@ int CContainer::rank( int clust_num )
     return m_suf_clust_data->size();
 }
 
-/* Converts prefix string to its location on mPref bit-array */
-int CContainer::get_index_in_pref( Bkmer* sfpx_prefix )
+/* Converts prefix string to its location on mPref bit-array
+ * this should always be a single 8*/
+unsigned int CContainer::get_index_in_pref( Bkmer* sfpx_prefix )
 {
-    int pref_index = 0;
+    assert ( sfpx_prefix->get_bk() == 1 );
+
+    /*int pref_index = 0;
     for( int i = 0; i < sfpx_prefix->get_bk(); i++ ) // binary index = sum((|A|^i) * c)
     {
         int char_index;
@@ -258,12 +263,14 @@ int CContainer::get_index_in_pref( Bkmer* sfpx_prefix )
             case 'T': char_index = 3; break;
             default : char_index = -1;
         }
-        pref_index +=
-            std::pow( 4, Container::get_prfx_prefix_length() - ( i + 1 ) )
-            * char_index;
-    }
+        pref_index += std::pow( 4, Container::get_prfx_prefix_length() - ( i + 1 ) ) * char_index;
+    }*/
+    return unsigned( sfpx_prefix->get_bseq()[ 0 ] );
+}
 
-    return pref_index;
+char* CContainer::index_to_pref( uint8_t index )
+{
+    return Bkmer::deserialize_seq( 4, 1, &index );
 }
 
 /* Algorithm to return index of the child vertex that holds a given suffix's prefix */
@@ -273,6 +280,8 @@ int CContainer::index_of( Bkmer* sfpx )
     Bkmer* sfpx_suffix = sfpx->get_suffix( Container::get_prfx_prefix_length() );
     int pref_index = get_index_in_pref( sfpx_prefix );
 
+    //std::cout << "\t\t" << sfpx_prefix->get_seq() << "\tm_pref[" << pref_index << "]=" << m_pref->at( pref_index ) << std::endl;
+
     if( m_pref->at( pref_index ) == true )
     {
         int clust_num = hamming_weight( pref_index );
@@ -281,7 +290,7 @@ int CContainer::index_of( Bkmer* sfpx )
         while( pos < m_suf_clust_data->size()
                 && ( pos == start || !m_suf_clust_data->at( pos )->is_cluster_start() ) )
         {
-            if( m_suf_clust_data->at( pos )->get_sfpx_suffix() == sfpx_suffix )
+            if( *( m_suf_clust_data->at( pos )->get_sfpx_suffix() ) == *sfpx_suffix )
             {
                 return pos;
             }
@@ -295,6 +304,15 @@ int CContainer::index_of( Bkmer* sfpx )
 /* Adds suffix-prefix (sfpx) to Bloom filter mQuer */
 void CContainer::add_to_bloom_filter( Bkmer* sfpx )
 {
+    /*std::cout << "\t\t\tadding to bloom filter " << sfpx->get_seq() << std::endl;
+    std::vector< bool > bits = *bf->get_bits();
+    std::cout << "\t\t\t\t[";
+    for( int i = 0; i < bits.size(); i++ ) 
+    {
+        std::cout << bits[ i ] << ", ";
+    }
+    std::cout << "]" << std::endl;*/
+
     bf->add( sfpx );
 }
 
