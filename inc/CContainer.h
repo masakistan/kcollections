@@ -14,7 +14,7 @@ class CContainer : public Container
     private:
         BloomFilter* bf;
         std::vector< bool >* m_pref;
-        std::vector< SufClustData* >* m_suf_clust_data; 
+        std::vector< std::unique_ptr< SufClustData > >* m_suf_clust_data; 
         const static int PREF_SIZE;
 
         unsigned int get_index_in_pref( Bkmer* bkmer );
@@ -36,12 +36,12 @@ class CContainer : public Container
 
         int size() { return m_suf_clust_data->size(); }
         BloomFilter* get_bf();
-        std::vector< SufClustData* >* get_suf_clust_data();
-        std::vector< Bkmer* >* get_suf();
+        //std::vector< std::unique_ptr< SufClustData > >* get_suf_clust_data();
+        //std::vector< Bkmer* >* get_suf();
         std::vector< bool >* get_clust();
         std::vector< Vertex* >* get_child_vertices();
         static int get_pref_size() { return PREF_SIZE; }
-        SufClustData* get_suf_clust_data_item( Bkmer* sfpx );
+        //std::unique_ptr< SufClustData > get_suf_clust_data_item( Bkmer* sfpx );
 
 };
 

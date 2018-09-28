@@ -34,24 +34,25 @@ Bkmer::Bkmer( const Bkmer& other )
 
     m_bk = other.get_bk();
     m_k = other.get_k();
-    uint8_t* o_bseq = other.get_bseq();
     m_bseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
+    
+    uint8_t* o_bseq = other.get_bseq();
     for( int i = 0; i < m_bk; i++ )
     {
         m_bseq[ i ] = o_bseq[ i ];
     }
 }
 
-Bkmer* Bkmer::emit_prefix( int len )
+std::unique_ptr< Bkmer > Bkmer::emit_prefix( int len )
 {
-    Bkmer* sfpx = get_prefix( len );
+    std::unique_ptr< Bkmer > sfpx = get_prefix( len );
 
     if( sfpx == NULL )
     {
         return sfpx;
     }
 
-    for( int i = 0; i < m_bk - 1; i++ )
+    for( int i = 0; i < m_bk - len; i++ )
     {
         m_bseq[ i ] = m_bseq[ i + len ];
     }
@@ -62,14 +63,14 @@ Bkmer* Bkmer::emit_prefix( int len )
     return sfpx;
 }
 
-Bkmer* Bkmer::get_prefix( int len )
+std::unique_ptr< Bkmer > Bkmer::get_prefix( int len )
 {
     if( m_k == 0 )
     {
         return NULL;
     }
 
-    Bkmer* sfpx = new Bkmer( *this );
+    std::unique_ptr< Bkmer > sfpx = std::make_unique< Bkmer >( *this );
     //std::cout << "before " << sfpx->get_seq() << std::endl;
     sfpx->set_bk( len );
     sfpx->set_k( len * 4 );
@@ -82,14 +83,14 @@ Bkmer* Bkmer::get_prefix( int len )
     return sfpx;
 }
 
-Bkmer* Bkmer::get_suffix( int pos )
+std::unique_ptr< Bkmer > Bkmer::get_suffix( int pos )
 {
     if( m_k == 0 )
     {
         return NULL;
     }
 
-    Bkmer* sf = new Bkmer( *this );
+    std::unique_ptr< Bkmer > sf = std::make_unique< Bkmer >( *this );
     int bytes = m_bk - pos;
     int removed = m_bk - bytes;
     for( int i = 0; i < bytes; i++ )
@@ -154,6 +155,7 @@ uint8_t* Bkmer::get_bseq() const
 
 void Bkmer::set_bseq( uint8_t* bseq )
 {
+    delete m_bseq;
     m_bseq = bseq;
 }
 

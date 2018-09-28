@@ -8,7 +8,7 @@ const int CContainer::PREF_SIZE = std::pow( Container::get_prfx_prefix_length() 
 CContainer::CContainer() : Container()
 {
     bf = new BloomFilter( 256, 5 );
-    m_suf_clust_data = new std::vector< SufClustData* >();
+    m_suf_clust_data = new std::vector< std::unique_ptr< SufClustData > >();
     m_pref = new std::vector< bool >( PREF_SIZE );
 }
 
@@ -31,9 +31,9 @@ bool CContainer::contains_prefix( Bkmer* sfpx )
         return true;
     }
 
-    Bkmer* sfpx_prefix = sfpx->get_prefix( Container::get_prfx_prefix_length() );
-    Bkmer* sfpx_suffix = sfpx->get_suffix( Container::get_prfx_suffix_length() );
-    int pref_index = get_index_in_pref( sfpx_prefix );
+    std::unique_ptr< Bkmer > sfpx_prefix = sfpx->get_prefix( Container::get_prfx_prefix_length() );
+    std::unique_ptr< Bkmer >sfpx_suffix = sfpx->get_suffix( Container::get_prfx_suffix_length() );
+    int pref_index = get_index_in_pref( sfpx_prefix.get() );
 
     if( m_pref->at( pref_index ) )
     {
@@ -60,9 +60,9 @@ void CContainer::insert( Bkmer* sfpx )
         return;
     }
 
-    Bkmer* sfpx_prefix = sfpx->get_prefix( Container::get_prfx_prefix_length() );
-    Bkmer* sfpx_suffix = sfpx->get_suffix( Container::get_prfx_suffix_length() );
-    int pref_index = get_index_in_pref( sfpx_prefix );
+    std::unique_ptr< Bkmer >sfpx_prefix = sfpx->get_prefix( Container::get_prfx_prefix_length() );
+    std::unique_ptr< Bkmer >sfpx_suffix = sfpx->get_suffix( Container::get_prfx_suffix_length() );
+    int pref_index = get_index_in_pref( sfpx_prefix.get() );
 
     bool was_pref_index_set = m_pref->at( pref_index );
     m_pref->at( pref_index ) = true;
@@ -73,8 +73,9 @@ void CContainer::insert( Bkmer* sfpx )
     // sfpxPrefix was not present
     if( !was_pref_index_set )
     {
-        SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, true );
-        m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos, suf_clust_data );
+        //SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, true );
+        //m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos, suf_clust_data );
+        m_suf_clust_data->emplace( m_suf_clust_data->begin() + clust_pos, new SufClustData( sfpx_suffix.get(), true ) );
         add_to_bloom_filter( sfpx );
         return;
     }
@@ -83,11 +84,12 @@ void CContainer::insert( Bkmer* sfpx )
     if( was_pref_index_set )
     {
         // if sfpx_suffix starts its cluster...
-        bool is_new_sfx_less_than_pos = sfpx_suffix == m_suf_clust_data->at( clust_pos )->get_sfpx_suffix();
+        bool is_new_sfx_less_than_pos = *sfpx_suffix == *m_suf_clust_data->at( clust_pos )->get_sfpx_suffix();
         if( is_new_sfx_less_than_pos )
         {
-            SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, true );
-            m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos, suf_clust_data );
+            //SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, true );
+            //m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos, suf_clust_data );
+            m_suf_clust_data->emplace( m_suf_clust_data->begin() + clust_pos, new SufClustData( sfpx_suffix.get(), true ) );
             m_suf_clust_data->at( clust_pos + 1 )->set_cluster_start( false );
             add_to_bloom_filter( sfpx );
             return;
@@ -98,39 +100,42 @@ void CContainer::insert( Bkmer* sfpx )
 
         // if clust_pos is at end of bit-array
         if(clust_pos >= m_suf_clust_data->size()) {
-            SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, false );
-            m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos, suf_clust_data );
+            //SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, false );
+            //m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos, suf_clust_data );
+            m_suf_clust_data->emplace( m_suf_clust_data->begin() + clust_pos, new SufClustData( sfpx_suffix.get(), false ) );
             add_to_bloom_filter( sfpx );
             return;
         }
 
         // while sfpx_suffix is greater than previous suffix...
         bool is_new_sfx_greater_than_prev_pos =
-            sfpx_suffix == m_suf_clust_data->at( clust_pos - 1 )->get_sfpx_suffix();
+            *sfpx_suffix == *m_suf_clust_data->at( clust_pos - 1 )->get_sfpx_suffix();
 
         while (is_new_sfx_greater_than_prev_pos) {
             // if clust_pos is at end of bit-array OR if next cluster is reached (ie. if sfpx_suffix is greatest in its cluster)...
             if( clust_pos >= m_suf_clust_data->size() || m_suf_clust_data->at( clust_pos )->is_cluster_start() )
             {
-                SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, false );
-                m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos, suf_clust_data );
+                //SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, false );
+                //m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos, suf_clust_data );
+                m_suf_clust_data->emplace( m_suf_clust_data->begin() + clust_pos, new SufClustData( sfpx_suffix.get(), false ) );
                 add_to_bloom_filter( sfpx );
                 return;
             }
 
             clust_pos++;
-            is_new_sfx_greater_than_prev_pos = sfpx_suffix == m_suf_clust_data->at( clust_pos - 1 )->get_sfpx_suffix();
+            is_new_sfx_greater_than_prev_pos = *sfpx_suffix == *m_suf_clust_data->at( clust_pos - 1 )->get_sfpx_suffix();
         }
 
         // if sfpx_suffix is less than previous suffix...
-        SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, false );
-        m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos - 1, suf_clust_data );
+        //SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, false );
+        //m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos - 1, suf_clust_data );
+        m_suf_clust_data->emplace( m_suf_clust_data->begin() + clust_pos, new SufClustData( sfpx_suffix.get(), false ) );
         add_to_bloom_filter( sfpx );
         return;
     }    
 }
 
-SufClustData* CContainer::get_suf_clust_data_item( Bkmer* sfpx )
+/*std::unique_ptr< SufClustData > CContainer::get_suf_clust_data_item( Bkmer* sfpx )
 {
     int index_of_child = index_of( sfpx );
     if( index_of_child > -1 )
@@ -138,7 +143,7 @@ SufClustData* CContainer::get_suf_clust_data_item( Bkmer* sfpx )
         return m_suf_clust_data->at( index_of_child );
     }
     return NULL;
-}
+}*/
 
 Vertex* CContainer::get_child_of( Bkmer* sfpx )
 {
@@ -168,12 +173,12 @@ BloomFilter* CContainer::get_bf()
     return new BloomFilter( *bf );
 }
 
-std::vector< SufClustData* >* CContainer::get_suf_clust_data()
+/*std::vector< std::unique_ptr< SufClustData > >* CContainer::get_suf_clust_data()
 {
-    return new std::vector< SufClustData* >( *m_suf_clust_data );
-}
+    return new std::vector< std::unique_ptr< SufClustData > >( *m_suf_clust_data );
+}*/
 
-std::vector< Bkmer* >* CContainer::get_suf()
+/*std::vector< Bkmer* >* CContainer::get_suf()
 {
     std::vector< Bkmer* >* suf = new std::vector< Bkmer* >( m_suf_clust_data->size() );
     for( int i = 0; i < m_suf_clust_data->size(); i++ )
@@ -181,7 +186,7 @@ std::vector< Bkmer* >* CContainer::get_suf()
         suf->push_back( ( *m_suf_clust_data )[ i ]->get_sfpx_suffix() );
     }
     return suf;
-}
+}*/
 
 std::vector< bool >* CContainer::get_clust()
 {
@@ -276,9 +281,9 @@ char* CContainer::index_to_pref( uint8_t index )
 /* Algorithm to return index of the child vertex that holds a given suffix's prefix */
 int CContainer::index_of( Bkmer* sfpx )
 {
-    Bkmer* sfpx_prefix = sfpx->get_prefix( Container::get_prfx_prefix_length() );
-    Bkmer* sfpx_suffix = sfpx->get_suffix( Container::get_prfx_prefix_length() );
-    int pref_index = get_index_in_pref( sfpx_prefix );
+    std::unique_ptr< Bkmer >sfpx_prefix = sfpx->get_prefix( Container::get_prfx_prefix_length() );
+    std::unique_ptr< Bkmer >sfpx_suffix = sfpx->get_suffix( Container::get_prfx_prefix_length() );
+    int pref_index = get_index_in_pref( sfpx_prefix.get() );
 
     //std::cout << "\t\t" << sfpx_prefix->get_seq() << "\tm_pref[" << pref_index << "]=" << m_pref->at( pref_index ) << std::endl;
 

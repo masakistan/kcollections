@@ -2,15 +2,14 @@
 
 Vertex::Vertex()
 {
-    m_ccs = new std::vector< CContainer*>();
-    m_uc = new UContainer();
+    m_ccs = new std::vector< std::unique_ptr< CContainer > >();
+    m_uc = std::make_unique< UContainer >();
     //m_terminal_colors = new std::vector< bool >();
     //m_cardinality = 0;
 }
 
 Vertex::~Vertex()
 {
-    delete m_uc;
     delete m_ccs;
     //delete m_terminal_colors;
 }
@@ -25,7 +24,7 @@ void Vertex::insert( Vertex* v, Bkmer* bkmer )
     //std::cout << "\ttrying to insert: " << bkmer->get_seq() << std::endl;
     // get prefix position
     int sfpx_len = Container::get_prefix_length();
-    Bkmer* sfpx = bkmer->get_prefix( sfpx_len );
+    std::unique_ptr< Bkmer > sfpx = bkmer->get_prefix( sfpx_len );
 
     // check if item is in the uncompressed container
     if( m_uc->contains( bkmer ) )
@@ -35,19 +34,19 @@ void Vertex::insert( Vertex* v, Bkmer* bkmer )
     }
     
     // check all compressed containers
-    for( CContainer* cc : *m_ccs )
+    for( std::unique_ptr< CContainer >& cc : *m_ccs )
     {
         //std::cout << "\tchecking: " << sfpx->get_seq() << std::endl;
         // check if item is possibly in a compressed container
-        if( cc->may_contain( sfpx ) )
+        if( cc->may_contain( sfpx.get() ) )
         {
             //std::cout << "\t\tcc may contain " << std::endl;
             // check if item is actually in compressed container
-            if( cc->contains_prefix( sfpx ) )
+            if( cc->contains_prefix( sfpx.get() ) )
             {
                 //std::cout << "\t\t\tcc contains" << std::endl;
                 sfpx = bkmer->emit_prefix( sfpx_len );
-                Vertex* child_vertex = cc->get_child_of( sfpx );
+                Vertex* child_vertex = cc->get_child_of( sfpx.get() );
                 insert( child_vertex, bkmer );
                 return;
             }
@@ -55,8 +54,8 @@ void Vertex::insert( Vertex* v, Bkmer* bkmer )
             else
             {
                 ////std::cout << "\t\t\tcc false positive" << std::endl;
-                cc->insert( sfpx );
-                Vertex* child_vertex = cc->get_child_of( sfpx );
+                cc->insert( sfpx.get() );
+                Vertex* child_vertex = cc->get_child_of( sfpx.get() );
                 bkmer->emit_prefix( sfpx_len );
                 insert( child_vertex, bkmer );
             }
@@ -80,7 +79,7 @@ bool Vertex::contains( Bkmer* bkmer )
     return contains( this, bkmer );
 }
 
-bool Vertex::contains( Vertex* v, Bkmer* bkmer )
+bool Vertex::contains( Vertex* v, Bkmer* bkmer ) const
 {
     UContainer* uc = v->get_uc();
 
@@ -89,16 +88,16 @@ bool Vertex::contains( Vertex* v, Bkmer* bkmer )
         return true;
     }
 
-    std::vector< CContainer* >* ccs = v->get_ccs();
+    std::vector< std::unique_ptr< CContainer > >* ccs = v->get_ccs();
     int sfpx_length = Container::get_prefix_length();
-    Bkmer* sfpx = bkmer->get_prefix( sfpx_length );
+    std::unique_ptr< Bkmer > sfpx = bkmer->get_prefix( sfpx_length );
 
-    for( CContainer* cc : *( ccs ) )
+    for( std::unique_ptr< CContainer >& cc : *( ccs ) )
     {
-        if( cc->may_contain( sfpx ) && cc->contains_prefix( sfpx ) )
+        if( cc->may_contain( sfpx.get() ) && cc->contains_prefix( sfpx.get() ) )
         {
             sfpx = bkmer->emit_prefix( sfpx_length );
-            Vertex* child_vertex = cc->get_child_of( sfpx );
+            Vertex* child_vertex = cc->get_child_of( sfpx.get() );
             return contains( child_vertex, bkmer );
         }
     }
@@ -109,11 +108,11 @@ bool Vertex::contains( Vertex* v, Bkmer* bkmer )
 void Vertex::burst_uc( Bkmer* bkmer )
 {
     //std::cout << "bursting " << bkmer->get_seq() << std::endl;
-    UContainer* nuc = new UContainer();
-    CContainer* ncc = new CContainer();
+    std::unique_ptr< UContainer > nuc = std::make_unique< UContainer >(); //new UContainer();
+    std::unique_ptr< CContainer > ncc = std::make_unique< CContainer >(); //new CContainer();
     m_uc->insert( bkmer );
 
-    Bkmer* sfpx;
+    std::unique_ptr< Bkmer > sfpx;
 
     for( Bkmer uc_bkmer : *( m_uc->get_bkmers() ) )
     {
@@ -123,10 +122,10 @@ void Vertex::burst_uc( Bkmer* bkmer )
         // check if compressed container is at capacity
         if( !ncc->is_full() )
         {
-            ncc->insert( sfpx );
+            ncc->insert( sfpx.get() );
             uc_bkmer.emit_prefix( Container::get_prefix_length() );
             //std::cout << "\tnew uc bkmer: " << uc_bkmer.get_seq() << std::endl;
-            ncc->get_child_of( sfpx )->insert( &uc_bkmer );
+            ncc->get_child_of( sfpx.get() )->insert( &uc_bkmer );
         }
         else if( !nuc->is_full() )
         {
@@ -138,8 +137,8 @@ void Vertex::burst_uc( Bkmer* bkmer )
         }
     }
 
-    m_uc = nuc;
-    m_ccs->push_back( ncc );
+    m_uc = std::move( nuc );
+    m_ccs->push_back( std::move( ncc ) );
     //std::cout << "Done bursting!" << std::endl;
 }
 

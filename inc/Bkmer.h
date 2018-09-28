@@ -24,9 +24,9 @@ class Bkmer
     public:
         Bkmer( int k, int bk, char* kmer );
         Bkmer( const Bkmer& other );
-        Bkmer* emit_prefix( int len );
-        Bkmer* get_prefix( int len );
-        Bkmer* get_suffix( int pos );
+        std::unique_ptr< Bkmer > emit_prefix( int len );
+        std::unique_ptr< Bkmer > get_prefix( int len );
+        std::unique_ptr< Bkmer > get_suffix( int pos );
         ~Bkmer();
         bool operator<( const Bkmer& other ) const;
         bool operator==( const Bkmer& other );

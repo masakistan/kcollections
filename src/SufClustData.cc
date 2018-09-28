@@ -3,7 +3,8 @@
 
 SufClustData::SufClustData( Bkmer* sfpx_suffix, bool starts_cluster )
 {
-    m_sfpx_suffix = sfpx_suffix;
+    //m_sfpx_suffix = sfpx_suffix;
+    m_sfpx_suffix = std::make_unique< Bkmer >( *sfpx_suffix );
     m_starts_cluster = starts_cluster;
     //m_child_vertex = NULL;
     m_child_vertex = new Vertex();
@@ -11,7 +12,7 @@ SufClustData::SufClustData( Bkmer* sfpx_suffix, bool starts_cluster )
 
 SufClustData::~SufClustData()
 {
-    free( m_sfpx_suffix );
+    //delete m_sfpx_suffix;
     delete m_child_vertex;
 }
 
@@ -22,7 +23,7 @@ void SufClustData::set_child_vertex( Vertex* vertex )
 
 Bkmer* SufClustData::get_sfpx_suffix() const
 {
-    return m_sfpx_suffix;
+    return m_sfpx_suffix.get();
 }
 
 bool SufClustData::is_cluster_start() const

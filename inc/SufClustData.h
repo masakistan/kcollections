@@ -8,7 +8,7 @@ class Vertex;
 class SufClustData
 {
     private:
-        Bkmer* m_sfpx_suffix;
+        std::unique_ptr< Bkmer > m_sfpx_suffix;
         bool m_starts_cluster;
         Vertex* m_child_vertex;
 

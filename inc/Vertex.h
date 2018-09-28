@@ -14,29 +14,21 @@ class Vertex
         int depth;
 
         // Containers
-        UContainer* m_uc;
-        std::vector< CContainer* >* m_ccs;
-        //std::vector< bool >* m_terminal_colors;
-        //int m_cardinality;
+        std::unique_ptr< UContainer > m_uc;
+        std::vector< std::unique_ptr< CContainer > >* m_ccs;
+
+        UContainer* get_uc() const { return m_uc.get(); }
+        std::vector< std::unique_ptr< CContainer > >* get_ccs() const { return m_ccs; }
 
     public:
         Vertex();
         ~Vertex();
 
-        //std::vector< bool >* get_terminal_colors() { return m_terminal_colors; }
-        std::vector< CContainer* >* get_ccs() { return m_ccs; }
-        UContainer* get_uc() { return m_uc; }
-        //int num_terminal_colors() { return m_cardinality; }
-
-
         void insert( Vertex* v, Bkmer* bkmer );
         void insert( Bkmer* bkmer );
         bool contains( Bkmer* bkmer );
-        bool contains( Vertex* v, Bkmer* bkmer );
-
+        bool contains( Vertex* v, Bkmer* bkmer ) const;
         void burst_uc( Bkmer* bkmer );
-        //std::vector< Container >* get_containers();
-
 
 };
 

@@ -69,7 +69,9 @@ char* test_bad_kmers[] = {
 
 int test_cc_contain( CContainer* cc, Bkmer* bkmer )
 {
-    std::cout << "\t\tCompressed container stored " << bkmer->get_seq();
+    char* seq = bkmer->get_seq();
+    std::cout << "\t\tCompressed container stored " << seq;
+    free( seq );
     if( cc->may_contain( bkmer ) )
     {
         if( cc->contains_prefix( bkmer ) )
@@ -96,7 +98,6 @@ int main()
 
     std::cout << "Testing kmer dictionary implementation!" << std::endl;
     std::cout << "***************************************" << std::endl;
-    Kdict* kd = new Kdict( k, bk );
 
 
     /****************************************************************
@@ -112,7 +113,10 @@ int main()
         std::cout << "\t\t\t" << unsigned( bkmer->get_bseq()[ i ] ) << std::endl;
     }
 
-    std::cout << "\t\tdeserialized binary kmer: " << bkmer->get_seq() << std::endl;
+    char* seq = bkmer->get_seq();
+    std::cout << "\t\tdeserialized binary kmer: " << seq << std::endl;
+    free( seq );
+    delete bkmer;
     /****************************************************************
      * End serialization tests
      * *************************************************************/
@@ -123,6 +127,7 @@ int main()
      * *************************************************************/
     std::cout << "\tTesting uncompressed container..." << std::endl;
     UContainer* uc = new UContainer();
+    bkmer = new Bkmer( k, bk, kmer );
 
     for( int i = 0; i < 2; i++ )
     {
@@ -138,6 +143,8 @@ int main()
     {
         std::cout << "\t\tUC kmer contains failed!" << std::endl;
     }
+    delete bkmer;
+    delete uc;
     /****************************************************************
      * End uncompressed container tests
      * *************************************************************/
@@ -148,6 +155,7 @@ int main()
      * *************************************************************/
     CContainer* cc = new CContainer();
     std::cout << "\tTesting compressed container..." << std::endl;
+    bkmer = new Bkmer( k, bk, kmer );
     char* bad_kmer = ( char* ) "AAATTCCAACCGTGTCTTCTCCATTAA";
     Bkmer* bad_bkmer = new Bkmer( k, bk, bad_kmer );
 
@@ -158,6 +166,9 @@ int main()
 
     test_cc_contain( cc, bkmer );
     test_cc_contain( cc, bad_bkmer );
+    delete bkmer;
+    delete bad_bkmer;
+    delete cc;
     
     //std::cout << "\t\tUC size: " << uc->size() << std::endl;
 
@@ -189,7 +200,8 @@ int main()
         assert( !kdict->contains( test_bad_kmers[ i ] ) );
     }
     std::cout << "\t\tFound no bad kmers!" << std::endl;
-
+    
+    delete kdict;
 
     /****************************************************************
      * End compressed container tests
