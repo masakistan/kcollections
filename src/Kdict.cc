@@ -23,8 +23,9 @@ void Kdict::insert( char* kmer )
 bool Kdict::contains( char* kmer )
 {
     Bkmer* bkmer = new Bkmer( m_k, m_bk, kmer );
-    return root->contains( bkmer );
+    bool res = root->contains( bkmer );
     delete bkmer;
+    return res;
 }
 
 

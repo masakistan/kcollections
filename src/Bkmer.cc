@@ -155,7 +155,7 @@ uint8_t* Bkmer::get_bseq() const
 
 void Bkmer::set_bseq( uint8_t* bseq )
 {
-    delete m_bseq;
+    free( m_bseq );
     m_bseq = bseq;
 }
 
