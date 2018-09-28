@@ -1,10 +1,75 @@
 #include <iostream>
 #include "Kdict.h"
 
+int n_test_insert_kmers = 37;
+char* test_insert_kmers[] = {
+    ( char* ) "AAATCGTGGAAACGGTTCGGGTCCAGC",
+    ( char* ) "CCATTATGATATCTGCCAGTTGCCACA",
+    ( char* ) "TGGGCGGTGTGATGACGACGCTGATCG",
+    ( char* ) "TACCTTCCGGCGTACCTTTGCCCTCCA",
+    ( char* ) "CGCCGTAGAAAATGCCCATGGCAAGAA",
+    ( char* ) "TTGGGGAATATATGCAGTATTGGGGAA",
+    ( char* ) "CGATAGCTATCGTCGTATCCGTAACAC",
+    ( char* ) "GCTACCGTGAACGGTGCTACCTCCTTA",
+    ( char* ) "GGTATACGGGAAGGCAGGCATTGGCTG",
+    ( char* ) "CTGCTCGGTTTCCTCATCATCAAAATC",
+    ( char* ) "CGTTACCGTGCAAAGCAGCCTCGATGC",
+    ( char* ) "TGAATCTGTGTGGTGCACGCCGCACGG",
+    ( char* ) "TCGGCTTTGCCACGTCCCGCCAGTTCA",
+    ( char* ) "CCGGCGTTCCTTGATAACCCACGCATG",
+    ( char* ) "ATGCGAATGGCAGCATTCATATTGGTC",
+    ( char* ) "ATTTGCGCCATGGCAATGAAAAGCCAC",
+    ( char* ) "ACCCGTTAAAATGAAATATAAGAGACG",
+    ( char* ) "GAATGTATCAGCCGATGGTTCTACGAT",
+    ( char* ) "ACGCAAACTTTTTGCGAAGGTGGCGTG",
+    ( char* ) "GCTTTGATGAAAGCTTTTGGTGCGATG",
+    ( char* ) "CGCTGACGTTGCCCCATGTGAGCGTGA",
+    ( char* ) "AGTGCCGGACACATTGGATGTATGGTT",
+    ( char* ) "TCCGTGGTTGGCGCAGCGGAGGCGCTT",
+    ( char* ) "GTAACGGTGCGGGCTGACGCGTACAGG",
+    ( char* ) "CCAACCGTCTGGCGGAGCTGGCCCAGC",
+    ( char* ) "GCGCCGTTGTTCGACCACTTTATCGAG",
+    ( char* ) "TACGGTCGCCATATACAAGTAGTGCTG",
+    ( char* ) "AACCCGAAAAACGGTCGTCTGATTGTT",
+    ( char* ) "ATCCGCAAACACCAGATCGCTTTAGGG",
+    ( char* ) "GGTTCCCGCTGGCGCAATTGAAAACTT",
+    ( char* ) "TAATCGACGCCGGAAGGTTTGATCACA",
+    ( char* ) "ATATTTAACGACAGCGCGTGCAAATTG",
+    ( char* ) "TCATACTTTTTCCATTTCAATTAACCG",
+    ( char* ) "TCGCCGACCGGTTCGGTCAATGCCGCC",
+    ( char* ) "GCGTGGTGCCCAGCGGTTTCAACACCA",
+    ( char* ) "AACGCCTCAGAATACTTTACTGGGGCT",
+    ( char* ) "TGATCGAATAACTAATACGGTTCTCTG"
+};
+
+int n_test_bad_kmers = 20;
+char* test_bad_kmers[] = {
+    ( char* ) "GAGGCCAACGCCCATAATGCGGGCTGT",
+    ( char* ) "GATTGCCGGTGATGCCGCCGGAATGTG",
+    ( char* ) "GGCTCCCGCTTGCACGATCAACCGCCC",
+    ( char* ) "CGGAAATCGTAAAAACGGATTTCATAA",
+    ( char* ) "TGCATAATGCAGCCATCCTGAATATTG",
+    ( char* ) "CGTTGGCGGTGCGCTGCTGGAGCAACT",
+    ( char* ) "ACGCCGGTGAGCTGGCCGGAGCCGGGA",
+    ( char* ) "TAGAAACCCACTTGAGCGGCGGACGAT",
+    ( char* ) "GGGGGCTGCGACTGGTGACCGATGCCG",
+    ( char* ) "AAGAGCTGCAAGAAAGCTTCGGTGGCC",
+    ( char* ) "TCTCAGGCGGTACGTAACGAAGCAAAA",
+    ( char* ) "TTCTGGAGATGCAATGAAGATTATTAC",
+    ( char* ) "CTTTAAAGCACTCTTCAATTTGGGTAA",
+    ( char* ) "GATGTGTGGAAACTGACGGTCAAAAAC",
+    ( char* ) "GAACTCCGCTGAAAATTATGCCATAGG",
+    ( char* ) "CATAACCAGCGCGATGCATTCGCGGAA",
+    ( char* ) "ATTAAGATAAATCTTACCATTTCTACG",
+    ( char* ) "GAAATTCTCAATAAATGCGGTAACTTA",
+    ( char* ) "TGCGCGCGCGGTTCCAGCGTTTGGGTA",
+    ( char* ) "TGGGTATTGAAGATCAGGCGGGCAGGA"
+};
+
 
 int test_cc_contain( CContainer* cc, Bkmer* bkmer )
 {
-    std::cout << "\t\tCompressed container stored" << bkmer->get_seq();
+    std::cout << "\t\tCompressed container stored " << bkmer->get_seq();
     if( cc->may_contain( bkmer ) )
     {
         if( cc->contains_prefix( bkmer ) )
@@ -83,7 +148,8 @@ int main()
      * *************************************************************/
     CContainer* cc = new CContainer();
     std::cout << "\tTesting compressed container..." << std::endl;
-    Bkmer* bad_bkmer = new Bkmer( k, bk, "AAATTCCAACCGTGTCTTCTCCATTAA" );
+    char* bad_kmer = ( char* ) "AAATTCCAACCGTGTCTTCTCCATTAA";
+    Bkmer* bad_bkmer = new Bkmer( k, bk, bad_kmer );
 
     for( int i = 0; i < 2; i++ )
     {
@@ -98,6 +164,37 @@ int main()
     /****************************************************************
      * End compressed container tests
      * *************************************************************/
+
+
+    /****************************************************************
+     * Test Compressed Container
+     * *************************************************************/
+
+    std::cout << "\tTesting kdict..." << std::endl;
+    Kdict* kdict = new Kdict( k, bk );
+
+    for( int i = 0; i < n_test_insert_kmers; i++ )
+    {
+        kdict->insert( test_insert_kmers[ i ] );
+    }
+
+    for( int i = 0; i < n_test_insert_kmers; i++ )
+    {
+        assert( kdict->contains( test_insert_kmers[ i ] ) );
+    }
+    std::cout << "\t\tFound all good kmers!" << std::endl;
+
+    for( int i = 0; i < n_test_bad_kmers; i++ )
+    {
+        assert( !kdict->contains( test_bad_kmers[ i ] ) );
+    }
+    std::cout << "\t\tFound no bad kmers!" << std::endl;
+
+
+    /****************************************************************
+     * End compressed container tests
+     * *************************************************************/
+
 
     return 0;
 }
