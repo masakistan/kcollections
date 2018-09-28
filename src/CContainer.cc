@@ -148,7 +148,6 @@ void CContainer::insert( Bkmer* sfpx )
 Vertex* CContainer::get_child_of( Bkmer* sfpx )
 {
     int index_of_child = index_of( sfpx );
-    //std::cout << "\tindex of " << sfpx->get_seq() << " at " << index_of_child << std::endl;
     if( index_of_child > -1 )
     {
         return m_suf_clust_data->at( index_of_child )->get_child_vertex();
@@ -255,21 +254,6 @@ int CContainer::rank( int clust_num )
 unsigned int CContainer::get_index_in_pref( Bkmer* sfpx_prefix )
 {
     assert ( sfpx_prefix->get_bk() == 1 );
-
-    /*int pref_index = 0;
-    for( int i = 0; i < sfpx_prefix->get_bk(); i++ ) // binary index = sum((|A|^i) * c)
-    {
-        int char_index;
-        switch( sfpx_prefix->char_at( i ) )
-        {
-            case 'A': char_index = 0; break;
-            case 'C': char_index = 1; break;
-            case 'G': char_index = 2; break;
-            case 'T': char_index = 3; break;
-            default : char_index = -1;
-        }
-        pref_index += std::pow( 4, Container::get_prfx_prefix_length() - ( i + 1 ) ) * char_index;
-    }*/
     return unsigned( sfpx_prefix->get_bseq()[ 0 ] );
 }
 
@@ -284,8 +268,6 @@ int CContainer::index_of( Bkmer* sfpx )
     std::unique_ptr< Bkmer >sfpx_prefix = sfpx->get_prefix( Container::get_prfx_prefix_length() );
     std::unique_ptr< Bkmer >sfpx_suffix = sfpx->get_suffix( Container::get_prfx_prefix_length() );
     int pref_index = get_index_in_pref( sfpx_prefix.get() );
-
-    //std::cout << "\t\t" << sfpx_prefix->get_seq() << "\tm_pref[" << pref_index << "]=" << m_pref->at( pref_index ) << std::endl;
 
     if( m_pref->at( pref_index ) == true )
     {
@@ -309,15 +291,6 @@ int CContainer::index_of( Bkmer* sfpx )
 /* Adds suffix-prefix (sfpx) to Bloom filter mQuer */
 void CContainer::add_to_bloom_filter( Bkmer* sfpx )
 {
-    /*std::cout << "\t\t\tadding to bloom filter " << sfpx->get_seq() << std::endl;
-    std::vector< bool > bits = *bf->get_bits();
-    std::cout << "\t\t\t\t[";
-    for( int i = 0; i < bits.size(); i++ ) 
-    {
-        std::cout << bits[ i ] << ", ";
-    }
-    std::cout << "]" << std::endl;*/
-
     bf->add( sfpx );
 }
 

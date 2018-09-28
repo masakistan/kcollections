@@ -71,7 +71,6 @@ std::unique_ptr< Bkmer > Bkmer::get_prefix( int len )
     }
 
     std::unique_ptr< Bkmer > sfpx = std::make_unique< Bkmer >( *this );
-    //std::cout << "before " << sfpx->get_seq() << std::endl;
     sfpx->set_bk( len );
     sfpx->set_k( len * 4 );
     for( int i = 0; i < len; i++ )
@@ -79,7 +78,6 @@ std::unique_ptr< Bkmer > Bkmer::get_prefix( int len )
         sfpx->m_bseq[ i ] = m_bseq[ i ];
     }
     sfpx->resize();
-    //std::cout << "after " << sfpx->get_seq() << std::endl;
     return sfpx;
 }
 
