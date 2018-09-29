@@ -104,7 +104,7 @@ int main()
      * Test serialization and deserialization capabilities
      * *************************************************************/
     char* kmer = ( char* ) "AAATTCCAACCGTGTCTTCTCCATTAG";
-    std::cout << "\tTesting kmer serialization/deserialization..." << std::endl;
+    std::cout << "\tTesting kmer serialization/deserialization..." << std::endl << std::flush;
     std::cout << "\t\tkmer: " << kmer << std::endl;
 
     Bkmer* bkmer = new Bkmer( k, bk, kmer );
@@ -125,7 +125,7 @@ int main()
     /****************************************************************
      * Test Uncompressed Container
      * *************************************************************/
-    std::cout << "\tTesting uncompressed container..." << std::endl;
+    std::cout << "\tTesting uncompressed container..." << std::endl << std::flush;
     UContainer* uc = new UContainer();
     bkmer = new Bkmer( k, bk, kmer );
 
@@ -153,22 +153,23 @@ int main()
     /****************************************************************
      * Test Compressed Container
      * *************************************************************/
+    std::cout << "\tTesting compressed container..." << std::endl << std::flush;
     CContainer* cc = new CContainer();
-    std::cout << "\tTesting compressed container..." << std::endl;
     bkmer = new Bkmer( k, bk, kmer );
-    char* bad_kmer = ( char* ) "AAATTCCAACCGTGTCTTCTCCATTAA";
-    Bkmer* bad_bkmer = new Bkmer( k, bk, bad_kmer );
-
     for( int i = 0; i < 2; i++ )
     {
+        std::cout << "\t\t\tinserting: " << kmer << std::endl << std::flush;
         cc->insert( bkmer );
     }
-
     test_cc_contain( cc, bkmer );
+
+    char* bad_kmer = ( char* ) "AAATTCCAACCGTGTCTTCTCCATTAA";
+    Bkmer* bad_bkmer = new Bkmer( k, bk, bad_kmer );
     test_cc_contain( cc, bad_bkmer );
     delete bkmer;
     delete bad_bkmer;
     delete cc;
+    std::cout << "\t\tDone!" << std::endl;
     
     //std::cout << "\t\tUC size: " << uc->size() << std::endl;
 
@@ -178,12 +179,13 @@ int main()
 
 
     /****************************************************************
-     * Test Compressed Container
+     * Test kdict
      * *************************************************************/
 
-    std::cout << "\tTesting kdict..." << std::endl;
+    std::cout << "\tTesting kdict..." << std::endl << std::flush;
     Kdict* kdict = new Kdict( k, bk );
 
+    std::cout << "\t\tTesting insert and contains..." << std::endl << std::flush;
     for( int i = 0; i < n_test_insert_kmers; i++ )
     {
         kdict->insert( test_insert_kmers[ i ] );
@@ -193,18 +195,42 @@ int main()
     {
         assert( kdict->contains( test_insert_kmers[ i ] ) );
     }
-    std::cout << "\t\tFound all good kmers!" << std::endl;
+    std::cout << "\t\t\tFound all good kmers!" << std::endl;
 
     for( int i = 0; i < n_test_bad_kmers; i++ )
     {
         assert( !kdict->contains( test_bad_kmers[ i ] ) );
     }
-    std::cout << "\t\tFound no bad kmers!" << std::endl;
+    std::cout << "\t\t\tFound no bad kmers!" << std::endl;
     
+    std::cout << "\t\tTesting remove and contains..." << std::endl << std::flush;
+    for( int i = 0; i < n_test_insert_kmers; i++ )
+    {
+        if( i % 4 == 0 )
+        {
+            kdict->remove( test_insert_kmers[ i ] );
+        }
+    }
+
+    for( int i = 0; i < n_test_insert_kmers; i++ )
+    {
+        bool contains = kdict->contains( test_insert_kmers[ i ] );
+        if( i % 4 == 0 )
+        {
+            assert( !contains );
+        }
+        else
+        {
+            assert( contains );
+        }
+    }
+    std::cout << "\t\t\tCorrect kmers found!" << std::endl;
+
+
     delete kdict;
 
     /****************************************************************
-     * End compressed container tests
+     * End kdict tests
      * *************************************************************/
 
 

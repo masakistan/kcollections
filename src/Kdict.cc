@@ -32,4 +32,11 @@ size_t Kdict::size()
     return root->size();
 }
 
+void Kdict::remove( char* kmer )
+{
+    Bkmer* bkmer = new Bkmer( m_k, m_bk, kmer );
+    root->remove( bkmer );
+    delete bkmer;
+}
+
 
