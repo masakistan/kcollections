@@ -133,4 +133,42 @@ void Vertex::burst_uc( Bkmer* bkmer )
     m_ccs->push_back( std::move( ncc ) );
 }
 
+size_t Vertex::size()
+{
+    return 1;
+}
+
+void Vertex::remove( Bkmer* bkmer )
+{
+    remove( this, bkmer );
+}
+
+void Vertex::remove( Vertex* v, Bkmer* bkmer )
+{
+    // check if the kmer exists
+    UContainer* uc = v->get_uc();
+
+    if( uc->contains( bkmer ) )
+    {
+        uc->remove( bkmer );
+        return;
+    }
+
+    std::vector< std::unique_ptr< CContainer > >* ccs = v->get_ccs();
+    int sfpx_length = Container::get_prefix_length();
+    std::unique_ptr< Bkmer > sfpx = bkmer->get_prefix( sfpx_length );
+
+    for( std::unique_ptr< CContainer >& cc : *( ccs ) )
+    {
+        if( cc->may_contain( sfpx.get() ) && cc->contains_prefix( sfpx.get() ) )
+        {
+            sfpx = bkmer->emit_prefix( sfpx_length );
+            Vertex* child_vertex = cc->get_child_of( sfpx.get() );
+            return remove( child_vertex, bkmer );
+        }
+    }
+
+    return;
+}
+
 

@@ -18,6 +18,7 @@ class UContainer : public Container
         void insert( Bkmer* bkmer );
         bool is_full();
         std::set< Bkmer >* get_bkmers();
+        void remove( Bkmer* bkmer );
 };
 
 

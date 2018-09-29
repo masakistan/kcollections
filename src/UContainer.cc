@@ -46,4 +46,9 @@ std::set< Bkmer >* UContainer::get_bkmers()
     return m_bkmers;
 }
 
+void UContainer::remove( Bkmer* bkmer )
+{
+    m_bkmers->erase( *bkmer );
+}
+
 

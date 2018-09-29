@@ -29,6 +29,9 @@ class Vertex
         bool contains( Bkmer* bkmer );
         bool contains( Vertex* v, Bkmer* bkmer ) const;
         void burst_uc( Bkmer* bkmer );
+        size_t size();
+        void remove( Vertex* v, Bkmer* bkmer );
+        void remove( Bkmer* bkmer );
 
 };
 

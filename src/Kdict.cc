@@ -27,4 +27,9 @@ bool Kdict::contains( char* kmer )
     return res;
 }
 
+size_t Kdict::size()
+{
+    return root->size();
+}
+
 
