@@ -39,4 +39,10 @@ void Kdict::remove( char* kmer )
     delete bkmer;
 }
 
+void Kdict::clear()
+{
+    delete root;
+    root = new Vertex();
+}
+
 

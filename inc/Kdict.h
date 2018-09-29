@@ -22,6 +22,7 @@ class Kdict
         bool contains( char* kmer );
         size_t size();
         void remove( char* kmer );
+        void clear();
 
 };
 
