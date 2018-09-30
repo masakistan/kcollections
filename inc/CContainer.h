@@ -34,7 +34,7 @@ class CContainer : public Container
         bool is_full();
         char* index_to_pref( uint8_t index );
 
-        int size() { return m_suf_clust_data->size(); }
+        //int size() { return m_suf_clust_data->size(); }
         BloomFilter* get_bf();
         //std::vector< std::unique_ptr< SufClustData > >* get_suf_clust_data();
         //std::vector< Bkmer* >* get_suf();
@@ -42,6 +42,7 @@ class CContainer : public Container
         std::vector< Vertex* >* get_child_vertices();
         static int get_pref_size() { return PREF_SIZE; }
         //std::unique_ptr< SufClustData > get_suf_clust_data_item( Bkmer* sfpx );
+        size_t size();
 
 };
 

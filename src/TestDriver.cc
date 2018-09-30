@@ -202,16 +202,23 @@ int main()
         assert( !kdict->contains( test_bad_kmers[ i ] ) );
     }
     std::cout << "\t\t\tFound no bad kmers!" << std::endl;
+
+    std::cout << "\t\t\tFound " << kdict->size() << " kmers present";
+    std::cout << " (correct amount " << ( kdict->size() == n_test_insert_kmers ) << ")" << std::endl;
     
     std::cout << "\t\tTesting remove and contains..." << std::endl << std::flush;
+    int n_kmers_after_removal = n_test_insert_kmers;
     for( int i = 0; i < n_test_insert_kmers; i++ )
     {
         if( i % 4 == 0 )
         {
+            n_kmers_after_removal--;
             kdict->remove( test_insert_kmers[ i ] );
         }
     }
-
+    std::cout << "\t\t\tFound " << kdict->size() << " kmers present";
+    std::cout << " (correct amount " << ( kdict->size() == n_kmers_after_removal ) << ")" << std::endl;
+ 
     for( int i = 0; i < n_test_insert_kmers; i++ )
     {
         bool contains = kdict->contains( test_insert_kmers[ i ] );

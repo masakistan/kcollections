@@ -1,4 +1,5 @@
 #include "CContainer.h"
+#include "Vertex.h"
 
 // length of prefix = 1 for 1 uint
 // each prefix holds 4 bases
@@ -292,6 +293,16 @@ int CContainer::index_of( Bkmer* sfpx )
 void CContainer::add_to_bloom_filter( Bkmer* sfpx )
 {
     bf->add( sfpx );
+}
+
+size_t CContainer::size()
+{
+    size_t t_size = 0;
+    for( std::unique_ptr< SufClustData >& sfc : *m_suf_clust_data )
+    {
+        t_size += sfc->get_child_vertex()->size();
+    }
+    return t_size;
 }
 
 

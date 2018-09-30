@@ -13,7 +13,7 @@ class UContainer : public Container
     public:
         UContainer();
         ~UContainer();
-        int size() { return m_bkmers->size(); }
+        size_t size() { return m_bkmers->size(); }
         bool contains( Bkmer* bkmer );
         void insert( Bkmer* bkmer );
         bool is_full();

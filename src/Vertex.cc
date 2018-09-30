@@ -135,7 +135,15 @@ void Vertex::burst_uc( Bkmer* bkmer )
 
 size_t Vertex::size()
 {
-    return 1;
+    // check if the kmer exists
+    size_t t_size = m_uc->size();
+
+    for( std::unique_ptr< CContainer >& cc : *( m_ccs ) )
+    {
+        t_size += cc->size();
+    }
+
+    return t_size;
 }
 
 void Vertex::remove( Bkmer* bkmer )
