@@ -236,7 +236,7 @@ char* Bkmer::deserialize_seq( int k, int bk, uint8_t* bseq )
     return kmer;
 }
 
-char* Bkmer::get_seq()
+char* Bkmer::get_seq() const
 {
     return deserialize_seq( m_k, m_bk, m_bseq );
 }

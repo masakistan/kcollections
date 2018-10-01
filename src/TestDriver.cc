@@ -236,11 +236,13 @@ int main()
     // Get kmers
     std::cout << "\t\tTesting kmer seq retrieval..." << std::endl << std::flush;
     int count = 0;
-    for( auto bkmer : kdict->get_bkmers() )
+    for( char* seq : coro_t::pull_type(
+             boost::coroutines2::fixedsize_stack(),
+             std::bind(kdict->get_kmers, std::placeholders::_1, kdict->get_root())) )
     {
-        char* seq = bkmer.get_seq();
-        std::cout << "\t\t\tseq " << count++ << ": " << seq << std::endl;
-        free( seq );
+        //char* seq = bkmer.get_seq();
+        std::cout << "\t\t\tseq " << count++ << ": " << seq << std::endl << std::flush;
+        //free( seq );
     }
 
     delete kdict;

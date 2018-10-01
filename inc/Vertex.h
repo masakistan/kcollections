@@ -2,12 +2,14 @@
 
 #include <vector>
 #include <iostream>
-#include <co2/recursive_generator.hpp>
+//#include <co2/recursive_generator.hpp>
+//#include "aco.h"
 #include "Container.h"
 #include "UContainer.h"
 #include "CContainer.h"
 #include "SufClustData.h"
 #include "Bkmer.h"
+
 
 class Vertex
 {
@@ -18,12 +20,12 @@ class Vertex
         std::unique_ptr< UContainer > m_uc;
         std::vector< std::unique_ptr< CContainer > >* m_ccs;
 
-        UContainer* get_uc() const { return m_uc.get(); }
-        std::vector< std::unique_ptr< CContainer > >* get_ccs() const { return m_ccs; }
-
     public:
         Vertex();
         ~Vertex();
+        UContainer* get_uc() const { return m_uc.get(); }
+        std::vector< std::unique_ptr< CContainer > >* get_ccs() const { return m_ccs; }
+
 
         void insert( Vertex* v, Bkmer* bkmer );
         void insert( Bkmer* bkmer );
@@ -33,9 +35,9 @@ class Vertex
         size_t size();
         void remove( Vertex* v, Bkmer* bkmer );
         void remove( Bkmer* bkmer );
-        auto get_bkmers() { return get_bkmers( this ); }
-        static auto get_bkmers( Vertex* v ) -> co2::recursive_generator< Bkmer >;
-
+        UContainer* get_uc() { return m_uc.get(); }
+        /*auto get_bkme=s() { return get_bkmers( this ); }
+        static auto get_bkmers( Vertex* v ) -> co2::recursive_generator< char* >;*/
 };
 
 
