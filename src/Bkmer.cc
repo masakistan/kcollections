@@ -136,6 +136,15 @@ bool Bkmer::operator<( const Bkmer& other ) const
     return false;
 }
 
+bool Bkmer::operator>( const Bkmer& other ) const
+{
+    if( other < *this )
+    {
+        return true;
+    }
+    return false;
+}
+
 size_t Bkmer::get_bk() const
 {
     return m_bk;

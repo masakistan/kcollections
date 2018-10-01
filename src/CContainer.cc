@@ -33,7 +33,7 @@ bool CContainer::contains_prefix( Bkmer* sfpx )
     }
 
     std::unique_ptr< Bkmer > sfpx_prefix = sfpx->get_prefix( Container::get_prfx_prefix_length() );
-    std::unique_ptr< Bkmer >sfpx_suffix = sfpx->get_suffix( Container::get_prfx_suffix_length() );
+    std::unique_ptr< Bkmer > sfpx_suffix = sfpx->get_suffix( Container::get_prfx_suffix_length() );
     int pref_index = get_index_in_pref( sfpx_prefix.get() );
 
     if( m_pref->at( pref_index ) )
@@ -65,6 +65,8 @@ void CContainer::insert( Bkmer* sfpx )
     std::unique_ptr< Bkmer >sfpx_suffix = sfpx->get_suffix( Container::get_prfx_suffix_length() );
     int pref_index = get_index_in_pref( sfpx_prefix.get() );
 
+    std::cout << sfpx_suffix->get_seq() << std::endl;
+
     bool was_pref_index_set = m_pref->at( pref_index );
     m_pref->at( pref_index ) = true;
 
@@ -85,7 +87,7 @@ void CContainer::insert( Bkmer* sfpx )
     if( was_pref_index_set )
     {
         // if sfpx_suffix starts its cluster...
-        bool is_new_sfx_less_than_pos = *sfpx_suffix == *m_suf_clust_data->at( clust_pos )->get_sfpx_suffix();
+        bool is_new_sfx_less_than_pos = *sfpx_suffix < *m_suf_clust_data->at( clust_pos )->get_sfpx_suffix();
         if( is_new_sfx_less_than_pos )
         {
             //SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, true );
@@ -110,7 +112,7 @@ void CContainer::insert( Bkmer* sfpx )
 
         // while sfpx_suffix is greater than previous suffix...
         bool is_new_sfx_greater_than_prev_pos =
-            *sfpx_suffix == *m_suf_clust_data->at( clust_pos - 1 )->get_sfpx_suffix();
+            *sfpx_suffix > *m_suf_clust_data->at( clust_pos - 1 )->get_sfpx_suffix();
 
         while (is_new_sfx_greater_than_prev_pos) {
             // if clust_pos is at end of bit-array OR if next cluster is reached (ie. if sfpx_suffix is greatest in its cluster)...
@@ -124,7 +126,7 @@ void CContainer::insert( Bkmer* sfpx )
             }
 
             clust_pos++;
-            is_new_sfx_greater_than_prev_pos = *sfpx_suffix == *m_suf_clust_data->at( clust_pos - 1 )->get_sfpx_suffix();
+            is_new_sfx_greater_than_prev_pos = *sfpx_suffix > *m_suf_clust_data->at( clust_pos - 1 )->get_sfpx_suffix();
         }
 
         // if sfpx_suffix is less than previous suffix...
@@ -172,21 +174,6 @@ BloomFilter* CContainer::get_bf()
 {
     return new BloomFilter( *bf );
 }
-
-/*std::vector< std::unique_ptr< SufClustData > >* CContainer::get_suf_clust_data()
-{
-    return new std::vector< std::unique_ptr< SufClustData > >( *m_suf_clust_data );
-}*/
-
-/*std::vector< Bkmer* >* CContainer::get_suf()
-{
-    std::vector< Bkmer* >* suf = new std::vector< Bkmer* >( m_suf_clust_data->size() );
-    for( int i = 0; i < m_suf_clust_data->size(); i++ )
-    {
-        suf->push_back( ( *m_suf_clust_data )[ i ]->get_sfpx_suffix() );
-    }
-    return suf;
-}*/
 
 std::vector< bool >* CContainer::get_clust()
 {

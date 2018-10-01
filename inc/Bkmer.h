@@ -29,6 +29,7 @@ class Bkmer
         std::unique_ptr< Bkmer > get_suffix( int pos );
         ~Bkmer();
         bool operator<( const Bkmer& other ) const;
+        bool operator>( const Bkmer& other ) const;
         bool operator==( const Bkmer& other );
         size_t get_bk() const;
         size_t get_k() const;
