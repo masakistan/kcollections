@@ -233,6 +233,15 @@ int main()
     }
     std::cout << "\t\t\tCorrect kmers found!" << std::endl;
 
+    // Get kmers
+    std::cout << "\t\tTesting kmer seq retrieval..." << std::endl << std::flush;
+    int count = 0;
+    for( auto bkmer : kdict->get_bkmers() )
+    {
+        char* seq = bkmer.get_seq();
+        std::cout << "\t\t\tseq " << count++ << ": " << seq << std::endl;
+        free( seq );
+    }
 
     delete kdict;
 

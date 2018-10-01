@@ -179,4 +179,31 @@ void Vertex::remove( Vertex* v, Bkmer* bkmer )
     return;
 }
 
+auto Vertex::get_bkmers( Vertex* v ) CO2_BEG(co2::recursive_generator< Bkmer >, ( v ),
+        std::set< Bkmer >* uc_bkmers = v->m_uc->get_bkmers();
+        std::set< Bkmer >::iterator uc_bkmer = uc_bkmers->begin();
+        std::vector< std::unique_ptr< CContainer > >* ccs = v->m_ccs;
+        std::vector< std::unique_ptr< CContainer > >::iterator cc = ccs->begin();
+        Vertex* child_vertex;
+        std::vector< std::unique_ptr< SufClustData > >* sfc;
+        std::vector< std::unique_ptr< SufClustData > >::iterator clust;
+        )
+{
+    for( ; uc_bkmer != uc_bkmers->end(); uc_bkmer++ )
+    {
+        CO2_YIELD( *uc_bkmer );
+    }
+
+    for( ; cc != ccs->end(); cc++ )
+    {
+        sfc = ( *cc )->get_suf_clust_data();
+        for( ; clust != sfc->end(); clust++ )
+        {
+            child_vertex = ( *clust )->get_child_vertex();
+            CO2_YIELD( get_bkmers( child_vertex ) );
+        }
+    }
+
+} CO2_END
+
 

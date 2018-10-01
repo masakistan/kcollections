@@ -22,8 +22,6 @@ include_directories(${BOOST_INCLUDE_DIRS})
 
 # co2 library
 add_subdirectory(libs/co2)
-#add_library(co2 "libs/co2/include/co2/generator.hpp")
-#target_include_directories(co2 "libs/co2/include")
 
 
 # set c++14

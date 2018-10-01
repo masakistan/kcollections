@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 #include <vector>
+#include <co2/generator.hpp>
+#include <co2/recursive_generator.hpp>
 #include "Globals.h"
 #include "Bkmer.h"
 #include "Vertex.h"
@@ -23,7 +25,9 @@ class Kdict
         size_t size();
         void remove( char* kmer );
         void clear();
-
+        //auto get_bkmers(Vertex*v) -> co2::generator< Bkmer >;
+        auto get_bkmers() { return root->get_bkmers(); }
+        
 };
 
 

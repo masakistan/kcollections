@@ -200,7 +200,7 @@ std::vector< bool >* CContainer::get_clust()
 
 std::vector< Vertex* >* CContainer::get_child_vertices()
 {
-    std::vector< Vertex* >* child_vertices = new std::vector< Vertex* >( m_suf_clust_data->size() );
+    std::vector< Vertex* >* child_vertices = new std::vector< Vertex* >();
     for( int i = 0; i < m_suf_clust_data->size(); i++ )
     {
         child_vertices->push_back( ( *m_suf_clust_data )[ i ]->get_child_vertex() );

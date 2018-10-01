@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <iostream>
+#include <co2/recursive_generator.hpp>
 #include "Container.h"
 #include "UContainer.h"
 #include "CContainer.h"
@@ -32,6 +33,8 @@ class Vertex
         size_t size();
         void remove( Vertex* v, Bkmer* bkmer );
         void remove( Bkmer* bkmer );
+        auto get_bkmers() { return get_bkmers( this ); }
+        static auto get_bkmers( Vertex* v ) -> co2::recursive_generator< Bkmer >;
 
 };
 
