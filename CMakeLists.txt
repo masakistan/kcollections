@@ -7,6 +7,7 @@ set(CMAKE_BUILD_TYPE Debug)
 
 # Add inc directory
 include_directories(inc)
+include_directories(libs/co2/include)
 
 # Add src files
 file(GLOB SOURCES "src/*.cc")
@@ -15,8 +16,18 @@ file(GLOB SOURCES "src/*.cc")
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
-# set c++11
-set (CMAKE_CXX_STANDARD 11)
+# Boost
+find_package(Boost REQUIRED)
+include_directories(${BOOST_INCLUDE_DIRS})
+
+# co2 library
+add_subdirectory(libs/co2)
+#add_library(co2 "libs/co2/include/co2/generator.hpp")
+#target_include_directories(co2 "libs/co2/include")
+
+
+# set c++14
+set (CMAKE_CXX_STANDARD 14)
 
 
 add_executable(Kdict ${SOURCES})
