@@ -16,6 +16,7 @@ class Kdict
 {
     private:
         Vertex* root;
+        Vertex* get_root() { return root; }
 
     public:
         const int m_k, m_bk;
@@ -27,21 +28,36 @@ class Kdict
         size_t size();
         void remove( char* kmer );
         void clear();
-        Vertex* get_root() { return root; }
-        //void get_kmers( coro_t::push_type& yield ) { get_kmers( yield, root ); }
         
-        static void get_kmers(coro_t::push_type& yield, Vertex* v)
+        static void get_kmers( coro_t::push_type& yield, Kdict* kdict )
+        {
+            char* seq = ( char* ) malloc( sizeof( char ) * ( kdict->m_k + 1 ) );
+            seq[ kdict->m_k ] = '\0';
+            yield_kmers( yield, kdict->get_root(), seq, 0 );
+            free( seq );
+        }
+
+        static void yield_kmers( coro_t::push_type& yield, Vertex* v, char* seq, int pos )
         {
             for( Bkmer uc_bkmer : *v->get_uc()->get_bkmers() )
             {
-                yield( uc_bkmer.get_seq() );
+                char* tseq = uc_bkmer.get_seq();
+                strcpy( seq + pos, tseq );
+                free( tseq );
+                yield( seq );
             }
 
             for( std::unique_ptr< CContainer>& cc : *v->get_ccs() )
             {
-                for( std::unique_ptr< SufClustData >& sfc : *cc->get_suf_clust_data() )
+                //std::unique_ptr< SufClustData >& sfc : *cc->get_suf_clust_data() )
+                std::vector< std::unique_ptr< SufClustData > >* sfcs = cc->get_suf_clust_data();
+                for( int i = 0; i < sfcs->size(); i++ )
                 {
-                    get_kmers( yield, sfc->get_child_vertex() );
+                    std::unique_ptr< SufClustData >& sfc = sfcs->at( i );
+                    char* prefix = cc->prefix_from_clust( i );
+                    strcpy( &seq[ pos ], prefix );
+                    free( prefix );
+                    yield_kmers( yield, sfc->get_child_vertex(), seq, pos + 4);
                 }
             }
         }

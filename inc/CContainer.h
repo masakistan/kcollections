@@ -20,6 +20,8 @@ class CContainer : public Container
         unsigned int get_index_in_pref( Bkmer* bkmer );
         int hamming_weight( int index );
         int rank( int clust_num );
+        int clust_num_from_rank( int clust_pos );
+        int pref_index_from_hamming_weight( int clust_num );
         int index_of( Bkmer* bkmer );
         void add_to_bloom_filter( Bkmer* bkmer );
         int next_set_bit( int pos );
@@ -33,6 +35,7 @@ class CContainer : public Container
         void insert( Bkmer* sfpx );
         bool is_full();
         char* index_to_pref( uint8_t index );
+        char* prefix_from_clust( int clust_pos );
 
         //int size() { return m_suf_clust_data->size(); }
         std::vector< std::unique_ptr< SufClustData > >* get_suf_clust_data() { return m_suf_clust_data; }

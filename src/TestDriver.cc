@@ -6,10 +6,10 @@ char* test_insert_kmers[] = {
     ( char* ) "AAATCGTGGAAACGGTTCGGGTCCAGC",
     ( char* ) "CCATTATGATATCTGCCAGTTGCCACA",
     ( char* ) "TGGGCGGTGTGATGACGACGCTGATCG",
-    ( char* ) "TACCTTCCGGCGTACCTTTGCCCTCCA",
+    ( char* ) "GCTATTCCGGCGTACCTTTGCCCTCCA",
     ( char* ) "CGCCGTAGAAAATGCCCATGGCAAGAA",
     ( char* ) "TTGGGGAATATATGCAGTATTGGGGAA",
-    ( char* ) "CGATAGCTATCGTCGTATCCGTAACAC",
+    ( char* ) "GCTAAGCTATCGTCGTATCCGTAACAC",
     ( char* ) "GCTACCGTGAACGGTGCTACCTCCTTA",
     ( char* ) "GGTATACGGGAAGGCAGGCATTGGCTG",
     ( char* ) "CTGCTCGGTTTCCTCATCATCAAAATC",
@@ -238,7 +238,7 @@ int main()
     int count = 0;
     for( char* seq : coro_t::pull_type(
              boost::coroutines2::fixedsize_stack(),
-             std::bind(kdict->get_kmers, std::placeholders::_1, kdict->get_root())) )
+             std::bind( Kdict::get_kmers, std::placeholders::_1, kdict ) ) )
     {
         //char* seq = bkmer.get_seq();
         std::cout << "\t\t\tseq " << count++ << ": " << seq << std::endl << std::flush;

@@ -65,8 +65,6 @@ void CContainer::insert( Bkmer* sfpx )
     std::unique_ptr< Bkmer >sfpx_suffix = sfpx->get_suffix( Container::get_prfx_suffix_length() );
     int pref_index = get_index_in_pref( sfpx_prefix.get() );
 
-    std::cout << sfpx_suffix->get_seq() << std::endl;
-
     bool was_pref_index_set = m_pref->at( pref_index );
     m_pref->at( pref_index ) = true;
 
@@ -218,6 +216,35 @@ int CContainer::hamming_weight( int index )
     return hamming_weight;
 }
 
+int CContainer::pref_index_from_hamming_weight( int clust_num )
+{
+    for( int i = 0; i < m_pref->size(); i++ )
+    {
+        if( m_pref->at( i ) )
+        {
+            clust_num--;
+            if( clust_num == 0 )
+            {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+int CContainer::clust_num_from_rank( int clust_pos )
+{
+    int clust_num = 0;
+    for( ; clust_pos >= 0; clust_pos-- )
+    {
+        if( m_suf_clust_data->at( clust_pos )->is_cluster_start() )
+        {
+            clust_num++;
+        }
+    }
+    return clust_num;
+}
+
 int CContainer::rank( int clust_num )
 {
     int clust_size = m_suf_clust_data->size();
@@ -235,6 +262,13 @@ int CContainer::rank( int clust_num )
     }
 
     return m_suf_clust_data->size();
+}
+
+char* CContainer::prefix_from_clust( int clust_pos )
+{
+    int clust_num = clust_num_from_rank( clust_pos );
+    int pref_index = pref_index_from_hamming_weight( clust_num );
+    return index_to_pref( pref_index );
 }
 
 /* Converts prefix string to its location on mPref bit-array

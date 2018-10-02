@@ -14,8 +14,6 @@
 class Vertex
 {
     private:
-        int depth;
-
         // Containers
         std::unique_ptr< UContainer > m_uc;
         std::vector< std::unique_ptr< CContainer > >* m_ccs;
