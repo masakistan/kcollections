@@ -2,21 +2,21 @@
 
 #include <stdlib.h>
 #include <vector>
-//#include <co2/generator.hpp>
-//#include <co2/recursive_generator.hpp>
-#include <boost/coroutine2/all.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+//#include <boost/coroutine2/all.hpp>
 #include "Globals.h"
 #include "Bkmer.h"
 #include "Vertex.h"
 #include "Helper.h"
 
-typedef boost::coroutines2::coroutine<char*> coro_t;
+namespace py = pybind11;
+//typedef boost::coroutines2::coroutine<char*> coro_t;
 
 class Kdict
 {
     private:
         Vertex* root;
-        Vertex* get_root() { return root; }
 
     public:
         const int m_k, m_bk;
@@ -28,8 +28,9 @@ class Kdict
         size_t size();
         void remove( char* kmer );
         void clear();
+        Vertex* get_root() { return root; }
         
-        static void get_kmers( coro_t::push_type& yield, Kdict* kdict )
+        /*static void get_kmers( coro_t::push_type& yield, Kdict* kdict )
         {
             char* seq = ( char* ) malloc( sizeof( char ) * ( kdict->m_k + 1 ) );
             seq[ kdict->m_k ] = '\0';
@@ -65,7 +66,7 @@ class Kdict
                 }
                 //std::cout << "end cc" << std::endl;
             }
-        }
+        }*/
 };
 
 

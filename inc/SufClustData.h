@@ -17,7 +17,7 @@ class SufClustData
         ~SufClustData();
         Bkmer* get_sfpx_suffix() const;
         bool is_cluster_start() const;
-        Vertex* get_child_vertex() const;
+        Vertex* get_child_vertex();
         void set_cluster_start( bool starts_cluster );
         void set_child_vertex( Vertex* vertex );
         

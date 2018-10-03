@@ -7,7 +7,7 @@ project (Kdict)
 # The version number.
 set (Kdict_VERSION_MAJOR 0)
 set (Kdict_VERSION_MINOR 1)
-set(CMAKE_BUILD_TYPE Debug)
+#set(CMAKE_BUILD_TYPE Debug)
 
 message( "looking in ${CMAKE_MODULE_PATH}" )
 string( APPEND CMAKE_MODULE_PATH "/usr/local/Cellar/python/2.7.14/Frameworks/Python.framework/Versions/2.7/lib/" )
