@@ -9,31 +9,27 @@ set (Kdict_VERSION_MAJOR 0)
 set (Kdict_VERSION_MINOR 1)
 set(CMAKE_BUILD_TYPE Debug)
 
+message( "looking in ${CMAKE_MODULE_PATH}" )
+string( APPEND CMAKE_MODULE_PATH "/usr/local/Cellar/python/2.7.14/Frameworks/Python.framework/Versions/2.7/lib/" )
+
 # Add inc directory
 include_directories(inc)
-#include_directories(libs/co2/include)
-#include_directories(libs/libaco-1.2.4)
+include_directories(libs/pybind11-2.2.4/include)
 
 # Add src files
 file(GLOB SOURCES "src/*.cc")
-#message("before ${SOURCES}")
-#string(APPEND SOURCES ";libs/libaco-1.2.4/aco.c")
-#string(APPEND SOURCES ";libs/libaco-1.2.4/acosw.S")
-#message("after ${SOURCES}")
-#set_property(SOURCE "libs/libaco-1.2.4/acosw.S" PROPERTY LANGUAGE C)
 
 # Python library
-find_package(PythonLibs REQUIRED)
+find_package(PythonLibs 2.7 REQUIRED)
+find_package(PythonInterp 2.7 REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
 # Boost
 find_package(Boost COMPONENTS thread system context REQUIRED)
 include_directories(${BOOST_INCLUDE_DIRS})
-find_package(Threads)
 
-# co2 library
-#add_subdirectory(libs/co2)
-#add_subdirectory(libs/libaco-1.2.4)
+# pybind11 library
+add_subdirectory(libs/pybind11-2.2.4)
 
 
 # set c++14
@@ -45,6 +41,10 @@ target_link_libraries(Kdict
     ${PYTHON_LIBRARIES}
     ${Boost_LIBRARIES}
     )
+
+set(PYBIND11_PYTHON_VERSION 2.7)
+#set(bindings_python_version 2.7)
+pybind11_add_module(kc ${SOURCES} ${Boost_LIBRARIES})
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
@@ -63,13 +63,5 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio C++
 endif()
-
-# configure a header file to pass some of the CMake settings
-# to the source code
-#configure_file (
-#  "${PROJECT_SOURCE_DIR}/KdictConfig.h.in"
-#  "${PROJECT_BINARY_DIR}/KdictConfig.h"
-#  )
-
 
 
