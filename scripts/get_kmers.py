@@ -90,7 +90,7 @@ assert len( kmers ) + len( other_kmers ) == kd.size(), 'ERROR: Kmer insertion fa
 print '\tPass!'
 
 
-print 'Remote kmers...'
+print 'Remove kmers...'
 for kmer in other_kmers:
     kd.remove( kmer )
 assert len( kmers ) == kd.size(), 'ERROR: Kmer removal failed!'
