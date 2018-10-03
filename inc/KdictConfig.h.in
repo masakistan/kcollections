@@ -1,3 +1,0 @@
-// the configured options and settings for Kdict
-#define Tutorial_VERSION_MAJOR @Kdict_VERSION_MAJOR@
-#define Tutorial_VERSION_MINOR @Kdict_VERSION_MINOR@
