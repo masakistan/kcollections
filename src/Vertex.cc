@@ -81,7 +81,7 @@ bool Vertex::contains( Bkmer* bkmer )
     return contains( this, bkmer );
 }
 
-bool Vertex::contains( Vertex* v, Bkmer* bkmer ) const
+bool Vertex::contains( const Vertex* v, Bkmer* bkmer )
 {
     UContainer* uc = v->get_uc();
 

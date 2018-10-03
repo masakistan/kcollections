@@ -24,17 +24,17 @@ class Vertex
         UContainer* get_uc() const { return m_uc; }
         std::vector< CContainer* >* get_ccs() const { return m_ccs; }
 
-
-        static void insert( Vertex* v, Bkmer* bkmer );
-        void insert( Bkmer* bkmer );
-        bool contains( Bkmer* bkmer );
-        bool contains( Vertex* v, Bkmer* bkmer ) const;
         void burst_uc( Bkmer* bkmer );
         size_t size();
-        static void remove( Vertex* v, Bkmer* bkmer );
+        
+        void insert( Bkmer* bkmer );
+        static void insert( Vertex* v, Bkmer* bkmer );
+        
+        bool contains( Bkmer* bkmer );
+        static bool contains( const Vertex* v, Bkmer* bkmer );
+        
         void remove( Bkmer* bkmer );
-        /*auto get_bkme=s() { return get_bkmers( this ); }
-        static auto get_bkmers( Vertex* v ) -> co2::recursive_generator< char* >;*/
+        static void remove( Vertex* v, Bkmer* bkmer );
 };
 
 
