@@ -10,7 +10,6 @@ set (Kdict_VERSION_MINOR 1)
 #set(CMAKE_BUILD_TYPE Debug)
 
 message( "looking in ${CMAKE_MODULE_PATH}" )
-string( APPEND CMAKE_MODULE_PATH "/usr/local/Cellar/python/2.7.14/Frameworks/Python.framework/Versions/2.7/lib/" )
 
 # Add inc directory
 include_directories(inc)
@@ -22,11 +21,12 @@ file(GLOB SOURCES "src/*.cc")
 # Python library
 find_package(PythonLibs 2.7 REQUIRED)
 find_package(PythonInterp 2.7 REQUIRED)
-include_directories(${PYTHON_INCLUDE_DIRS})
+include_directories(${PYTHON_INCLUDE_DIR})
 
 # Boost
-find_package(Boost COMPONENTS thread system context REQUIRED)
-include_directories(${BOOST_INCLUDE_DIRS})
+#find_package(Boost COMPONENTS thread system context chrono date_time atomic REQUIRED)
+#include_directories(${Boost_INCLUDE_DIR})
+#message("boost ${Boost_INCLUDE_DIR}")
 
 # pybind11 library
 add_subdirectory(libs/pybind11-2.2.4)
@@ -39,7 +39,7 @@ set (CMAKE_CXX_STANDARD 14)
 add_executable(Kdict ${SOURCES})
 target_link_libraries(Kdict
     ${PYTHON_LIBRARIES}
-    ${Boost_LIBRARIES}
+    #${Boost_LIBRARIES}
     )
 
 set(PYBIND11_PYTHON_VERSION 2.7)

@@ -4,14 +4,14 @@
 #include <vector>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <boost/coroutine2/all.hpp>
+//#include <boost/coroutine2/all.hpp>
 #include "Globals.h"
 #include "Bkmer.h"
 #include "Vertex.h"
 #include "Helper.h"
 
 namespace py = pybind11;
-typedef boost::coroutines2::coroutine<char*> coro_t;
+//typedef boost::coroutines2::coroutine<char*> coro_t;
 
 class Kdict
 {
@@ -30,7 +30,7 @@ class Kdict
         void clear();
         Vertex* get_root() { return root; }
         
-        static void get_kmers( coro_t::push_type& yield, Kdict* kdict )
+        /*static void get_kmers( coro_t::push_type& yield, Kdict* kdict )
         {
             char* seq = ( char* ) malloc( sizeof( char ) * ( kdict->m_k + 1 ) );
             seq[ kdict->m_k ] = '\0';
@@ -68,7 +68,7 @@ class Kdict
                 }
                 //std::cout << "end cc" << std::endl;
             }
-        }
+        }*/
 };
 
 

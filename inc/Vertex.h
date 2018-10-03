@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <iostream>
+#include <memory>
 //#include <co2/recursive_generator.hpp>
 //#include "aco.h"
 #include "Container.h"

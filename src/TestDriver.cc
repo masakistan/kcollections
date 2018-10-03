@@ -67,7 +67,7 @@ char* test_bad_kmers[] = {
 };
 
 
-void print( Kdict* kdict )
+/*void print( Kdict* kdict )
 {
     int count = 0;
     for( char* seq : coro_t::pull_type(
@@ -80,7 +80,7 @@ void print( Kdict* kdict )
     }
 
     std::cout << "*******************************************************************************************" << std::endl;
-}
+}*/
 
 int test_cc_contain( CContainer* cc, Bkmer* bkmer )
 {
@@ -262,7 +262,7 @@ int main()
 
     // Get kmers
     std::cout << "\t\tTesting kmer seq retrieval..." << std::endl << std::flush;
-    print( kdict );
+    //print( kdict );
 
     delete kdict;
 
