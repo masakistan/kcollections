@@ -67,7 +67,7 @@ char* test_bad_kmers[] = {
 };
 
 
-/*void print( Kdict* kdict )
+void print( Kdict* kdict )
 {
     int count = 0;
     for( char* seq : coro_t::pull_type(
@@ -80,7 +80,7 @@ char* test_bad_kmers[] = {
     }
 
     std::cout << "*******************************************************************************************" << std::endl;
-}*/
+}
 
 int test_cc_contain( CContainer* cc, Bkmer* bkmer )
 {
@@ -222,7 +222,13 @@ int main()
 
     std::cout << "\t\t\tFound " << kdict->size() << " kmers present";
     std::cout << " (correct amount " << ( kdict->size() == n_test_insert_kmers ) << ")" << std::endl;
-    
+
+    // insert bad kmers   
+    for( int i = 0; i < n_test_bad_kmers; i++ )
+    {
+        kdict->insert( test_bad_kmers[ i ] );
+    }
+
     std::cout << "\t\tTesting remove and contains..." << std::endl << std::flush;
     int n_kmers_after_removal = n_test_insert_kmers;
     for( int i = 0; i < n_test_insert_kmers; i++ )
@@ -232,6 +238,10 @@ int main()
             n_kmers_after_removal--;
             kdict->remove( test_insert_kmers[ i ] );
         }
+    }
+    for( int i = 0; i < n_test_bad_kmers; i++ )
+    {
+        kdict->remove( test_bad_kmers[ i ] );
     }
     std::cout << "\t\t\tFound " << kdict->size() << " kmers present";
     std::cout << " (correct amount " << ( kdict->size() == n_kmers_after_removal ) << ")" << std::endl;
@@ -252,7 +262,7 @@ int main()
 
     // Get kmers
     std::cout << "\t\tTesting kmer seq retrieval..." << std::endl << std::flush;
-    //print( kdict );
+    print( kdict );
 
     delete kdict;
 

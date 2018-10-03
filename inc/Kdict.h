@@ -4,14 +4,14 @@
 #include <vector>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-//#include <boost/coroutine2/all.hpp>
+#include <boost/coroutine2/all.hpp>
 #include "Globals.h"
 #include "Bkmer.h"
 #include "Vertex.h"
 #include "Helper.h"
 
 namespace py = pybind11;
-//typedef boost::coroutines2::coroutine<char*> coro_t;
+typedef boost::coroutines2::coroutine<char*> coro_t;
 
 class Kdict
 {
@@ -30,13 +30,14 @@ class Kdict
         void clear();
         Vertex* get_root() { return root; }
         
-        /*static void get_kmers( coro_t::push_type& yield, Kdict* kdict )
+        static void get_kmers( coro_t::push_type& yield, Kdict* kdict )
         {
             char* seq = ( char* ) malloc( sizeof( char ) * ( kdict->m_k + 1 ) );
             seq[ kdict->m_k ] = '\0';
             yield_kmers( yield, kdict->get_root(), seq, 0 );
             free( seq );
         }
+
 
         static void yield_kmers( coro_t::push_type& yield, Vertex* v, char* seq, int pos )
         {
@@ -49,6 +50,7 @@ class Kdict
                 yield( seq );
             }
 
+            //std::cout << "done with uncompressed\t" << v << std::endl; 
             for( CContainer* cc : *v->get_ccs() )
             {
                 //std::unique_ptr< SufClustData >& sfc : *cc->get_suf_clust_data() )
@@ -56,9 +58,9 @@ class Kdict
                 std::vector< SufClustData* >* sfcs = cc->get_suf_clust_data();
                 for( int i = 0; i < sfcs->size(); i++ )
                 {
-                    //std::cout << "\tclust " << i << std::endl << std::flush;
                     SufClustData* sfc = sfcs->at( i );
                     char* prefix = cc->prefix_from_clust( i );
+                    //std::cout << "\tclust " << i << "\t" << prefix << std::endl << std::flush;
                     strcpy( &seq[ pos ], prefix );
                     free( prefix );
                     yield_kmers( yield, sfc->get_child_vertex(), seq, pos + 4);
@@ -66,7 +68,7 @@ class Kdict
                 }
                 //std::cout << "end cc" << std::endl;
             }
-        }*/
+        }
 };
 
 

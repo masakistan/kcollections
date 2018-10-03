@@ -32,14 +32,14 @@ void Vertex::insert( Vertex* v, Bkmer* bkmer )
     std::unique_ptr< Bkmer > sfpx = bkmer->get_prefix( sfpx_len );
 
     // check if item is in the uncompressed container
-    if( m_uc->contains( bkmer ) )
+    if( v->m_uc->contains( bkmer ) )
     {
         // can skip, kmer already added
         return;
     }
     
     // check all compressed containers
-    for( CContainer* cc : *m_ccs )
+    for( CContainer* cc : *v->m_ccs )
     {
         // check if item is possibly in a compressed container
         if( cc->may_contain( sfpx.get() ) )
@@ -59,19 +59,20 @@ void Vertex::insert( Vertex* v, Bkmer* bkmer )
                 Vertex* child_vertex = cc->get_child_of( sfpx.get() );
                 bkmer->emit_prefix( sfpx_len );
                 insert( child_vertex, bkmer );
+                return;
             }
         }
     }
     
-    if( m_uc->is_full() )
+    if( v->m_uc->is_full() )
     {
         // burst container if necessary
-        burst_uc( bkmer );
+        v->burst_uc( bkmer );
     }
     else
     {
         // add to uncompressed container
-        m_uc->insert( bkmer );
+        v->m_uc->insert( bkmer );
     }
 }
 

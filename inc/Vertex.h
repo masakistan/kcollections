@@ -25,7 +25,7 @@ class Vertex
         std::vector< CContainer* >* get_ccs() const { return m_ccs; }
 
 
-        void insert( Vertex* v, Bkmer* bkmer );
+        static void insert( Vertex* v, Bkmer* bkmer );
         void insert( Bkmer* bkmer );
         bool contains( Bkmer* bkmer );
         bool contains( Vertex* v, Bkmer* bkmer ) const;
