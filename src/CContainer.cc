@@ -9,13 +9,20 @@ const int CContainer::PREF_SIZE = std::pow( Container::get_prfx_prefix_length() 
 CContainer::CContainer() : Container()
 {
     bf = new BloomFilter( 256, 5 );
-    m_suf_clust_data = new std::vector< std::unique_ptr< SufClustData > >();
+    m_suf_clust_data = new std::vector< SufClustData* >();
     m_pref = new std::vector< bool >( PREF_SIZE );
 }
 
 CContainer::~CContainer()
 {
     delete bf;
+    
+    for( std::vector< SufClustData* >::iterator it = m_suf_clust_data->begin(); it != m_suf_clust_data->end(); it++ )
+    {
+        delete *it;
+    }
+    m_suf_clust_data->clear();
+
     delete m_suf_clust_data;
     delete m_pref;
 }
@@ -319,7 +326,7 @@ void CContainer::add_to_bloom_filter( Bkmer* sfpx )
 size_t CContainer::size()
 {
     size_t t_size = 0;
-    for( std::unique_ptr< SufClustData >& sfc : *m_suf_clust_data )
+    for( SufClustData* sfc : *m_suf_clust_data )
     {
         t_size += sfc->get_child_vertex()->size();
     }

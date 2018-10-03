@@ -41,24 +41,29 @@ class Kdict
         {
             for( Bkmer uc_bkmer : *v->get_uc()->get_bkmers() )
             {
+                //std::cout << "uc" << std::endl << std::flush;
                 char* tseq = uc_bkmer.get_seq();
                 strcpy( seq + pos, tseq );
                 free( tseq );
                 yield( seq );
             }
 
-            for( std::unique_ptr< CContainer>& cc : *v->get_ccs() )
+            for( CContainer* cc : *v->get_ccs() )
             {
                 //std::unique_ptr< SufClustData >& sfc : *cc->get_suf_clust_data() )
-                std::vector< std::unique_ptr< SufClustData > >* sfcs = cc->get_suf_clust_data();
+                //std::cout << "cc" << std::endl << std::flush;
+                std::vector< SufClustData* >* sfcs = cc->get_suf_clust_data();
                 for( int i = 0; i < sfcs->size(); i++ )
                 {
-                    std::unique_ptr< SufClustData >& sfc = sfcs->at( i );
+                    //std::cout << "\tclust " << i << std::endl << std::flush;
+                    SufClustData* sfc = sfcs->at( i );
                     char* prefix = cc->prefix_from_clust( i );
                     strcpy( &seq[ pos ], prefix );
                     free( prefix );
                     yield_kmers( yield, sfc->get_child_vertex(), seq, pos + 4);
+                    //std::cout << "\tend clust " << i << std::endl;
                 }
+                //std::cout << "end cc" << std::endl;
             }
         }
 };

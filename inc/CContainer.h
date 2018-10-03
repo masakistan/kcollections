@@ -14,7 +14,7 @@ class CContainer : public Container
     private:
         BloomFilter* bf;
         std::vector< bool >* m_pref;
-        std::vector< std::unique_ptr< SufClustData > >* m_suf_clust_data; 
+        std::vector< SufClustData* >* m_suf_clust_data; 
         const static int PREF_SIZE;
 
         unsigned int get_index_in_pref( Bkmer* bkmer );
@@ -38,7 +38,7 @@ class CContainer : public Container
         char* prefix_from_clust( int clust_pos );
 
         //int size() { return m_suf_clust_data->size(); }
-        std::vector< std::unique_ptr< SufClustData > >* get_suf_clust_data() { return m_suf_clust_data; }
+        std::vector< SufClustData* >* get_suf_clust_data() { return m_suf_clust_data; }
         BloomFilter* get_bf();
         //std::vector< Bkmer* >* get_suf();
         std::vector< bool >* get_clust();

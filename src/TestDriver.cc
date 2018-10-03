@@ -67,6 +67,21 @@ char* test_bad_kmers[] = {
 };
 
 
+void print( Kdict* kdict )
+{
+    int count = 0;
+    for( char* seq : coro_t::pull_type(
+             boost::coroutines2::fixedsize_stack(),
+             std::bind( Kdict::get_kmers, std::placeholders::_1, kdict ) ) )
+    {
+        //char* seq = bkmer.get_seq();
+        std::cout << "\t\t\tseq " << count++ << ": " << seq << std::endl << std::flush;
+        //free( seq );
+    }
+
+    std::cout << "*******************************************************************************************" << std::endl;
+}
+
 int test_cc_contain( CContainer* cc, Bkmer* bkmer )
 {
     char* seq = bkmer->get_seq();
@@ -188,9 +203,11 @@ int main()
     std::cout << "\t\tTesting insert and contains..." << std::endl << std::flush;
     for( int i = 0; i < n_test_insert_kmers; i++ )
     {
+        std::cout << "iter " << i << "\t" << test_insert_kmers[ i ] << std::endl;
         kdict->insert( test_insert_kmers[ i ] );
+        //print(kdict);
     }
-
+    
     for( int i = 0; i < n_test_insert_kmers; i++ )
     {
         assert( kdict->contains( test_insert_kmers[ i ] ) );
@@ -244,6 +261,8 @@ int main()
         std::cout << "\t\t\tseq " << count++ << ": " << seq << std::endl << std::flush;
         //free( seq );
     }
+
+    print( kdict );
 
     delete kdict;
 
