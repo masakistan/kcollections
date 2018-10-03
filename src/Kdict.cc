@@ -1,7 +1,8 @@
 #include "Kdict.h"
 
-Kdict::Kdict( int k, int bk ) : m_k( k ), m_bk( bk )
+Kdict::Kdict( int k ) : m_k( k )
 {
+    m_bk = calc_bk( k );
     root = new Vertex();
 }
 
@@ -45,7 +46,7 @@ void Kdict::clear()
 
 PYBIND11_MODULE(kc, m) {
     py::class_<Kdict>(m, "Kdict")
-        .def(py::init<const int, const int>())
+        .def(py::init<const int>())
         .def("insert", &Kdict::insert)
         .def("contains", &Kdict::contains)
         .def("remove", &Kdict::remove)

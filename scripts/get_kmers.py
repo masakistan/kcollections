@@ -73,7 +73,7 @@ def get_kmers( v, prefix = "", depth = 0 ):
                 yield suffix
 
 k = 27
-kd = kc.Kdict( k, kc.calc_bk( k ) )
+kd = kc.Kdict( k )
 
 
 print 'Insert kmers...'

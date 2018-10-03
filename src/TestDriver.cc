@@ -198,7 +198,7 @@ int main()
      * *************************************************************/
 
     std::cout << "\tTesting kdict..." << std::endl << std::flush;
-    Kdict* kdict = new Kdict( k, bk );
+    Kdict* kdict = new Kdict( k );
 
     std::cout << "\t\tTesting insert and contains..." << std::endl << std::flush;
     for( int i = 0; i < n_test_insert_kmers; i++ )

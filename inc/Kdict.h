@@ -17,11 +17,11 @@ class Kdict
 {
     private:
         Vertex* root;
+        int m_k, m_bk;
 
     public:
-        const int m_k, m_bk;
 
-        Kdict( int k, int bk );
+        Kdict( int k );
         ~Kdict();
         void insert( char* kmer );
         bool contains( char* kmer );
