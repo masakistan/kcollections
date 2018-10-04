@@ -11,6 +11,7 @@ with open( sys.argv[ 1 ], 'r' ) as fh:
     for line in tqdm( fh ):
         kmer = line.strip().split()[ 0 ]
         kd.insert( kmer )
+        c += 1
 
 assert kd.size() == c
 print 'Done! Processed', kd.size(), 'kmers!'
