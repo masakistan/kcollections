@@ -18,6 +18,7 @@ class Kdict
     private:
         Vertex* root;
         int m_k, m_bk;
+        Bkmer* ibkmer;
 
     public:
 

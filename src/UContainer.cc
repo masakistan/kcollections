@@ -8,6 +8,10 @@ UContainer::UContainer() : Container()
 UContainer::~UContainer()
 {
     delete m_bkmers;
+    /*for( Bkmer* bkmer : tm_bkmers )
+    {
+        delete bkmer;
+    }*/
 }
 
 bool UContainer::contains( Bkmer* bkmer )
@@ -22,12 +26,8 @@ bool UContainer::contains( Bkmer* bkmer )
 
 void UContainer::insert( Bkmer* bkmer )
 {
-    /*std::set< Bkmer >::iterator index = m_bkmers->find( *bkmer );
-    if( index == m_bkmers->end() )
-    {
-        m_bkmers->insert( *bkmer );
-    }*/
     m_bkmers->insert( *bkmer ); 
+    //tm_bkmers[ tm_bkmers.size() ] = new Bkmer( *bkmer );
 }
 
 bool UContainer::is_full()

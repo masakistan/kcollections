@@ -1,13 +1,21 @@
 cmake_minimum_required (VERSION 3.1)
 # Fix behavior of CMAKE_CXX_STANDARD when targeting macOS.
 if (POLICY CMP0025)
-  cmake_policy(SET CMP0025 NEW)
+    cmake_policy(SET CMP0025 NEW)
 endif ()
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
 project (Kdict)
 # The version number.
 set (Kdict_VERSION_MAJOR 0)
 set (Kdict_VERSION_MINOR 1)
-#set(CMAKE_BUILD_TYPE Debug)
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 message( "looking in ${CMAKE_MODULE_PATH}" )
 

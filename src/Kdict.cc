@@ -2,20 +2,23 @@
 
 Kdict::Kdict( int k ) : m_k( k )
 {
+    ibkmer = new Bkmer( k );
     m_bk = calc_bk( k );
     root = new Vertex();
 }
 
 Kdict::~Kdict()
 {
+    delete ibkmer;
     delete root;
 }
 
 void Kdict::insert( char* kmer )
 {
-    Bkmer* bkmer = new Bkmer( m_k, kmer );
-    root->insert( bkmer );
-    delete bkmer;
+    //Bkmer* bkmer = new Bkmer( m_k, kmer );
+    ibkmer->set_seq( kmer, m_k );
+    root->insert( ibkmer );
+    //delete bkmer;
 }
 
 void Kdict::insert_bkmer( Bkmer* bkmer )
@@ -43,9 +46,10 @@ size_t Kdict::size()
 
 void Kdict::remove( char* kmer )
 {
-    Bkmer* bkmer = new Bkmer( m_k, kmer );
-    root->remove( bkmer );
-    delete bkmer;
+    //Bkmer* bkmer = new Bkmer( m_k, kmer );
+    ibkmer->set_seq( kmer, m_k );
+    root->remove( ibkmer );
+    //delete bkmer;
 }
 
 void Kdict::remove_bkmer( Bkmer* bkmer )

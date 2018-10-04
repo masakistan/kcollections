@@ -9,6 +9,7 @@ class UContainer : public Container
 {
     private:
         std::set< Bkmer >* m_bkmers;
+        //std::array< Bkmer*, 256 > tm_bkmers;
 
     public:
         UContainer();

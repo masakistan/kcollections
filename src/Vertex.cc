@@ -2,7 +2,7 @@
 
 Vertex::Vertex()
 {
-    m_ccs = new std::vector< CContainer* >();
+    //m_ccs = new std::vector< CContainer* >();
     m_uc = new UContainer();
     //m_terminal_colors = new std::vector< bool >();
     //m_cardinality = 0;
@@ -10,12 +10,17 @@ Vertex::Vertex()
 
 Vertex::~Vertex()
 {
-    for( std::vector< CContainer* >::iterator it = m_ccs->begin(); it != m_ccs->end(); it++ )
+    /*for( std::vector< CContainer* >::iterator it = m_ccs->begin(); it != m_ccs->end(); it++ )
     {
         delete *it;
     }
-    m_ccs->clear();
-    delete m_ccs;
+    m_ccs->clear();*/
+    //delete m_ccs;
+    
+    for( auto cc : m_ccs )
+    {
+        delete cc;
+    }
     delete m_uc;
     //delete m_terminal_colors;
 }
@@ -39,7 +44,7 @@ void Vertex::insert( Vertex* v, Bkmer* bkmer )
     }
     
     // check all compressed containers
-    for( CContainer* cc : *v->m_ccs )
+    for( CContainer* cc : v->m_ccs )
     {
         // check if item is possibly in a compressed container
         if( cc->may_contain( sfpx.get() ) )
@@ -81,7 +86,7 @@ bool Vertex::contains( Bkmer* bkmer )
     return contains( this, bkmer );
 }
 
-bool Vertex::contains( const Vertex* v, Bkmer* bkmer )
+bool Vertex::contains( Vertex* v, Bkmer* bkmer )
 {
     UContainer* uc = v->get_uc();
 
@@ -90,11 +95,12 @@ bool Vertex::contains( const Vertex* v, Bkmer* bkmer )
         return true;
     }
 
-    std::vector< CContainer* >* ccs = v->get_ccs();
+    //std::vector< CContainer* >* ccs = v->get_ccs();
+    std::array< CContainer*, 26 >& ccs = v->get_ccs();
     int sfpx_length = Container::get_prefix_length();
     std::unique_ptr< Bkmer > sfpx = bkmer->get_prefix( sfpx_length );
 
-    for( CContainer* cc : *( ccs ) )
+    for( CContainer* cc : ccs )
     {
         if( cc->may_contain( sfpx.get() ) && cc->contains_prefix( sfpx.get() ) )
         {
@@ -138,7 +144,8 @@ void Vertex::burst_uc( Bkmer* bkmer )
 
     delete m_uc;
     m_uc = nuc;
-    m_ccs->push_back( ncc );
+    //m_ccs->push_back( ncc );
+    m_ccs[ m_ccs.size() ] = ncc;
 }
 
 size_t Vertex::size()
@@ -146,7 +153,7 @@ size_t Vertex::size()
     // check if the kmer exists
     size_t t_size = m_uc->size();
 
-    for( CContainer* cc : *( m_ccs ) )
+    for( CContainer* cc : m_ccs )
     {
         t_size += cc->size();
     }
@@ -170,11 +177,12 @@ void Vertex::remove( Vertex* v, Bkmer* bkmer )
         return;
     }
 
-    std::vector< CContainer* >* ccs = v->get_ccs();
+    std::array< CContainer*, 26 >& ccs = v->get_ccs();
+    //std::vector< CContainer* >* ccs = v->get_ccs();
     int sfpx_length = Container::get_prefix_length();
     std::unique_ptr< Bkmer > sfpx = bkmer->get_prefix( sfpx_length );
 
-    for( CContainer* cc : *( ccs ) )
+    for( CContainer* cc : ccs )
     {
         if( cc->may_contain( sfpx.get() ) && cc->contains_prefix( sfpx.get() ) )
         {

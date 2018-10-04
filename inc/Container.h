@@ -6,7 +6,7 @@
 class Container
 {
     protected:
-        static int s_capacity;
+        static size_t s_capacity;
         static int s_prefix_length;
         static int s_prfx_prefix_length;
         static int s_prfx_suffix_length;
