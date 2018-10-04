@@ -24,7 +24,17 @@ include_directories(inc)
 include_directories(libs/pybind11-2.2.4/include)
 
 # Add src files
-file(GLOB SOURCES "src/*.cc")
+#file(GLOB SOURCES "src/*.cc")
+set(SOURCES "src/Bkmer.cc;")
+string(APPEND SOURCES "src/BloomFilter.cc;")
+string(APPEND SOURCES "src/CContainer.cc;")
+string(APPEND SOURCES "src/Container.cc;")
+string(APPEND SOURCES "src/Globals.cc;")
+string(APPEND SOURCES "src/Kdict.cc;")
+string(APPEND SOURCES "src/MurmurHash3.cc;")
+string(APPEND SOURCES "src/SufClustData.cc;")
+string(APPEND SOURCES "src/UContainer.cc;")
+string(APPEND SOURCES "src/Vertex.cc;")
 
 # Python library
 find_package(PythonLibs 2.7 REQUIRED)
@@ -44,11 +54,18 @@ add_subdirectory(libs/pybind11-2.2.4)
 set (CMAKE_CXX_STANDARD 14)
 
 
-add_executable(Kdict ${SOURCES})
-target_link_libraries(Kdict
+add_executable(check "src/TestDriver.cc;" ${SOURCES})
+target_link_libraries(check
     ${PYTHON_LIBRARIES}
     #${Boost_LIBRARIES}
     )
+
+add_executable(test_driver "src/TestExternalFile.cc;" ${SOURCES})
+target_link_libraries(test_driver
+    ${PYTHON_LIBRARIES}
+    #${Boost_LIBRARIES}
+    )
+
 
 set(PYBIND11_PYTHON_VERSION 2.7)
 #set(bindings_python_version 2.7)
