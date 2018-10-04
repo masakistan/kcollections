@@ -11,13 +11,6 @@ Vertex::Vertex()
 
 Vertex::~Vertex()
 {
-    /*for( std::vector< CContainer* >::iterator it = m_ccs->begin(); it != m_ccs->end(); it++ )
-    {
-        delete *it;
-    }
-    m_ccs->clear();*/
-    //delete m_ccs;
-    
     for( CContainer* cc : *m_ccs )
     {
         if( cc == NULL )
@@ -39,14 +32,18 @@ void Vertex::insert( Bkmer* bkmer )
 
 void Vertex::insert( Vertex* v, Bkmer* bkmer )
 {
+printf("vertex this Value:  %p\n", bkmer->get_bseq() );
+    std::cout << "inserting! " << bkmer->get_seq() << std::endl;
     // get prefix position
     int sfpx_len = Container::get_prefix_length();
     std::unique_ptr< Bkmer > sfpx = bkmer->get_prefix( sfpx_len );
+printf("vertex after get prefix:  %p\n", bkmer->get_bseq() );
 
     // check if item is in the uncompressed container
     if( v->m_uc->contains( bkmer ) )
     {
         // can skip, kmer already added
+        std::cout << "found in uc!" << std::endl;
         return;
     }
     
@@ -57,6 +54,8 @@ void Vertex::insert( Vertex* v, Bkmer* bkmer )
         {
             break;
         }
+
+        std::cout << "checking cc" << std::endl;
 
         // check if item is possibly in a compressed container
         if( cc->may_contain( sfpx.get() ) )
@@ -81,6 +80,7 @@ void Vertex::insert( Vertex* v, Bkmer* bkmer )
         }
     }
     
+printf("vertex after cc search:  %p\n", bkmer->get_bseq() );
     if( v->m_uc->is_full() )
     {
         // burst container if necessary
@@ -89,6 +89,8 @@ void Vertex::insert( Vertex* v, Bkmer* bkmer )
     else
     {
         // add to uncompressed container
+        std::cout << "put in uc" << std::endl;
+printf("vertex before insert:  %p\n", bkmer->get_bseq() );
         v->m_uc->insert( bkmer );
     }
 }

@@ -203,8 +203,9 @@ int main()
     std::cout << "\t\tTesting insert and contains..." << std::endl << std::flush;
     for( int i = 0; i < n_test_insert_kmers; i++ )
     {
-        //std::cout << "iter " << i << "\t" << test_insert_kmers[ i ] << std::endl;
+        std::cout << "iter " << i << "\t" << test_insert_kmers[ i ] << std::endl << std::flush;
         kdict->insert( test_insert_kmers[ i ] );
+        std::cout << "\tcontains: " << kdict->contains( test_insert_kmers[ i ] ) << std::endl << std::flush;
         //print(kdict);
     }
     

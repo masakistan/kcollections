@@ -15,6 +15,19 @@ Bkmer::Bkmer( int k )
     m_bseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
 }
 
+Bkmer::Bkmer( const Bkmer& other )
+{
+    m_bk = other.m_bk;
+    m_k = other.m_k;
+    m_bseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
+    memcpy( m_bseq, other.m_bseq, m_bk );
+    std::cout << "copy constructor called! " << std::endl;
+    std::cout << "\t" << other.get_seq() << std::endl;
+    std::cout << "\t" << get_seq() << std::endl << std::flush;
+    printf("\t\tthis Value:  %p\n", m_bseq );
+    printf("\t\tother Value:  %p\n", other.m_bseq );
+}
+
 void Bkmer::serialize_kmer( char* kmer )
 {
     for( int pos = 0; pos < m_k; pos++ )
@@ -44,18 +57,6 @@ void Bkmer::set_seq( char* kmer, int k )
     serialize_kmer( kmer );
 }
 
-Bkmer::Bkmer( const Bkmer& other )
-{
-    m_bk = other.get_bk();
-    m_k = other.get_k();
-    m_bseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
-    
-    uint8_t* o_bseq = other.get_bseq();
-    for( int i = 0; i < m_bk; i++ )
-    {
-        m_bseq[ i ] = o_bseq[ i ];
-    }
-}
 
 std::unique_ptr< Bkmer > Bkmer::emit_prefix( int len )
 {
@@ -66,10 +67,7 @@ std::unique_ptr< Bkmer > Bkmer::emit_prefix( int len )
         return sfpx;
     }
 
-    for( int i = 0; i < m_bk - len; i++ )
-    {
-        m_bseq[ i ] = m_bseq[ i + len ];
-    }
+    memcpy( m_bseq, &m_bseq[ len ], m_bk - len );
     m_bk -= len;
     m_k = m_k - ( len * 4 );
     //resize();
@@ -85,13 +83,7 @@ std::unique_ptr< Bkmer > Bkmer::get_prefix( int len )
     }
 
     std::unique_ptr< Bkmer > sfpx = std::make_unique< Bkmer >( len * 4 );
-    //sfpx->set_bk( len );
-    //sfpx->set_k( len * 4 );
-    for( int i = 0; i < len; i++ )
-    {
-        sfpx->m_bseq[ i ] = m_bseq[ i ];
-    }
-    //sfpx->resize();
+    memcpy( sfpx->m_bseq, m_bseq, len );
     return sfpx;
 }
 
@@ -102,15 +94,11 @@ std::unique_ptr< Bkmer > Bkmer::get_suffix( int pos )
         return NULL;
     }
 
-    std::unique_ptr< Bkmer > sf = std::make_unique< Bkmer >( *this );
     int bytes = m_bk - pos;
     int removed = m_bk - bytes;
-    for( int i = 0; i < bytes; i++ )
-    {
-        sf->m_bseq[ 0 ] = m_bseq[ i + pos ];
-    }
-    sf->set_bk( bytes );
-    sf->set_k( m_k - ( removed * 4 ) );
+    int new_k = m_k - ( removed * 4 );
+    std::unique_ptr< Bkmer > sf = std::make_unique< Bkmer >( new_k );
+    memcpy( sf->m_bseq, &m_bseq[ pos ], bytes );
     return sf;
 }
 
@@ -132,21 +120,27 @@ Bkmer::~Bkmer()
 
 bool Bkmer::operator<( const Bkmer& other ) const
 {
+    //std::cout << "using bkmer < op" << std::endl << std::flush;
+    //std::cout << "\tcompare " << get_seq() << "\t" << other.get_seq() << std::endl << std::flush;
     for( int i = 0; i < m_bk; i++ )
     {
-        if(  unsigned( m_bseq[ i ] ) < unsigned( other.get_bseq()[ i ] ) )
+        //std::cout << "\t\t" << i << "\t" << unsigned( m_bseq[ i ] ) << "\t" << unsigned( other.m_bseq[ i ] ) << std::endl;
+        if(  unsigned( m_bseq[ i ] ) < unsigned( other.m_bseq[ i ] ) )
         {
+            //std::cout << "\t\t\tless than" << std::endl;
             return true;
         }
-        else if( unsigned( m_bseq[ i ] ) > unsigned( other.get_bseq()[ i ] ) )
+        else if( unsigned( m_bseq[ i ] ) > unsigned( other.m_bseq[ i ] ) )
         {
+            //std::cout << "\t\t>= than" << std::endl;
             return false;
         }
-        else
+        /*else
         {
             // continue search
-        }
+        }*/
     }
+    //std::cout << "\t\t>= than" << std::endl;
     return false;
 }
 
@@ -189,7 +183,7 @@ bool Bkmer::operator==( const Bkmer& other )
     
     for( int i = 0; i < m_bk; i ++ )
     {
-        if( m_bseq[ i ] != other.get_bseq()[ i ] )
+        if( m_bseq[ i ] != other.m_bseq[ i ] )
         {
             return false;
         }

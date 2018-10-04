@@ -9,6 +9,9 @@
 #include "Helper.h"
 
 static const uint8_t MASK_INSERT[ 3 ][ 4 ] = {
+        /*{ 64, 16, 4, 1 },
+        { 128, 32, 8, 2 },
+        { 192, 48, 12, 3 }*/
         { 1, 4, 16, 64 },
         { 2, 8, 32, 128 },
         { 3, 12, 48, 192 }
@@ -21,6 +24,7 @@ class Bkmer
     private:
         uint8_t* m_bseq;
         size_t m_k, m_bk;
+
         void resize();
         void serialize_kmer( char* kmer );
     
@@ -45,6 +49,19 @@ class Bkmer
         char char_at( int pos );
         static char* deserialize_seq( int k, int bk, uint8_t* bseq );
         char* get_seq() const;
+};
+
+struct compare_bkmer
+{
+    inline bool operator() ( const Bkmer& left, const Bkmer& right )
+    {
+        std::cout << "comparing " << left.get_seq() << "\t" << right.get_seq() << std::endl;
+        if( left < right )
+            std::cout << "\tleft < right" << std::endl;
+        else
+            std::cout << "\tleft >= right" << std::endl;
+        return left < right;
+    }
 };
 
 
