@@ -276,10 +276,12 @@ int main()
         bkmer->set_seq( kmer, k );
         std::cout << "\tbkmer k = " << bkmer->get_k() << ", bk = " << bkmer->get_bk() << std::endl;
         kdict->insert_bkmer( bkmer );
-        std::cout << "\tNum items: " << kdict->size() << "\t" << bkmer->get_seq() << "\t" << kmer << std::endl;
+        //std::cout << "\tNum items: " << kdict->size() << "\t" << bkmer->get_seq() << "\t" << kmer << std::endl;
     }
 
     std::cout << "Number of elements after bkmer insert: " << kdict->size() << std::endl;
+    delete bkmer;
+    delete kdict;
 
     /****************************************************************
      * End kdict tests

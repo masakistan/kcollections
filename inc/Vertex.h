@@ -18,7 +18,7 @@ class Vertex
         // Containers
         UContainer* m_uc;
         //std::vector< CContainer* >* m_ccs;
-        std::array< CContainer*, 26 > m_ccs;
+        std::array< CContainer*, 26 > m_ccs = {};
 
     public:
         Vertex();

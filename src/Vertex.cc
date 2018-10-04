@@ -17,10 +17,15 @@ Vertex::~Vertex()
     m_ccs->clear();*/
     //delete m_ccs;
     
-    for( auto cc : m_ccs )
+    for( CContainer* cc : m_ccs )
     {
+        if( cc == NULL )
+        {
+            break;
+        }
         delete cc;
     }
+
     delete m_uc;
     //delete m_terminal_colors;
 }
@@ -46,6 +51,11 @@ void Vertex::insert( Vertex* v, Bkmer* bkmer )
     // check all compressed containers
     for( CContainer* cc : v->m_ccs )
     {
+        if( cc == NULL)
+        {
+            break;
+        }
+
         // check if item is possibly in a compressed container
         if( cc->may_contain( sfpx.get() ) )
         {
@@ -102,6 +112,11 @@ bool Vertex::contains( Vertex* v, Bkmer* bkmer )
 
     for( CContainer* cc : ccs )
     {
+        if( cc == NULL )
+        {
+            break;
+        }
+
         if( cc->may_contain( sfpx.get() ) && cc->contains_prefix( sfpx.get() ) )
         {
             sfpx = bkmer->emit_prefix( sfpx_length );
@@ -115,7 +130,7 @@ bool Vertex::contains( Vertex* v, Bkmer* bkmer )
 
 void Vertex::burst_uc( Bkmer* bkmer )
 {
-     UContainer* nuc = new UContainer(); //new UContainer();
+    UContainer* nuc = new UContainer(); //new UContainer();
     CContainer* ncc = new CContainer(); //new CContainer();
     m_uc->insert( bkmer );
 
@@ -145,6 +160,7 @@ void Vertex::burst_uc( Bkmer* bkmer )
     delete m_uc;
     m_uc = nuc;
     //m_ccs->push_back( ncc );
+    std::cout << "m_ccs index: " << m_ccs.size() << " -> " << ncc << std::endl;
     m_ccs[ m_ccs.size() ] = ncc;
 }
 
@@ -155,6 +171,11 @@ size_t Vertex::size()
 
     for( CContainer* cc : m_ccs )
     {
+        if( cc == NULL )
+        {
+            break;
+        }
+
         t_size += cc->size();
     }
 
@@ -184,6 +205,11 @@ void Vertex::remove( Vertex* v, Bkmer* bkmer )
 
     for( CContainer* cc : ccs )
     {
+        if( cc == NULL )
+        {
+            break;
+        }
+
         if( cc->may_contain( sfpx.get() ) && cc->contains_prefix( sfpx.get() ) )
         {
             sfpx = bkmer->emit_prefix( sfpx_length );
