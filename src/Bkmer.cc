@@ -10,6 +10,7 @@ Bkmer::Bkmer( int k, char* kmer )
 
 Bkmer::Bkmer( int k )
 {
+    //std::cout << "blank bkmer created!" << std::endl;
     m_k = k;
     m_bk = calc_bk( k );
     m_bseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
@@ -21,11 +22,11 @@ Bkmer::Bkmer( const Bkmer& other )
     m_k = other.m_k;
     m_bseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
     memcpy( m_bseq, other.m_bseq, m_bk );
-    std::cout << "copy constructor called! " << std::endl;
-    std::cout << "\t" << other.get_seq() << std::endl;
-    std::cout << "\t" << get_seq() << std::endl << std::flush;
-    printf("\t\tthis Value:  %p\n", m_bseq );
-    printf("\t\tother Value:  %p\n", other.m_bseq );
+    //std::cout << "copy constructor called! " << std::endl;
+    //std::cout << "\t" << other.get_seq() << std::endl;
+    //std::cout << "\t" << get_seq() << std::endl << std::flush;
+    //printf("\t\tthis Value:  %p\n", m_bseq );
+    //printf("\t\tother Value:  %p\n", other.m_bseq );
 }
 
 void Bkmer::serialize_kmer( char* kmer )

@@ -32,18 +32,18 @@ void Vertex::insert( Bkmer* bkmer )
 
 void Vertex::insert( Vertex* v, Bkmer* bkmer )
 {
-printf("vertex this Value:  %p\n", bkmer->get_bseq() );
-    std::cout << "inserting! " << bkmer->get_seq() << std::endl;
+//printf("vertex this Value:  %p\n", bkmer->get_bseq() );
+    //std::cout << "inserting! " << bkmer->get_seq() << std::endl;
     // get prefix position
     int sfpx_len = Container::get_prefix_length();
     std::unique_ptr< Bkmer > sfpx = bkmer->get_prefix( sfpx_len );
-printf("vertex after get prefix:  %p\n", bkmer->get_bseq() );
+//printf("vertex after get prefix:  %p\n", bkmer->get_bseq() );
 
     // check if item is in the uncompressed container
     if( v->m_uc->contains( bkmer ) )
     {
         // can skip, kmer already added
-        std::cout << "found in uc!" << std::endl;
+        //std::cout << "found in uc!" << std::endl;
         return;
     }
     
@@ -55,7 +55,7 @@ printf("vertex after get prefix:  %p\n", bkmer->get_bseq() );
             break;
         }
 
-        std::cout << "checking cc" << std::endl;
+        //std::cout << "checking cc" << std::endl;
 
         // check if item is possibly in a compressed container
         if( cc->may_contain( sfpx.get() ) )
@@ -80,7 +80,7 @@ printf("vertex after get prefix:  %p\n", bkmer->get_bseq() );
         }
     }
     
-printf("vertex after cc search:  %p\n", bkmer->get_bseq() );
+//printf("vertex after cc search:  %p\n", bkmer->get_bseq() );
     if( v->m_uc->is_full() )
     {
         // burst container if necessary
@@ -89,8 +89,8 @@ printf("vertex after cc search:  %p\n", bkmer->get_bseq() );
     else
     {
         // add to uncompressed container
-        std::cout << "put in uc" << std::endl;
-printf("vertex before insert:  %p\n", bkmer->get_bseq() );
+        //std::cout << "put in uc" << std::endl;
+//printf("vertex before insert:  %p\n", bkmer->get_bseq() );
         v->m_uc->insert( bkmer );
     }
 }
@@ -140,20 +140,20 @@ void Vertex::burst_uc( Bkmer* bkmer )
 
     std::unique_ptr< Bkmer > sfpx;
 
-    for( Bkmer uc_bkmer : *( m_uc->get_bkmers() ) )
+    for( Bkmer* uc_bkmer : *( m_uc->get_bkmers() ) )
     {
-        sfpx = uc_bkmer.get_prefix( Container::get_prefix_length() );
+        sfpx = uc_bkmer->get_prefix( Container::get_prefix_length() );
 
         // check if compressed container is at capacity
         if( !ncc->is_full() )
         {
             ncc->insert( sfpx.get() );
-            uc_bkmer.emit_prefix( Container::get_prefix_length() );
-            ncc->get_child_of( sfpx.get() )->insert( &uc_bkmer );
+            uc_bkmer->emit_prefix( Container::get_prefix_length() );
+            ncc->get_child_of( sfpx.get() )->insert( uc_bkmer );
         }
         else if( !nuc->is_full() )
         {
-            nuc->insert( &uc_bkmer );
+            nuc->insert( uc_bkmer );
         }
         else
         {

@@ -157,6 +157,7 @@ int main()
     else
     {
         std::cout << "\t\tUC kmer contains failed!" << std::endl;
+        return 0;
     }
     delete bkmer;
     delete uc;
@@ -203,11 +204,13 @@ int main()
     std::cout << "\t\tTesting insert and contains..." << std::endl << std::flush;
     for( int i = 0; i < n_test_insert_kmers; i++ )
     {
-        std::cout << "iter " << i << "\t" << test_insert_kmers[ i ] << std::endl << std::flush;
+        //std::cout << "iter " << i << "\t" << test_insert_kmers[ i ] << std::endl << std::flush;
         kdict->insert( test_insert_kmers[ i ] );
-        std::cout << "\tcontains: " << kdict->contains( test_insert_kmers[ i ] ) << std::endl << std::flush;
+        //std::cout << "\tcontains: " << kdict->contains( test_insert_kmers[ i ] ) << std::endl << std::flush;
         //print(kdict);
     }
+
+    std::cout << "num items: " << kdict->size() << std::endl << std::flush;
     
     for( int i = 0; i < n_test_insert_kmers; i++ )
     {
@@ -269,13 +272,13 @@ int main()
 
     kdict = new Kdict( k );
     bkmer = new Bkmer( k );
-    std::cout << "bkmer k = " << bkmer->get_k() << ", bk = " << bkmer->get_bk() << std::endl;
+    //std::cout << "bkmer k = " << bkmer->get_k() << ", bk = " << bkmer->get_bk() << std::endl;
     
     for( int i = 0; i < n_test_insert_kmers; i++ )
     {
         kmer = test_insert_kmers[ i ];
         bkmer->set_seq( kmer, k );
-        std::cout << "\tbkmer k = " << bkmer->get_k() << ", bk = " << bkmer->get_bk() << std::endl;
+        //std::cout << "\tbkmer k = " << bkmer->get_k() << ", bk = " << bkmer->get_bk() << std::endl;
         kdict->insert_bkmer( bkmer );
         //std::cout << "\tNum items: " << kdict->size() << "\t" << bkmer->get_seq() << "\t" << kmer << std::endl;
     }

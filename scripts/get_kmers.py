@@ -68,6 +68,8 @@ def get_kmers( v, prefix = "", depth = 0 ):
     for uc_bkmer in v.get_uc().get_bkmers():
         yield prefix + uc_bkmer.get_seq()
     for cc in v.get_ccs():
+        if cc is None:
+            break
         for clust_idx, sfc in enumerate( cc.get_suf_clust_data() ):
             for suffix in get_kmers( sfc.get_child_vertex(), prefix + cc.prefix_from_clust( clust_idx ), depth + 1 ):
                 yield suffix

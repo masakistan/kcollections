@@ -53,14 +53,14 @@ class Bkmer
 
 struct compare_bkmer
 {
-    inline bool operator() ( const Bkmer& left, const Bkmer& right )
+    inline bool operator() ( const Bkmer* left, const Bkmer* right )
     {
-        std::cout << "comparing " << left.get_seq() << "\t" << right.get_seq() << std::endl;
+        /*std::cout << "comparing " << left->get_seq() << "\t" << right->get_seq() << std::endl;
         if( left < right )
             std::cout << "\tleft < right" << std::endl;
         else
-            std::cout << "\tleft >= right" << std::endl;
-        return left < right;
+            std::cout << "\tleft >= right" << std::endl;*/
+        return *left < *right;
     }
 };
 

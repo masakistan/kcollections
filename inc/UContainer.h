@@ -9,7 +9,7 @@
 class UContainer : public Container
 {
     private:
-        std::vector< Bkmer >* m_bkmers;
+        std::vector< Bkmer* >* m_bkmers;
         //std::array< Bkmer*, 256 > tm_bkmers;
 
     public:
@@ -19,7 +19,7 @@ class UContainer : public Container
         bool contains( Bkmer* bkmer );
         void insert( Bkmer* bkmer );
         bool is_full();
-        std::vector< Bkmer >* get_bkmers();
+        std::vector< Bkmer* >* get_bkmers();
         void remove( Bkmer* bkmer );
 };
 

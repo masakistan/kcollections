@@ -16,9 +16,9 @@ Kdict::~Kdict()
 void Kdict::insert( char* kmer )
 {
     //Bkmer* bkmer = new Bkmer( m_k, kmer );
-printf("this Value:  %p\n", ibkmer->get_bseq() );
+//printf("this Value:  %p\n", ibkmer->get_bseq() );
     ibkmer->set_seq( kmer, m_k );
-printf("this Value:  %p\n", ibkmer->get_bseq() );
+//printf("this Value:  %p\n", ibkmer->get_bseq() );
     root->insert( ibkmer );
     //delete bkmer;
 }
