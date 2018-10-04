@@ -1,11 +1,18 @@
 #include "Bkmer.h"
 
-Bkmer::Bkmer( int k, int bk, char* kmer )
+Bkmer::Bkmer( int k, char* kmer )
 {
     m_k = k;
-    m_bk = bk;
-    m_bseq = ( uint8_t* ) calloc( bk, sizeof( uint8_t ) );
+    m_bk = calc_bk( k );
+    m_bseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
     serialize_kmer( kmer );
+}
+
+Bkmer::Bkmer( int k )
+{
+    m_k = k;
+    m_bk = calc_bk( k );
+    m_bseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
 }
 
 void Bkmer::serialize_kmer( char* kmer )
@@ -29,9 +36,16 @@ void Bkmer::serialize_kmer( char* kmer )
     }
 }
 
+void Bkmer::set_seq( char* kmer, int k )
+{
+    m_k = k;
+    m_bk = calc_bk( k );
+    memset( m_bseq, 0, m_bk );
+    serialize_kmer( kmer );
+}
+
 Bkmer::Bkmer( const Bkmer& other )
 {
-
     m_bk = other.get_bk();
     m_k = other.get_k();
     m_bseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
@@ -58,7 +72,7 @@ std::unique_ptr< Bkmer > Bkmer::emit_prefix( int len )
     }
     m_bk -= len;
     m_k = m_k - ( len * 4 );
-    resize();
+    //resize();
 
     return sfpx;
 }
@@ -70,14 +84,14 @@ std::unique_ptr< Bkmer > Bkmer::get_prefix( int len )
         return NULL;
     }
 
-    std::unique_ptr< Bkmer > sfpx = std::make_unique< Bkmer >( *this );
-    sfpx->set_bk( len );
-    sfpx->set_k( len * 4 );
+    std::unique_ptr< Bkmer > sfpx = std::make_unique< Bkmer >( len * 4 );
+    //sfpx->set_bk( len );
+    //sfpx->set_k( len * 4 );
     for( int i = 0; i < len; i++ )
     {
         sfpx->m_bseq[ i ] = m_bseq[ i ];
     }
-    sfpx->resize();
+    //sfpx->resize();
     return sfpx;
 }
 

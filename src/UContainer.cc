@@ -22,11 +22,12 @@ bool UContainer::contains( Bkmer* bkmer )
 
 void UContainer::insert( Bkmer* bkmer )
 {
-    std::set< Bkmer >::iterator index = m_bkmers->find( *bkmer );
+    /*std::set< Bkmer >::iterator index = m_bkmers->find( *bkmer );
     if( index == m_bkmers->end() )
     {
         m_bkmers->insert( *bkmer );
-    }
+    }*/
+    m_bkmers->insert( *bkmer ); 
 }
 
 bool UContainer::is_full()

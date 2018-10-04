@@ -122,7 +122,7 @@ int main()
     std::cout << "\tTesting kmer serialization/deserialization..." << std::endl << std::flush;
     std::cout << "\t\tkmer: " << kmer << std::endl;
 
-    Bkmer* bkmer = new Bkmer( k, bk, kmer );
+    Bkmer* bkmer = new Bkmer( k, kmer );
     for( int i = 0; i < bk; i++ )
     {
         std::cout << "\t\t\t" << unsigned( bkmer->get_bseq()[ i ] ) << std::endl;
@@ -142,7 +142,7 @@ int main()
      * *************************************************************/
     std::cout << "\tTesting uncompressed container..." << std::endl << std::flush;
     UContainer* uc = new UContainer();
-    bkmer = new Bkmer( k, bk, kmer );
+    bkmer = new Bkmer( k, kmer );
 
     for( int i = 0; i < 2; i++ )
     {
@@ -170,7 +170,7 @@ int main()
      * *************************************************************/
     std::cout << "\tTesting compressed container..." << std::endl << std::flush;
     CContainer* cc = new CContainer();
-    bkmer = new Bkmer( k, bk, kmer );
+    bkmer = new Bkmer( k, kmer );
     for( int i = 0; i < 2; i++ )
     {
         std::cout << "\t\t\tinserting: " << kmer << std::endl << std::flush;
@@ -179,7 +179,7 @@ int main()
     test_cc_contain( cc, bkmer );
 
     char* bad_kmer = ( char* ) "AAATTCCAACCGTGTCTTCTCCATTAA";
-    Bkmer* bad_bkmer = new Bkmer( k, bk, bad_kmer );
+    Bkmer* bad_bkmer = new Bkmer( k, bad_kmer );
     test_cc_contain( cc, bad_bkmer );
     delete bkmer;
     delete bad_bkmer;
@@ -203,7 +203,7 @@ int main()
     std::cout << "\t\tTesting insert and contains..." << std::endl << std::flush;
     for( int i = 0; i < n_test_insert_kmers; i++ )
     {
-        std::cout << "iter " << i << "\t" << test_insert_kmers[ i ] << std::endl;
+        //std::cout << "iter " << i << "\t" << test_insert_kmers[ i ] << std::endl;
         kdict->insert( test_insert_kmers[ i ] );
         //print(kdict);
     }
@@ -265,6 +265,21 @@ int main()
     //print( kdict );
 
     delete kdict;
+
+    kdict = new Kdict( k );
+    bkmer = new Bkmer( k );
+    std::cout << "bkmer k = " << bkmer->get_k() << ", bk = " << bkmer->get_bk() << std::endl;
+    
+    for( int i = 0; i < n_test_insert_kmers; i++ )
+    {
+        kmer = test_insert_kmers[ i ];
+        bkmer->set_seq( kmer, k );
+        std::cout << "\tbkmer k = " << bkmer->get_k() << ", bk = " << bkmer->get_bk() << std::endl;
+        kdict->insert_bkmer( bkmer );
+        std::cout << "\tNum items: " << kdict->size() << "\t" << bkmer->get_seq() << "\t" << kmer << std::endl;
+    }
+
+    std::cout << "Number of elements after bkmer insert: " << kdict->size() << std::endl;
 
     /****************************************************************
      * End kdict tests

@@ -24,9 +24,12 @@ class Kdict
         Kdict( int k );
         ~Kdict();
         void insert( char* kmer );
+        void insert_bkmer( Bkmer* bkmer );
         bool contains( char* kmer );
+        bool contains_bkmer( Bkmer* kmer );
         size_t size();
         void remove( char* kmer );
+        void remove_bkmer( Bkmer* bkmer );
         void clear();
         Vertex* get_root() { return root; }
         

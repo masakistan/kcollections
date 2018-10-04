@@ -13,17 +13,27 @@ Kdict::~Kdict()
 
 void Kdict::insert( char* kmer )
 {
-    Bkmer* bkmer = new Bkmer( m_k, m_bk, kmer );
+    Bkmer* bkmer = new Bkmer( m_k, kmer );
     root->insert( bkmer );
     delete bkmer;
 }
 
+void Kdict::insert_bkmer( Bkmer* bkmer )
+{
+    root->insert( bkmer );
+}
+
 bool Kdict::contains( char* kmer )
 {
-    Bkmer* bkmer = new Bkmer( m_k, m_bk, kmer );
+    Bkmer* bkmer = new Bkmer( m_k, kmer );
     bool res = root->contains( bkmer );
     delete bkmer;
     return res;
+}
+
+bool Kdict::contains_bkmer( Bkmer* bkmer )
+{
+    return root->contains( bkmer );
 }
 
 size_t Kdict::size()
@@ -33,9 +43,14 @@ size_t Kdict::size()
 
 void Kdict::remove( char* kmer )
 {
-    Bkmer* bkmer = new Bkmer( m_k, m_bk, kmer );
+    Bkmer* bkmer = new Bkmer( m_k, kmer );
     root->remove( bkmer );
     delete bkmer;
+}
+
+void Kdict::remove_bkmer( Bkmer* bkmer )
+{
+    root->remove( bkmer );
 }
 
 void Kdict::clear()
@@ -48,8 +63,11 @@ PYBIND11_MODULE(kc, m) {
     py::class_<Kdict>(m, "Kdict")
         .def(py::init<const int>())
         .def("insert", &Kdict::insert)
+        .def("insert_bkmer", &Kdict::insert_bkmer)
         .def("contains", &Kdict::contains)
+        .def("contains_bkmer", &Kdict::contains_bkmer)
         .def("remove", &Kdict::remove)
+        .def("remove_bkmer", &Kdict::remove_bkmer)
         .def("size", &Kdict::size)
         .def("clear", &Kdict::clear)
         .def("get_root", &Kdict::get_root, py::return_value_policy::reference);
@@ -59,7 +77,9 @@ PYBIND11_MODULE(kc, m) {
         .def("get_ccs", &Vertex::get_ccs, py::return_value_policy::reference);
 
     py::class_<Bkmer>(m, "Bkmer")
-        .def("get_seq", &Bkmer::get_seq, py::return_value_policy::take_ownership);
+        .def(py::init<const int>())
+        .def("get_seq", &Bkmer::get_seq, py::return_value_policy::take_ownership)
+        .def("set_seq", &Bkmer::set_seq);
     
     py::class_<UContainer>(m, "UContainer")
         .def("get_bkmers", &UContainer::get_bkmers, py::return_value_policy::reference);

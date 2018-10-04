@@ -5,6 +5,7 @@
 #include <sstream>
 #include <stdint.h>
 #include "Globals.h"
+#include "Helper.h"
 
 static const uint8_t MASK_INSERT[ 3 ][ 4 ] = {
         { 1, 4, 16, 64 },
@@ -23,12 +24,14 @@ class Bkmer
         void serialize_kmer( char* kmer );
     
     public:
-        Bkmer( int k, int bk, char* kmer );
+        Bkmer( int k, char* kmer );
+        Bkmer( int k );
         Bkmer( const Bkmer& other );
         std::unique_ptr< Bkmer > emit_prefix( int len );
         std::unique_ptr< Bkmer > get_prefix( int len );
         std::unique_ptr< Bkmer > get_suffix( int pos );
         ~Bkmer();
+        void set_seq( char* kmer, int k );
         bool operator<( const Bkmer& other ) const;
         bool operator>( const Bkmer& other ) const;
         bool operator==( const Bkmer& other );
