@@ -6,11 +6,10 @@
 #include "Container.h"
 #include "BloomFilter.h"
 #include "Bkmer.h"
-#include "Globals.h"
 #include "SufClustData.h"
 
 
-class CContainer : public Container
+class __attribute__ ((__packed__)) CContainer : public Container
 {
     private:
         BloomFilter* bf;

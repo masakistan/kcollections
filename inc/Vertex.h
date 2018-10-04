@@ -12,7 +12,7 @@
 #include "Bkmer.h"
 
 
-class Vertex
+class __attribute__ ((__packed__)) Vertex
 {
     private:
         // Containers

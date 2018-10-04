@@ -6,7 +6,7 @@
 #include "Container.h"
 #include "Bkmer.h"
 
-class UContainer : public Container
+class __attribute__ ((__packed__)) UContainer : public Container
 {
     private:
         std::vector< Bkmer* >* m_bkmers;

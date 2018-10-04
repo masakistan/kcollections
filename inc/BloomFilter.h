@@ -3,7 +3,6 @@
 #include <vector>
 #include <array>
 #include "MurmurHash3.h"
-#include "Globals.h"
 #include "Bkmer.h"
 
 
@@ -16,7 +15,7 @@ inline uint64_t nthHash( uint8_t n,
 }
 
 
-class BloomFilter
+class __attribute__ ((__packed__)) BloomFilter
 {
     private:
         std::vector<bool>* m_bits;

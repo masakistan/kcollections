@@ -6,7 +6,7 @@
 
 class Vertex;
 
-class SufClustData
+class __attribute__ ((__packed__)) SufClustData
 {
     private:
         std::unique_ptr< Bkmer > m_sfpx_suffix;

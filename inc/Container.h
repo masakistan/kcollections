@@ -6,10 +6,10 @@
 class Container
 {
     protected:
-        static size_t s_capacity;
-        static int s_prefix_length;
-        static int s_prfx_prefix_length;
-        static int s_prfx_suffix_length;
+        static uint16_t s_capacity;
+        static uint8_t s_prefix_length;
+        static uint8_t s_prfx_prefix_length;
+        static uint8_t s_prfx_suffix_length;
 
     private:
 

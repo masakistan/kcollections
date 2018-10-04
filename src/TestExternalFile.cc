@@ -21,11 +21,11 @@ int main( int argc, char* argv[] )
         strcpy( kmer, line.substr( 0, k ).c_str() );
 
         kd->insert( kmer );
-        std::cout << "inserted correctly? ";
+        /*std::cout << "inserted correctly? ";
         if( kd->contains( kmer ) )
             std::cout << "True!" << std::endl;
         else
-            std::cout << "False!" << std::endl;
+            std::cout << "False!" << std::endl;*/
 
         c++;
     }

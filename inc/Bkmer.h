@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <sstream>
 #include <stdint.h>
-#include "Globals.h"
 #include "Helper.h"
 
 static const uint8_t MASK_INSERT[ 3 ][ 4 ] = {
@@ -19,11 +18,11 @@ static const uint8_t MASK_INSERT[ 3 ][ 4 ] = {
 
 static const char COMP_TO_ASCII[4] = {'A', 'C', 'G', 'T'};
 
-class Bkmer
+class __attribute__ ((__packed__)) Bkmer
 {
     private:
         uint8_t* m_bseq;
-        size_t m_k, m_bk;
+        uint8_t m_k, m_bk;
 
         void resize();
         void serialize_kmer( char* kmer );

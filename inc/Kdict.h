@@ -5,7 +5,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 //#include <boost/coroutine2/all.hpp>
-#include "Globals.h"
 #include "Bkmer.h"
 #include "Vertex.h"
 #include "Helper.h"
@@ -17,7 +16,7 @@ class Kdict
 {
     private:
         Vertex* root;
-        int m_k, m_bk;
+        uint8_t m_k, m_bk;
         Bkmer* ibkmer;
 
     public:
