@@ -1,4 +1,5 @@
 #include "Bkmer.h"
+#include <iostream>
 
 Bkmer::Bkmer( int k, char* kmer )
 {
@@ -10,7 +11,6 @@ Bkmer::Bkmer( int k, char* kmer )
 
 Bkmer::Bkmer( int k )
 {
-    //std::cout << "blank bkmer created!" << std::endl;
     m_k = k;
     m_bk = calc_bk( k );
     m_bseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
@@ -22,11 +22,6 @@ Bkmer::Bkmer( const Bkmer& other )
     m_k = other.m_k;
     m_bseq = ( uint8_t* ) calloc( m_bk, sizeof( uint8_t ) );
     memcpy( m_bseq, other.m_bseq, m_bk );
-    //std::cout << "copy constructor called! " << std::endl;
-    //std::cout << "\t" << other.get_seq() << std::endl;
-    //std::cout << "\t" << get_seq() << std::endl << std::flush;
-    //printf("\t\tthis Value:  %p\n", m_bseq );
-    //printf("\t\tother Value:  %p\n", other.m_bseq );
 }
 
 void Bkmer::serialize_kmer( char* kmer )
@@ -68,7 +63,11 @@ std::unique_ptr< Bkmer > Bkmer::emit_prefix( int len )
         return sfpx;
     }
 
-    memcpy( m_bseq, &m_bseq[ len ], m_bk - len );
+    for( int i = 0; i < m_bk - len; i++ )
+    {
+        m_bseq[ i ] = m_bseq[ i + len ];
+    }
+
     m_bk -= len;
     m_k = m_k - ( len * 4 );
     //resize();
@@ -121,19 +120,14 @@ Bkmer::~Bkmer()
 
 bool Bkmer::operator<( const Bkmer& other ) const
 {
-    //std::cout << "using bkmer < op" << std::endl << std::flush;
-    //std::cout << "\tcompare " << get_seq() << "\t" << other.get_seq() << std::endl << std::flush;
     for( int i = 0; i < m_bk; i++ )
     {
-        //std::cout << "\t\t" << i << "\t" << unsigned( m_bseq[ i ] ) << "\t" << unsigned( other.m_bseq[ i ] ) << std::endl;
         if(  unsigned( m_bseq[ i ] ) < unsigned( other.m_bseq[ i ] ) )
         {
-            //std::cout << "\t\t\tless than" << std::endl;
             return true;
         }
         else if( unsigned( m_bseq[ i ] ) > unsigned( other.m_bseq[ i ] ) )
         {
-            //std::cout << "\t\t>= than" << std::endl;
             return false;
         }
         /*else
@@ -141,7 +135,6 @@ bool Bkmer::operator<( const Bkmer& other ) const
             // continue search
         }*/
     }
-    //std::cout << "\t\t>= than" << std::endl;
     return false;
 }
 

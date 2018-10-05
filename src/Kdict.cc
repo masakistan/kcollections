@@ -15,12 +15,8 @@ Kdict::~Kdict()
 
 void Kdict::insert( char* kmer )
 {
-    //Bkmer* bkmer = new Bkmer( m_k, kmer );
-//printf("this Value:  %p\n", ibkmer->get_bseq() );
     ibkmer->set_seq( kmer, m_k );
-//printf("this Value:  %p\n", ibkmer->get_bseq() );
     root->insert( ibkmer );
-    //delete bkmer;
 }
 
 void Kdict::insert_bkmer( Bkmer* bkmer )
@@ -48,10 +44,8 @@ size_t Kdict::size()
 
 void Kdict::remove( char* kmer )
 {
-    //Bkmer* bkmer = new Bkmer( m_k, kmer );
     ibkmer->set_seq( kmer, m_k );
     root->remove( ibkmer );
-    //delete bkmer;
 }
 
 void Kdict::remove_bkmer( Bkmer* bkmer )

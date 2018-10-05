@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <bitset>
 #include <cmath>
 #include "Container.h"
 #include "BloomFilter.h"
@@ -14,7 +15,8 @@ class __attribute__ ((__packed__)) CContainer : public Container
     private:
         BloomFilter* bf;
         std::vector< bool >* m_pref;
-        std::vector< SufClustData* >* m_suf_clust_data; 
+        std::vector< SufClustData* >* m_suf_clust_data;
+        std::bitset< 256 > cluster_starts;
         const static int PREF_SIZE;
 
         unsigned int get_index_in_pref( Bkmer* bkmer );
@@ -37,14 +39,10 @@ class __attribute__ ((__packed__)) CContainer : public Container
         char* index_to_pref( uint8_t index );
         char* prefix_from_clust( int clust_pos );
 
-        //int size() { return m_suf_clust_data->size(); }
         std::vector< SufClustData* >* get_suf_clust_data() { return m_suf_clust_data; }
         BloomFilter* get_bf();
-        //std::vector< Bkmer* >* get_suf();
-        std::vector< bool >* get_clust();
         std::vector< Vertex* >* get_child_vertices();
         static int get_pref_size() { return PREF_SIZE; }
-        //std::unique_ptr< SufClustData > get_suf_clust_data_item( Bkmer* sfpx );
         size_t size();
 
 };
