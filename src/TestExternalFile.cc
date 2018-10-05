@@ -52,6 +52,8 @@ int main( int argc, char* argv[] )
     }
     infile.close();
     std::cout << "\nFinished checking if container contains  all kmers!" << std::endl;
+    delete kmer;
+    delete kd;
 }
 
 

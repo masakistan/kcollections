@@ -82,9 +82,13 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls")
         message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
 
-        add_custom_command(TARGET Kdict POST_BUILD
-            COMMAND dsymutil Kdict
-        )
+        add_custom_command(TARGET test_driver POST_BUILD
+            COMMAND dsymutil test_driver
+            )
+
+        add_custom_command(TARGET check POST_BUILD
+            COMMAND dsymutil check
+            )
     endif()
   # using Clang
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
