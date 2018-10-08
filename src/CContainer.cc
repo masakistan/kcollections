@@ -4,23 +4,15 @@
 void init_cc( CC* cc, int suffix_size )
 {
     //cc->prefixes = ( uint8_t* ) calloc( CAPACITY, sizeof( uint8_t ) );
-    cc->children = ( Vertex* ) calloc( CAPACITY, sizeof( Vertex ) );
-    cc->suffixes = ( uint8_t* ) calloc( CAPACITY, sizeof( uint8_t ) );
+    //cc->children = ( Vertex* ) calloc( CAPACITY, sizeof( Vertex ) );
+    cc->children = NULL;
+    //cc->suffixes = ( uint8_t* ) calloc( CAPACITY, sizeof( uint8_t ) );
+    cc->suffixes = NULL;
     cc->suffix_size = suffix_size;
     
-    /*for( int i; i < CAPACITY; i++ )
-    {
-        init_vertex( &cc->children[ i ] );
-    }*/
-
     cc->size = 0;
     memset( &cc->pref, 0, 32 );
     init_bf( &cc->bf );
-    /*std::cout << "init pref" << std::endl;
-    for( int i = 0; i < 256; i++ )
-    {
-        std::cout << i << "\t" << testbit( cc->pref, i ) << std::endl;
-    }*/
 }
 
 int rank( CC* cc, int clust_num )
@@ -33,8 +25,6 @@ int rank( CC* cc, int clust_num )
             clust_num--;
         }
 
-        //std::cout << "\trank: " << clust_pos << std::endl;
-
         if( clust_num == 0 )
         {
             return clust_pos;
@@ -46,22 +36,13 @@ int rank( CC* cc, int clust_num )
 
 int hamming_weight( CC* cc, int index )
 {
-    //std::cout << "max hamming index: " << index << std::endl;
-
-    /*for( int i = 0; i < 256; i++ )
-    {
-        std::cout << i << "\t" << testbit( cc->pref, i ) << std::endl;
-    }*/
-
     int hamming_weight = 0;
     for (
             int i = next_set_bit( cc->pref, 0 );
             i > -1 && i <= index;
-            //i = next_set_bit( cc->pref, i + 1 )
+            i = next_set_bit( cc->pref, i + 1 )
             )
     {
-        i = next_set_bit( cc->pref, i + 1 );
-        //std::cout << "\thamming: " << i << "\t" << i << std::endl;
         hamming_weight++;
     }
 
@@ -70,17 +51,19 @@ int hamming_weight( CC* cc, int index )
 
 void insert_cluster( CC* cc, int idx, uint8_t suffix, bool start )
 {
-    /*std::cout << "size: " << cc->size << "\tindex: " << idx << std::endl << std::flush;
-    std::memmove(
-            &cc->prefixes[ idx + 1 ],
-            &cc->prefixes[ idx ],
-            ( cc->size - idx ) * sizeof( uint8_t )
-            );
-    cc->prefixes[ idx ] = prefix;
-    std::cout << "\tprefix: " << unsigned( cc->prefixes[ idx ] ) << std::endl;*/
-
     int to_move = cc->size - idx;
     //std::cout << "idx: " << idx << "\tshifting: " << to_move << std::endl;
+    
+    if( cc->children == NULL )
+    {
+        cc->children = ( Vertex* ) calloc( 1, sizeof( Vertex ) );
+        cc->suffixes = ( uint8_t* ) calloc( cc->suffix_size, sizeof( uint8_t ) );
+    }
+    else
+    {
+        cc->children = ( Vertex* ) realloc( cc->children, ( cc->size + 1 ) * sizeof( Vertex ) );
+        cc->suffixes = ( uint8_t* ) realloc( cc->suffixes, ( cc->size + 1 ) * sizeof( uint8_t ) );
+    }
 
     Vertex* v = ( Vertex* ) malloc( sizeof( Vertex ) );
     init_vertex( v );

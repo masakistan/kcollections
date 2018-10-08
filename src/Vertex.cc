@@ -57,9 +57,9 @@ void burst_uc( Vertex* v, int k, int depth )
     for( int i = 0; i < CAPACITY; i++ )
     {
         idx = i * suffix_size;
-        char* seq = deserialize_kmer( k, calc_bk( k ), &suffixes[ idx ] );
+        //char* seq = deserialize_kmer( k, calc_bk( k ), &suffixes[ idx ] );
         //std::cout << "\tburst kmer: " << seq << std::endl;
-        free( seq );
+        //free( seq );
 
         uint8_t* bseq = &suffixes[ idx ];
         uint8_t prefix = bseq[ 0 ];

@@ -4,6 +4,7 @@
 #include <sstream>
 #include <stdint.h>
 #include <iostream>
+#include <cstring>
 
 //#define setbit(A,k)     ( A[(k/32)] |= (1 << (k%32)) )
 //#define clearbit(A,k)   ( A[(k/32)] &= ~(1 << (k%32)) )

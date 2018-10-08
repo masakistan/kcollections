@@ -25,7 +25,11 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth )
     //std::cout << "\tuc insert: " << deserialize_kmer( k, len, bseq ) << std::endl;
     if( uc->suffixes == NULL )
     {
-        uc->suffixes = ( uint8_t* ) calloc( len * CAPACITY, sizeof( uint8_t ) );
+        uc->suffixes = ( uint8_t* ) calloc( len , sizeof( uint8_t ) );
+    }
+    else
+    {
+        uc->suffixes = ( uint8_t* ) realloc( uc->suffixes, len * ( uc->size + 1 ) * sizeof( uint8_t ) );
     }
 
     if( uc->size < CAPACITY )

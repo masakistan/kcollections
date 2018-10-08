@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <assert.h>
 
 #include "Kdict.h"
 
@@ -23,26 +24,8 @@ int main( int argc, char* argv[] )
         strcpy( kmer, line.substr( 0, k ).c_str() );
 
         insert( kd, kmer );
-        assert( contains( kd, kmer ) );
+        //assert( contains( kd, kmer ) );
 
-        /*std::ifstream testfile( argv[ 2 ] );
-        std::string o;
-        int tested = 0;
-        while( std::getline( testfile, o ) )
-        {
-            if( tested == c )
-                break;
-            strcpy( tkmer, o.substr( 0, k ).c_str() );
-            assert( contains( kd, tkmer ) );
-            tested++;
-
-        }
-        testfile.close();*/
-        /*std::cout << "inserted correctly? ";
-        if( kd->contains( kmer ) )
-            std::cout << "True!" << std::endl;
-        else
-            std::cout << "False!" << std::endl;*/
         c++;
         if( c % interval == 0 )
         {
