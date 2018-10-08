@@ -1,26 +1,19 @@
 #pragma once
 
-#include <vector>
-#include <algorithm>
+#include <stdio.h>
+#include <iostream>
+#include "globals.h"
+#include "helper.h"
 
-#include "Container.h"
-#include "Bkmer.h"
+typedef struct {
+    uint8_t* suffixes;
+    uint16_t size;
+} __attribute__ ((__packed__)) UC;
 
-class __attribute__ ((__packed__)) UContainer : public Container
-{
-    private:
-        std::vector< Bkmer* >* m_bkmers;
-        //std::array< Bkmer*, 256 > tm_bkmers;
-
-    public:
-        UContainer();
-        ~UContainer();
-        size_t size() { return m_bkmers->size(); }
-        bool contains( Bkmer* bkmer );
-        void insert( Bkmer* bkmer );
-        bool is_full();
-        std::vector< Bkmer* >* get_bkmers();
-        void remove( Bkmer* bkmer );
-};
+void print( UC* uc, int k, int depth );
+void uc_insert( UC* uc, uint8_t* bseq, int k, int depth );
+void free_uc( UC* uc );
+bool uc_contains( UC* uc, int k, int depth, uint8_t* bseq );
+void init_uc( UC* uc );
 
 

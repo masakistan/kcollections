@@ -1,6 +1,5 @@
 import sys
 from tqdm import tqdm
-import kc
 
 k = 27
 kd = set()

@@ -1,50 +1,35 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-#include <bitset>
-#include <cmath>
-#include "Container.h"
 #include "BloomFilter.h"
-#include "Bkmer.h"
-#include "SufClustData.h"
+#include "helper.h"
+//#include "Cluster.h"
 
+typedef struct __attribute__ ((__packed__)) Vertex;
 
-class __attribute__ ((__packed__)) CContainer : public Container
-{
-    private:
-        BloomFilter* bf;
-        std::vector< bool >* m_pref;
-        std::vector< SufClustData* >* m_suf_clust_data;
-        std::bitset< 256 > cluster_starts;
-        const static int PREF_SIZE;
+typedef struct {
+    BloomFilter bf;
+    uint16_t suffix_size;
+    uint16_t size;
+    //Cluster clust;
+    //uint8_t* prefixes;
+    uint8_t* suffixes;
+    Vertex* children;
+    uint32_t pref[ 8 ];
+    //uint32_t cluster_starts[ 8 ];
+} __attribute__ ((__packed__)) CC;
 
-        unsigned int get_index_in_pref( Bkmer* bkmer );
-        int hamming_weight( int index );
-        int rank( int clust_num );
-        int clust_num_from_rank( int clust_pos );
-        int pref_index_from_hamming_weight( int clust_num );
-        int index_of( Bkmer* bkmer );
-        void add_to_bloom_filter( Bkmer* bkmer );
-        int next_set_bit( int pos );
-
-    public:
-        CContainer();
-        ~CContainer();
-        bool may_contain( Bkmer* sfpx );
-        Vertex* get_child_of( Bkmer* spfx );
-        bool contains_prefix( Bkmer* sfpx );
-        void insert( Bkmer* sfpx );
-        bool is_full();
-        char* index_to_pref( uint8_t index );
-        char* prefix_from_clust( int clust_pos );
-
-        std::vector< SufClustData* >* get_suf_clust_data() { return m_suf_clust_data; }
-        BloomFilter* get_bf();
-        std::vector< Vertex* >* get_child_vertices();
-        static int get_pref_size() { return PREF_SIZE; }
-        size_t size();
-
-};
+void init_cc( CC* cc, int suffix_size );
+void cc_insert( CC* cc, int k, int depth, uint8_t* sfpx );
+bool cc_may_contain( CC* cc, uint8_t* bseq );
+void cc_shrink( CC* cc );
+void free_cc( CC* cc );
+void free_cc( CC* cc );
+bool cc_contains_prefix( CC*cc, uint8_t* sfpx );
+int rank( CC* cc, int clust_pos );
+int hamming_weight( CC* cc, int index );
+void insert_cluster( CC* cc, int idx, uint8_t prefix, Vertex* v, uint8_t suffix );
+uint8_t* get_suffix( CC* cc, int idx );
+int index_of( CC* cc, uint8_t* sfpx );
+Vertex* get_child_of( CC* cc, uint8_t* sfpx );
 
 
