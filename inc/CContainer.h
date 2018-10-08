@@ -2,6 +2,7 @@
 
 #include "BloomFilter.h"
 #include "helper.h"
+#include <jemalloc/jemalloc.h>
 //#include "Cluster.h"
 
 typedef struct __attribute__ ((__packed__)) Vertex;

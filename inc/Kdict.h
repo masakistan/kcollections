@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "Vertex.h"
 #include "helper.h"
+#include <jemalloc/jemalloc.h>
 
 typedef struct {
     int k;

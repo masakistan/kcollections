@@ -4,6 +4,7 @@
 #include <iostream>
 #include "globals.h"
 #include "helper.h"
+#include <jemalloc/jemalloc.h>
 
 typedef struct {
     uint8_t* suffixes;

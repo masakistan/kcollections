@@ -3,6 +3,7 @@
 #include "CContainer.h"
 #include "UContainer.h"
 #include "globals.h"
+#include <jemalloc/jemalloc.h>
 
 /*typedef struct {
     CC* cc;

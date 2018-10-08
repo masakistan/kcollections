@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 3.1)
+include(ExternalProject)
 # Fix behavior of CMAKE_CXX_STANDARD when targeting macOS.
 if (POLICY CMP0025)
     cmake_policy(SET CMP0025 NEW)
@@ -14,6 +15,8 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
+
+message( "cmake moduel path ${CMAKE_MODULE_PATH}" )
 
 project (Kdict)
 # The version number.
@@ -31,14 +34,8 @@ include_directories(inc)
 include_directories(libs/pybind11-2.2.4/include)
 
 # Add src files
-#file(GLOB SOURCES "src/*.cc")
-#set(SOURCES "src/Bkmer.cc;")
-#string(APPEND SOURCES "src/BloomFilter.cc;")
 string(APPEND SOURCES "src/CContainer.cc;")
-#string(APPEND SOURCES "src/Container.cc;")
-#string(APPEND SOURCES "src/Kdict.cc;")
 string(APPEND SOURCES "src/MurmurHash3.cc;")
-#string(APPEND SOURCES "src/SufClustData.cc;")
 string(APPEND SOURCES "src/UContainer.cc;")
 string(APPEND SOURCES "src/Vertex.cc;")
 
@@ -47,10 +44,6 @@ find_package(PythonLibs 2.7 REQUIRED)
 find_package(PythonInterp 2.7 REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIR})
 
-# Boost
-#find_package(Boost COMPONENTS thread system context chrono date_time atomic REQUIRED)
-#include_directories(${Boost_INCLUDE_DIR})
-#message("boost ${Boost_INCLUDE_DIR}")
 
 # pybind11 library
 add_subdirectory(libs/pybind11-2.2.4)
@@ -96,10 +89,32 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   # using Clang
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # using GCC
+  string( APPEND CMAKE_CXX_FLAGS " -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free" )
+  message( "Using CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}" )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio C++
 endif()
+
+# Jemalloc
+set(PROJECT_JEMALLOC_PATH ${CMAKE_BINARY_DIR}/jemalloc-5.1.0)
+ExternalProject_Add(project_jemalloc
+  URL https://github.com/jemalloc/jemalloc/releases/download/5.1.0/jemalloc-5.1.0.tar.bz2
+  URL_HASH MD5=1f47a5aff2d323c317dfa4cf23be1ce4
+  PREFIX ${PROJECT_JEMALLOC_PATH}
+  CONFIGURE_COMMAND ${PROJECT_JEMALLOC_PATH}/src/project_jemalloc/configure --prefix=${PROJECT_JEMALLOC_PATH}
+  BUILD_IN_SOURCE TRUE
+  BUILD_COMMAND ${MAKE})
+ExternalProject_Get_Property(project_jemalloc install_dir)
+add_library(jemalloc STATIC IMPORTED)
+add_library(jemalloc_shared SHARED IMPORTED)
+set_property(TARGET jemalloc PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_property(TARGET jemalloc PROPERTY INTERFACE_LINK_LIBRARIES pthread dl)
+set_property(TARGET jemalloc_shared PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_SHARED_LIBRARY_SUFFIX})
+include_directories(test_driver "${install_dir}/include")
+
+add_dependencies(test_driver project_jemalloc)
+target_link_libraries(test_driver m jemalloc)
 
 
