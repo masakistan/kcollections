@@ -19,11 +19,25 @@ int main( int argc, char* argv[] )
     while( std::getline( infile, line ) )
     {
         std::istringstream iss(line);
-        std::cout << "inserting kmer: " << line << "\t" << c << std::endl;
+        //std::cout << "inserting kmer: " << line << "\t" << c << std::endl;
         strcpy( kmer, line.substr( 0, k ).c_str() );
 
         insert( kd, kmer );
         assert( contains( kd, kmer ) );
+
+        /*std::ifstream testfile( argv[ 2 ] );
+        std::string o;
+        int tested = 0;
+        while( std::getline( testfile, o ) )
+        {
+            if( tested == c )
+                break;
+            strcpy( tkmer, o.substr( 0, k ).c_str() );
+            assert( contains( kd, tkmer ) );
+            tested++;
+
+        }
+        testfile.close();*/
         /*std::cout << "inserted correctly? ";
         if( kd->contains( kmer ) )
             std::cout << "True!" << std::endl;
@@ -46,7 +60,7 @@ int main( int argc, char* argv[] )
     {
         std::istringstream iss(line);
         strcpy( kmer, line.substr( 0, k ).c_str() );
-        std::cout << "searching for: " << line << std::endl;
+        //std::cout << "searching for: " << line << std::endl;
 
         assert( contains( kd, kmer ) );
         /*std::cout << "inserted correctly? ";

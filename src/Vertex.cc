@@ -46,9 +46,9 @@ bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
 
 void burst_uc( Vertex* v, int k, int depth )
 {
-    std::cout << "\nbursting at depth: " << depth << std::endl;
+    //std::cout << "\nbursting at depth: " << depth << std::endl;
     CC* cc = ( CC* ) malloc( sizeof( CC ) );
-    int suffix_size = calc_bk( k ) - depth;
+    int suffix_size = calc_bk( k );
     init_cc( cc, suffix_size );
     //std::cout << "bf size: " << cc->bf.m_nHashes << std::endl;
 
@@ -58,7 +58,7 @@ void burst_uc( Vertex* v, int k, int depth )
     {
         idx = i * suffix_size;
         char* seq = deserialize_kmer( k, calc_bk( k ), &suffixes[ idx ] );
-        //std::cout << "burst kmer: " << seq << std::endl;
+        //std::cout << "\tburst kmer: " << seq << std::endl;
         free( seq );
 
         uint8_t* bseq = &suffixes[ idx ];
@@ -78,11 +78,13 @@ void burst_uc( Vertex* v, int k, int depth )
 
     if( v->cc == NULL )
     {
+        //std::cout << "\tstarting cc list" << std::endl;
         v->cc = cc;
         v->cc_size++;
     }
     else
     {
+        //std::cout << "\tappending to cc list" << std::endl;
         v->cc = ( CC* ) realloc( v->cc, ( v->cc_size + 1 ) * sizeof( CC ) );
         std::memmove( &v->cc[ v->cc_size ], cc, sizeof( CC ) );
         //std::cout << "inserting into " << v->cc_size << std::endl;
@@ -91,23 +93,23 @@ void burst_uc( Vertex* v, int k, int depth )
         free( cc );
     }
 
-    std::cout << "\tnum of ccs: " << v->cc_size << "\t" << depth << std::endl;
+    //std::cout << "\tnum of ccs: " << v->cc_size << "\t" << depth << std::endl;
     
     free_uc( &( v->uc ) );
     init_uc( &( v->uc ) );
-    std::cout << "done bursting!" << std::endl;
+    //std::cout << "done bursting!" << std::endl;
 }
 
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 {
     //std::cout << "uc size before: " << v->uc.size << std::endl;
-    char* seq = deserialize_kmer( k, calc_bk( k ), bseq );
+    /*char* seq = deserialize_kmer( k, calc_bk( k ), bseq );
     for( int i = 0; i < depth; i++ )
     {
         std::cout << "  ";
     }
     std::cout << "vertex inserting kmer: " << seq << std::endl;
-    free( seq );
+    free( seq );*/
 
     if( uc_contains( &( v->uc ), k, depth, bseq ) )
     {
@@ -120,7 +122,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
         CC* cc = &v->cc[ i ];
         if( cc_may_contain( cc, bseq ) )
         {
-            std::cout << "\t\tputting into cc: " << i << std::endl;
+            //std::cout << "\t\tputting into cc: " << i << std::endl;
             //std::cout << "\t\tmay contain" << std::endl;
             uint8_t* suffix = &bseq[ 1 ];
             if( cc_contains_prefix( cc, bseq ) )
@@ -140,12 +142,12 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 
     if( v->uc.size < CAPACITY - 1 )
     {
-        std::cout << "\t\tinserting into uc!" << std::endl;
+        //std::cout << "\t\tinserting into uc!" << std::endl;
         uc_insert( &( v->uc ), bseq, k, depth );
     }
     else
     {
-        std::cout << "about to burst!" << std::endl;
+        //std::cout << "about to burst!" << std::endl;
         uc_insert( &( v->uc ), bseq, k, depth );
         burst_uc( v, k, depth );
     }
@@ -156,8 +158,7 @@ void free_vertex( Vertex* v )
     free_uc( &( v->uc ) );
     if( v->cc != NULL )
     {
-        int size = sizeof( *v->cc ) / sizeof( CC );
-        for( int i = 0; i < size; i++ )
+        for( int i = 0; i < v->cc_size; i++ )
         {
             free_cc( &v->cc[ i ] );
         }
