@@ -66,7 +66,7 @@ int uc_contains( UC* uc, int k, int depth, uint8_t* bseq )
 {
     if( uc->suffixes == NULL )
     {
-        return -1;
+        return 0;
     }
 
     int idx = binary_search_contains( uc->suffixes, uc->size, calc_bk( k ), bseq );
