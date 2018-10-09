@@ -13,7 +13,8 @@ int main( int argc, char* argv[] )
     Kdict* kd = create_kdict( k );
     char* kmer = ( char* ) malloc( sizeof( char ) * ( k + 1 ) );
 
-    int c = 0, interval = 50000;
+    uint64_t c = 0;
+    int interval = 50000;
     std::cout << "Inserting kmers" << std::endl;
     std::ifstream infile( argv[ 2 ] );
     std::string line;
