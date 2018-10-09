@@ -38,6 +38,7 @@ string(APPEND SOURCES "src/CContainer.cc;")
 string(APPEND SOURCES "src/MurmurHash3.cc;")
 string(APPEND SOURCES "src/UContainer.cc;")
 string(APPEND SOURCES "src/Vertex.cc;")
+string(APPEND SOURCES "src/Kset.cc;")
 
 # Python library
 find_package(PythonLibs 2.7 REQUIRED)
@@ -65,13 +66,14 @@ set (CMAKE_CXX_STANDARD 14)
 #    #${Boost_LIBRARIES}
 #    )
 
-add_executable( test_driver "src/TestLosePoint.cc;" ${SOURCES})
+add_executable( test_driver "src/TestLosePoint.cc;" ${SOURCES} )
+target_link_libraries( test_driver ${PYTHON_LIBRARIES} )
 
 
 
 set(PYBIND11_PYTHON_VERSION 2.7)
 #set(bindings_python_version 2.7)
-#pybind11_add_module(kc ${SOURCES} ${Boost_LIBRARIES})
+pybind11_add_module(kcollections ${SOURCES})
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )

@@ -22,6 +22,8 @@ struct CS {
     uint8_t suffix;
 };
 
+void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth );
+uint64_t vertex_size( Vertex* v );
 void init_vertex( Vertex* v );
 void free_vertex( Vertex* v );
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth );

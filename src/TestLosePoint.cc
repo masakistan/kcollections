@@ -4,13 +4,13 @@
 #include <string>
 #include <assert.h>
 
-#include "Kdict.h"
+#include "Kcontainer.h"
 
 
 int main( int argc, char* argv[] )
 {
     int k = atoi( argv[ 1 ] );
-    Kdict* kd = create_kdict( k );
+    Kcontainer* kd = create_kcontainer( k );
     char* kmer = ( char* ) malloc( sizeof( char ) * ( k + 1 ) );
 
     uint64_t c = 0;
@@ -24,7 +24,7 @@ int main( int argc, char* argv[] )
         //std::cout << "inserting kmer: " << line << "\t" << c << std::endl << std::flush;
         strcpy( kmer, line.substr( 0, k ).c_str() );
 
-        insert( kd, kmer );
+        kcontainer_insert( kd, kmer );
         //assert( contains( kd, kmer ) );
 
         c++;
@@ -35,7 +35,7 @@ int main( int argc, char* argv[] )
         }
     }
     std::cout << "\nFinished inserting all kmers! Processed " << c << " kmers!" << std::endl << std::endl;;
-    std::cout << "Total kmers in kdict: " << std::endl;
+    std::cout << "Total kmers in kcontainer: " << std::endl;
     infile.close();
 
     c = 0;
@@ -47,7 +47,7 @@ int main( int argc, char* argv[] )
         strcpy( kmer, line.substr( 0, k ).c_str() );
         //std::cout << "searching for: " << line << std::endl;
 
-        assert( contains( kd, kmer ) );
+        assert( kcontainer_contains( kd, kmer ) );
         /*std::cout << "inserted correctly? ";
         if( kd->contains( kmer ) )
             std::cout << "True!" << std::endl;
@@ -66,7 +66,7 @@ int main( int argc, char* argv[] )
     //print( &( kd->v.uc ), k, 0 );
 
     free( kmer );
-    free_kdict( kd );
+    free_kcontainer( kd );
 
     return 0;
 }

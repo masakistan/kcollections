@@ -9,6 +9,36 @@ void init_vertex( Vertex* v )
     init_uc( &( v->uc ) );
 }
 
+void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
+{
+    int uc_idx = uc_contains( &( v->uc ), k, depth, bseq );
+    if( uc_idx != v->uc.size )
+    {
+        uc_remove( &( v->uc ), calc_bk( k ), uc_idx );
+    }
+
+
+    if( v->cc != NULL )
+    {
+        int size = sizeof( *v->cc ) / sizeof( CC );
+        bool res = false;
+        CC* cc;
+        for( int i = 0; i < v->cc_size; i++ )
+        {
+            cc = &v->cc[ i ];
+            if( cc_may_contain( cc, bseq ) )
+            {
+                int idx = cc_contains_prefix( cc, bseq );
+                if ( idx > -1 )
+                {
+                    Vertex* child = get_child_of( cc, bseq, idx );
+                    vertex_remove( child, &bseq[ 1 ], k - 4, depth + 1 );
+                }
+            }
+        }
+    }
+}
+
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
 {
     int uc_idx = uc_contains( &( v->uc ), k, depth, bseq );
@@ -135,5 +165,18 @@ void free_vertex( Vertex* v )
         }
         free( v->cc );
     }
+}
+
+uint64_t vertex_size( Vertex* v )
+{
+    uint64_t c = v->uc.size;
+    for( int i = 0; i < v->cc_size; i++ )
+    {
+        for( int j = 0; j < v->cc[ i ].size; j++ )
+        {
+            c += vertex_size( &v->cc[ i ].child_suffixes[ j ].v );
+        }
+    }
+    return c;
 }
 

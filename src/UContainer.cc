@@ -62,6 +62,38 @@ void free_uc( UC* uc )
     }
 }
 
+void uc_remove( UC* uc, int bk, int idx )
+{
+    int suffix_idx = idx * bk;
+    int bytes_to_move = ( uc->size - ( idx + 1 ) ) * bk;
+    std::memmove(
+            &uc->suffixes[ idx ],
+            &uc->suffixes[ idx + bk ],
+            bytes_to_move
+            );
+    uc->size--;
+}
+
+int uc_find( UC* uc, int k, int depth, uint8_t* bseq )
+{
+    if( uc->suffixes == NULL )
+    {
+        return uc->size;
+    }
+
+    int idx = binary_search_contains( uc->suffixes, uc->size, calc_bk( k ), bseq );
+    if( idx > -1 )
+    {
+        return uc->size;
+    }
+    else
+    {
+        idx = ( idx + 1 ) * -1;
+        return idx;
+    }
+
+}
+
 int uc_contains( UC* uc, int k, int depth, uint8_t* bseq )
 {
     if( uc->suffixes == NULL )

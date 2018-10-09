@@ -3,12 +3,6 @@
 
 void init_cc( CC* cc, int suffix_size )
 {
-    //cc->prefixes = ( uint8_t* ) calloc( CAPACITY, sizeof( uint8_t ) );
-    //cc->children = ( Vertex* ) calloc( CAPACITY, sizeof( Vertex ) );
-    //cc->children = NULL;
-    //cc->suffixes = ( uint8_t* ) calloc( CAPACITY, sizeof( uint8_t ) );
-    //cc->suffixes = NULL;
-
     cc->child_suffixes = NULL;
     cc->suffix_size = suffix_size;
     
@@ -95,7 +89,6 @@ Vertex* insert_cluster( CC* cc, int idx, uint8_t suffix, bool start )
 
 Vertex* cc_insert( CC* cc, int k, int depth, uint8_t* sfpx )
 {
-    //std::cout << "cc insert: " << deserialize_kmer( k, calc_bk( k ), sfpx ) << std::endl;
     int idx = cc_contains_prefix( cc, sfpx );
     if( idx > -1 )
     {
@@ -109,7 +102,6 @@ Vertex* cc_insert( CC* cc, int k, int depth, uint8_t* sfpx )
     bool was_pref_index_set = testbit( cc->pref, pref_index );
     setbit( cc->pref, pref_index );
 
-    //std::cout << "setting: " << pref_index << "\t" << testbit( cc->pref, pref_index ) << std::endl;
 
     int clust_num = hamming_weight( cc, pref_index );
     int clust_pos = rank( cc, clust_num );
@@ -203,7 +195,7 @@ int cc_contains_prefix( CC* cc, uint8_t* sfpx )
 
 bool cc_may_contain( CC* cc, uint8_t* bseq )
 {
-    bool res = bf_may_contain( &cc->bf, bseq, 1);
+    bool res = bf_may_contain( &cc->bf, bseq, 2);
     //std::cout << "\t\t\tmay contain: " << res << std::endl;
     return res;
 }
@@ -225,8 +217,6 @@ void free_cc( CC* cc )
 
 Vertex* get_child_of( CC* cc, uint8_t* sfpx, int idx )
 {
-    //int idx = index_of( cc, sfpx );
-    //std::cout << "found child index: " << index_of << std::endl;
     if( idx > -1 )
     {
         return &cc->child_suffixes[ idx ].v;
