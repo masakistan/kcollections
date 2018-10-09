@@ -36,7 +36,7 @@ void Kset::remove( char* kmer )
     kcontainer_remove( kc, kmer );
 }
 
-PYBIND11_MODULE( kcollections, m )
+PYBIND11_MODULE( Kcollections, m )
 {
     py::class_<Kset>(m, "Kset")
         .def(py::init<const int>())

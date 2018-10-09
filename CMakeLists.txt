@@ -80,9 +80,12 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls")
         message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
 
-        add_custom_command(TARGET test_driver POST_BUILD
-            COMMAND dsymutil test_driver
-            )
+        if(APPLE)
+            add_custom_command(TARGET test_driver POST_BUILD
+                COMMAND dsymutil test_driver
+                )
+            message( "Detected Mac OS with clang, modifying exe with dsymutil for debugging." )
+        endif()
 
         #add_custom_command(TARGET check POST_BUILD
         #    COMMAND dsymutil check

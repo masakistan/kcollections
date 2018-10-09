@@ -1,25 +1,24 @@
 import sys
 from tqdm import tqdm
-import kc
+import Kcollections
 
-k = 27
-kd = kc.Kdict( k )
-bkmer = kc.Bkmer( k )
+k = int( sys.argv[ 1 ] )
+ks = Kcollections.Kset( k )
 
 c = 0
-with open( sys.argv[ 1 ], 'r' ) as fh:
+with open( sys.argv[ 2 ], 'r' ) as fh:
     for line in tqdm( fh ):
         kmer = line.strip().split()[ 0 ]
-        kd.insert( kmer )
+        ks.add( kmer )
         c += 1
 
-assert kd.size() == c
-print 'Done! Processed', kd.size(), 'kmers!'
+assert len( ks ) == c
+print 'Done! Processed', len( ks ), 'kmers!'
 
-with open( sys.argv[ 1 ], 'r' ) as fh:
+with open( sys.argv[ 2 ], 'r' ) as fh:
     for line in tqdm( fh ):
         kmer = line.strip().split()[ 0 ]
-        assert kd.contains( kmer ), 'ERROR: line ' + str( c ) + ' kmer: ' + kmer
+        assert kmer in ks, 'ERROR: line ' + str( c ) + ' kmer: ' + kmer
 
 print 'Done! Passed contains test!'
 
