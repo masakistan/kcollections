@@ -10,17 +10,17 @@
 //#define clearbit(A,k)   ( A[(k/32)] &= ~(1 << (k%32)) )
 //#define testbit(A,k)    ( A[(k/32)] & (1 << (k%32)) )
 
-static int testbit( uint32_t A[],  int k )
+static int testbit( uint32_t A[],  unsigned int k )
    {
       return ( (A[k/32] & (1 << (k%32) )) != 0 ) ;
    }
 
-static void  clearbit( uint32_t A[],  int k )                
+static void  clearbit( uint32_t A[],  unsigned int k )                
    {
       A[k/32] &= ~(1 << (k%32));
    }
 
-static void  setbit( uint32_t A[],  int k )
+static void  setbit( uint32_t A[],  unsigned int k )
    {
       A[k/32] |= 1 << (k%32);  // Set the bit at the k-th position in A[i]
    }
@@ -29,7 +29,7 @@ static int next_set_bit( uint32_t* array, int pos, int len )
 {
     //std::cout << "nsb start at: " << pos << std::endl;
     //std::cout << "\n\n" << std::endl;
-    for( int i = pos; i < len; i++ )
+    for( unsigned int i = pos; i < len; i++ )
     {
         //std::cout << "\t\t\tnsb check: " << i << "\t" << testbit( array, i ) << std::endl;
         if( testbit( array, i ) )

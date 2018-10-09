@@ -79,9 +79,9 @@ void burst_uc( Vertex* v, int k, int depth )
         free( cc );
     }
 
-    //free_uc( &( v->uc ) );
-   // init_uc( &( v->uc ) );
-   v->uc.size = 0;
+    free_uc( &( v->uc ) );
+    init_uc( &( v->uc ) );
+    //v->uc.size = 0;
 }
 
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
