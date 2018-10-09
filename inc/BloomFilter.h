@@ -24,10 +24,6 @@ inline void init_bf( BloomFilter* bf )
 {
     bf->m_nHashes = NHASHES;
     memset( &bf->m_bits, 0, HASHSIZE / 8 );
-    /*for( int i = 0; i < HASHSIZE / 32; i++ )
-    {
-        std::cout << bf->m_bits[ i ] << std::endl;
-    }*/
 }
 
 static std::array< uint64_t, 2 > hash( const uint8_t* data, const std::size_t len )
