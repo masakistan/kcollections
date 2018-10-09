@@ -23,7 +23,7 @@ void Kset::insert( char* kmer )
 
 bool Kset::contains( char* kmer )
 {
-    kcontainer_contains( kc, kmer );
+    return kcontainer_contains( kc, kmer );
 }
 
 uint64_t Kset::size()

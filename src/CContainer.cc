@@ -195,7 +195,7 @@ int cc_contains_prefix( CC* cc, uint8_t* sfpx )
 
 bool cc_may_contain( CC* cc, uint8_t* bseq )
 {
-    bool res = bf_may_contain( &cc->bf, bseq, 2);
+    bool res = bf_may_contain( &cc->bf, bseq, 1);
     //std::cout << "\t\t\tmay contain: " << res << std::endl;
     return res;
 }
@@ -212,7 +212,7 @@ void free_cc( CC* cc )
         free_vertex( &cc->child_suffixes[ i ].v );
     }
     free( cc->child_suffixes );
-    free_bf( &( cc->bf ) );
+    //free_bf( &( cc->bf ) );
 }
 
 Vertex* get_child_of( CC* cc, uint8_t* sfpx, int idx )
