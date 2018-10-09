@@ -17,6 +17,10 @@ struct Vertex{
     bool start;
 };
 
+struct CS {
+    Vertex v;
+    uint8_t suffix;
+};
 
 void init_vertex( Vertex* v );
 void free_vertex( Vertex* v );

@@ -2,10 +2,12 @@
 
 #include "BloomFilter.h"
 #include "helper.h"
+#include "globals.h"
 #include <jemalloc/jemalloc.h>
 //#include "Cluster.h"
 
 typedef struct __attribute__ ((__packed__)) Vertex;
+typedef struct __attribute__ ((__packed__)) CS;
 
 typedef struct {
     BloomFilter bf;
@@ -13,8 +15,9 @@ typedef struct {
     uint16_t size;
     //Cluster clust;
     //uint8_t* prefixes;
-    uint8_t* suffixes;
-    Vertex* children;
+    //uint8_t* suffixes;
+    //Vertex* children;
+    CS* child_suffixes;
     uint32_t pref[ 8 ];
     //uint32_t cluster_starts[ 8 ];
 } __attribute__ ((__packed__)) CC;
