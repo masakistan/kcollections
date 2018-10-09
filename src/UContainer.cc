@@ -22,37 +22,36 @@ void print( UC* uc, int k, int depth )
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth )
 {
     int len = calc_bk( k );
-    //std::cout << "\tuc insert: " << deserialize_kmer( k, len, bseq ) << std::endl;
     if( uc->suffixes == NULL )
     {
         uc->suffixes = ( uint8_t* ) calloc( len , sizeof( uint8_t ) );
     }
     else
     {
-        uc->suffixes = ( uint8_t* ) realloc( uc->suffixes, len * ( uc->size + 1 ) * sizeof( uint8_t ) );
+        uc->suffixes = ( uint8_t* ) realloc(
+                uc->suffixes,
+                len * ( uc->size + 1 ) * sizeof( uint8_t )
+                );
     }
 
     if( uc->size < CAPACITY )
     {
         int idx = binary_search( uc->suffixes, uc->size, len, bseq );
 
-        //std::cout << "inserting at idx: " << idx << std::endl;
         int bytes_to_move = ( uc->size - idx ) * len;
         idx = idx * len;
         if( bytes_to_move > 0 )
         {
-            //std::cout << "\tbytes to move: " << bytes_to_move << std::endl;
-            std::memmove( &uc->suffixes[ idx + len ], &uc->suffixes[ idx ], bytes_to_move );
+            std::memmove(
+                    &uc->suffixes[ idx + len ],
+                    &uc->suffixes[ idx ],
+                    bytes_to_move
+                    );
         }
 
-        std::memmove( &uc->suffixes[ idx ], bseq, len );
+        std::memcpy( &uc->suffixes[ idx ], bseq, len );
         uc->size++;
     }
-
-    /*std::cout << "size: " << uc->size << std::endl;
-    std::cout << "***************************************************************" << std::endl;
-    print( uc, k, depth );
-    std::cout << "***************************************************************" << std::endl;*/
 }
 
 void free_uc( UC* uc )
@@ -65,7 +64,6 @@ void free_uc( UC* uc )
 
 bool uc_contains( UC* uc, int k, int depth, uint8_t* bseq )
 {
-    //std::cout << "search index: " << binary_search_contains( uc->suffixes, uc->size, len, bseq ) << std::endl;
     if( uc->suffixes == NULL )
     {
         return false;

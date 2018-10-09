@@ -25,11 +25,11 @@ static void  setbit( uint32_t A[],  int k )
       A[k/32] |= 1 << (k%32);  // Set the bit at the k-th position in A[i]
    }
 
-static int next_set_bit( uint32_t* array, int pos )
+static int next_set_bit( uint32_t* array, int pos, int len )
 {
     //std::cout << "nsb start at: " << pos << std::endl;
     //std::cout << "\n\n" << std::endl;
-    for( int i = pos; i < HASHSIZE; i++ )
+    for( int i = pos; i < len; i++ )
     {
         //std::cout << "\t\t\tnsb check: " << i << "\t" << testbit( array, i ) << std::endl;
         if( testbit( array, i ) )

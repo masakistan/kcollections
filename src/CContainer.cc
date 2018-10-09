@@ -40,9 +40,9 @@ int hamming_weight( CC* cc, int index )
 {
     int hamming_weight = 0;
     for (
-            int i = next_set_bit( cc->pref, 0 );
+            int i = next_set_bit( cc->pref, 0, 256 );
             i > -1 && i <= index;
-            i = next_set_bit( cc->pref, i + 1 )
+            i = next_set_bit( cc->pref, i + 1, 256 )
             )
     {
         hamming_weight++;
@@ -51,7 +51,7 @@ int hamming_weight( CC* cc, int index )
     return hamming_weight;
 }
 
-void insert_cluster( CC* cc, int idx, uint8_t suffix, bool start )
+Vertex* insert_cluster( CC* cc, int idx, uint8_t suffix, bool start )
 {
     int to_move = cc->size - idx;
     
@@ -80,7 +80,7 @@ void insert_cluster( CC* cc, int idx, uint8_t suffix, bool start )
                 );
     }
 
-    std::memmove(
+    std::memcpy(
             &cc->child_suffixes[ idx ].v,
             v,
             sizeof( Vertex )
@@ -90,14 +90,16 @@ void insert_cluster( CC* cc, int idx, uint8_t suffix, bool start )
 
     cc->child_suffixes[ idx ].suffix = suffix;
     cc->size++;
+    return &cc->child_suffixes[ idx ].v;
 }
 
-void cc_insert( CC* cc, int k, int depth, uint8_t* sfpx )
+Vertex* cc_insert( CC* cc, int k, int depth, uint8_t* sfpx )
 {
     //std::cout << "cc insert: " << deserialize_kmer( k, calc_bk( k ), sfpx ) << std::endl;
-    if( cc_contains_prefix( cc, sfpx ) )
+    int idx = cc_contains_prefix( cc, sfpx );
+    if( idx > -1 )
     {
-        return;
+        return get_child_of( cc, sfpx, idx );
     }
     uint8_t prefix = sfpx[ 0 ];
     uint8_t suffix = sfpx[ 0 ];
@@ -111,17 +113,14 @@ void cc_insert( CC* cc, int k, int depth, uint8_t* sfpx )
 
     int clust_num = hamming_weight( cc, pref_index );
     int clust_pos = rank( cc, clust_num );
-    //Vertex* nv = ( Vertex* ) malloc( sizeof( Vertex ) );
-    //std::cout << "\tclust num: " << clust_num << "\tclust_pos: " << clust_pos << "\tcc size: " << cc->size << std::endl;
-
-    //std::cout << "\t" << nv << "\t" << &nv->uc << "\twas set: " << was_pref_index_set << "\tpref index: " << pref_index << "\tclust_num: " << clust_num << "\tclust_pos: " << clust_pos << std::endl;
+    Vertex* child;
 
     // sfpxPrefix was not present
     if( !was_pref_index_set )
     {
-        insert_cluster( cc, clust_pos, suffix, true );
+        child = insert_cluster( cc, clust_pos, suffix, true );
         add_to_bloom_filter( &cc->bf, sfpx, 1 );
-        return;
+        return child;
     }
 
     // sfpxPrefix was already present
@@ -130,10 +129,10 @@ void cc_insert( CC* cc, int k, int depth, uint8_t* sfpx )
         // if sfpx_suffix starts its cluster...
         if( unsigned( suffix ) < unsigned( cc->child_suffixes[ clust_pos ].suffix ) )
         {
-            insert_cluster( cc, clust_pos, suffix, false );
+            child = insert_cluster( cc, clust_pos, suffix, false );
             cc->child_suffixes[ clust_pos + 1 ].v.start = false;
             add_to_bloom_filter( &cc->bf, sfpx, 1 );
-            return;
+            return child;
         }
 
         // if sfpx_suffix does not start its cluster...
@@ -143,9 +142,9 @@ void cc_insert( CC* cc, int k, int depth, uint8_t* sfpx )
         //if( clust_pos >= cc->size )
         if( unsigned( suffix ) >= unsigned( cc->child_suffixes[ clust_pos ].suffix ) )
         {
-            insert_cluster( cc, clust_pos, suffix, false );
+            child = insert_cluster( cc, clust_pos, suffix, false );
             add_to_bloom_filter( &cc->bf, sfpx, 1 );
-            return;
+            return child;
         }
 
         // while sfpx_suffix is greater than previous suffix...
@@ -157,9 +156,9 @@ void cc_insert( CC* cc, int k, int depth, uint8_t* sfpx )
                     || cc->child_suffixes[ clust_pos ].v.start
                     )
             {
-                insert_cluster( cc, clust_pos, suffix, false );
+                child = insert_cluster( cc, clust_pos, suffix, false );
                 add_to_bloom_filter( &cc->bf, sfpx, 1 );
-                return;
+                return child;
             }
 
             clust_pos++;
@@ -167,23 +166,17 @@ void cc_insert( CC* cc, int k, int depth, uint8_t* sfpx )
 
         // if sfpx_suffix is less than previous suffix...
         std::cout << "less than previous suffix!" << std::endl;
-        insert_cluster( cc, clust_pos - 1, suffix, false );
+        child = insert_cluster( cc, clust_pos - 1, suffix, false );
         add_to_bloom_filter( &cc->bf, sfpx, 1 );
-        return;
+        return child;
     }
 }
 
-bool cc_contains_prefix( CC* cc, uint8_t* sfpx )
+int cc_contains_prefix( CC* cc, uint8_t* sfpx )
 {
     uint8_t prefix = sfpx[ 0 ];
     uint8_t suffix = sfpx[ 0 ];
-
     int pref_index = unsigned( prefix );
-    //std::cout << "\t\t\tpref: " << pref_index << "\t" << testbit( cc->pref, pref_index ) << "\t" << cc->size << std::endl;
-    /*for( int i = 0 ; i < cc->size; i++ )
-    {
-        std::cout << i << "\t" << unsigned( cc->suffixes[ i ] ) << std::endl;
-    }*/
 
     if( testbit( cc->pref, pref_index ) )
     {
@@ -197,18 +190,15 @@ bool cc_contains_prefix( CC* cc, uint8_t* sfpx )
                     )
                 )
         {
-            //std::cout << "checking pos: " << pos << "\t" << unsigned( suffix ) << "\t" << unsigned( cc->suffixes[ pos ] )<< std::endl;
             if( unsigned( suffix ) == unsigned( cc->child_suffixes[ pos ].suffix ) )
             {
-                //std::cout << "\t\t\tcontains prefix: true" << std::endl;
-                return true;
+                return pos;
             }
             pos++;
         }
     }
 
-    //std::cout << "\t\t\tcontains prefix: false" << std::endl;
-    return false;
+    return -1;
 }
 
 bool cc_may_contain( CC* cc, uint8_t* bseq )
@@ -233,9 +223,9 @@ void free_cc( CC* cc )
     free_bf( &( cc->bf ) );
 }
 
-Vertex* get_child_of( CC* cc, uint8_t* sfpx )
+Vertex* get_child_of( CC* cc, uint8_t* sfpx, int idx )
 {
-    int idx = index_of( cc, sfpx );
+    //int idx = index_of( cc, sfpx );
     //std::cout << "found child index: " << index_of << std::endl;
     if( idx > -1 )
     {

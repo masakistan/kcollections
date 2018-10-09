@@ -25,9 +25,14 @@ bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
         for( int i = 0; i < v->cc_size; i++ )
         {
             cc = &v->cc[ i ];
-            if( cc_may_contain( cc, bseq ) && cc_contains_prefix( cc, bseq ) )
+            if( cc_may_contain( cc, bseq ) )
             {
-                return vertex_contains( get_child_of( cc, bseq ), &bseq[ 1 ], k - 4, depth + 1 );
+                int idx = cc_contains_prefix( cc, bseq );
+                if ( idx > -1 )
+                {
+                    Vertex* child = get_child_of( cc, bseq, idx );
+                    return vertex_contains( child, &bseq[ 1 ], k - 4, depth + 1 );
+                }
             }
         }
     }
@@ -54,8 +59,8 @@ void burst_uc( Vertex* v, int k, int depth )
         // check if full TODO finish
         if( !false )
         {
-            cc_insert( cc, k, depth, bseq );
-            Vertex* child = get_child_of( cc, bseq );
+            Vertex* child = cc_insert( cc, k, depth, bseq );
+            //Vertex* child = get_child_of( cc, bseq, index_of( cc, bseq ) );
             vertex_insert( child, suffix, k - 4, depth + 1 );
         }
     }
@@ -68,13 +73,14 @@ void burst_uc( Vertex* v, int k, int depth )
     else
     {
         v->cc = ( CC* ) realloc( v->cc, ( v->cc_size + 1 ) * sizeof( CC ) );
-        std::memmove( &v->cc[ v->cc_size ], cc, sizeof( CC ) );
+        std::memcpy( &v->cc[ v->cc_size ], cc, sizeof( CC ) );
         v->cc_size++;
         free( cc );
     }
 
-    free_uc( &( v->uc ) );
-    init_uc( &( v->uc ) );
+    //free_uc( &( v->uc ) );
+   // init_uc( &( v->uc ) );
+   v->uc.size = 0;
 }
 
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
@@ -90,14 +96,16 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
         if( cc_may_contain( cc, bseq ) )
         {
             uint8_t* suffix = &bseq[ 1 ];
-            if( cc_contains_prefix( cc, bseq ) )
+            int idx = cc_contains_prefix( cc, bseq );
+            Vertex* child;
+            if( idx > -1 )
             {
+                child = get_child_of( cc, bseq, idx );
             }
             else
             {
-                cc_insert( cc, k, depth, bseq );
+                child = cc_insert( cc, k, depth, bseq );
             }
-            Vertex* child = get_child_of( cc, bseq );
             vertex_insert( child, suffix, k - 4, depth + 1 );
             return;
         }

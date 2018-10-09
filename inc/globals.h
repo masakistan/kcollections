@@ -1,7 +1,7 @@
 #pragma once
 
-#define CAPACITY    256
-#define NHASHES     5
-#define HASHSIZE    256     // HASHSIZE % 32 must be 0
+#define CAPACITY    1024
+#define NHASHES     6
+#define HASHSIZE    512     // HASHSIZE % 32 must be 0
 
 

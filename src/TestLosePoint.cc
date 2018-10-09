@@ -20,7 +20,7 @@ int main( int argc, char* argv[] )
     while( std::getline( infile, line ) )
     {
         std::istringstream iss(line);
-        //std::cout << "inserting kmer: " << line << "\t" << c << std::endl;
+        //std::cout << "inserting kmer: " << line << "\t" << c << std::endl << std::flush;
         strcpy( kmer, line.substr( 0, k ).c_str() );
 
         insert( kd, kmer );
