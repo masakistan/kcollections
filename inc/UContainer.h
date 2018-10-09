@@ -12,9 +12,9 @@ typedef struct {
 } __attribute__ ((__packed__)) UC;
 
 void print( UC* uc, int k, int depth );
-void uc_insert( UC* uc, uint8_t* bseq, int k, int depth );
+void uc_insert( UC* uc, uint8_t* bseq, int k, int depthi, int idx );
 void free_uc( UC* uc );
-bool uc_contains( UC* uc, int k, int depth, uint8_t* bseq );
+int uc_contains( UC* uc, int k, int depth, uint8_t* bseq );
 void init_uc( UC* uc );
 
 

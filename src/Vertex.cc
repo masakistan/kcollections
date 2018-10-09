@@ -11,7 +11,8 @@ void init_vertex( Vertex* v )
 
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
 {
-    if( uc_contains( &( v->uc ), k, depth, bseq ) )
+    int uc_idx = uc_contains( &( v->uc ), k, depth, bseq );
+    if( uc_idx < 0 )
     {
         return true;
     }
@@ -85,7 +86,8 @@ void burst_uc( Vertex* v, int k, int depth )
 
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 {
-    if( uc_contains( &( v->uc ), k, depth, bseq ) )
+    int uc_idx = uc_contains( &( v->uc ), k, depth, bseq );
+    if( uc_idx < 0 )
     {
         return;
     }
@@ -113,11 +115,11 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 
     if( v->uc.size < CAPACITY - 1 )
     {
-        uc_insert( &( v->uc ), bseq, k, depth );
+        uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
     }
     else
     {
-        uc_insert( &( v->uc ), bseq, k, depth );
+        uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
         burst_uc( v, k, depth );
     }
 }

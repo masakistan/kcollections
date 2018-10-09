@@ -154,7 +154,9 @@ static int binary_search( uint8_t* suffixes, int max, int len, uint8_t* bseq )
     return min;
 }
 
-static bool binary_search_contains( uint8_t* suffixes, int max, int len, uint8_t* bseq )
+// return value is kind of backwards, returns a positive int if it is not in it
+// or a negative int if it is
+static int binary_search_contains( uint8_t* suffixes, int max, int len, uint8_t* bseq )
 {
     if( max == 0 )
     {
@@ -174,7 +176,7 @@ static bool binary_search_contains( uint8_t* suffixes, int max, int len, uint8_t
         }
         else if( cmp == 0 )
         {
-            return true;
+            return ( -1 * min ) - 1;
         }
         else
         {
@@ -182,7 +184,7 @@ static bool binary_search_contains( uint8_t* suffixes, int max, int len, uint8_t
         }
     }
 
-    return false;
+    return min;
 }
 
 

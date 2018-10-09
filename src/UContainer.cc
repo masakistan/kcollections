@@ -19,7 +19,7 @@ void print( UC* uc, int k, int depth )
     }
 }
 
-void uc_insert( UC* uc, uint8_t* bseq, int k, int depth )
+void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
 {
     int len = calc_bk( k );
     if( uc->suffixes == NULL )
@@ -36,7 +36,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth )
 
     if( uc->size < CAPACITY )
     {
-        int idx = binary_search( uc->suffixes, uc->size, len, bseq );
+        //int idx = binary_search( uc->suffixes, uc->size, len, bseq );
 
         int bytes_to_move = ( uc->size - idx ) * len;
         idx = idx * len;
@@ -62,20 +62,21 @@ void free_uc( UC* uc )
     }
 }
 
-bool uc_contains( UC* uc, int k, int depth, uint8_t* bseq )
+int uc_contains( UC* uc, int k, int depth, uint8_t* bseq )
 {
     if( uc->suffixes == NULL )
     {
-        return false;
+        return -1;
     }
 
-    if( binary_search_contains( uc->suffixes, uc->size, calc_bk( k ), bseq ) )
+    int idx = binary_search_contains( uc->suffixes, uc->size, calc_bk( k ), bseq );
+    if( idx > -1 )
     {
-        return true;
+        return idx;
     }
     else
     {
-        return false;
+        return -1;
     }
 }
 
