@@ -73,7 +73,7 @@ target_link_libraries( test_driver ${PYTHON_LIBRARIES} )
 
 set(PYBIND11_PYTHON_VERSION 2.7)
 #set(bindings_python_version 2.7)
-pybind11_add_module(kcollections ${SOURCES})
+pybind11_add_module(Kcollections ${SOURCES})
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
