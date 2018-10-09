@@ -29,7 +29,7 @@ static int next_set_bit( uint32_t* array, int pos )
 {
     //std::cout << "nsb start at: " << pos << std::endl;
     //std::cout << "\n\n" << std::endl;
-    for( int i = pos; i < 256; i++ )
+    for( int i = pos; i < HASHSIZE; i++ )
     {
         //std::cout << "\t\t\tnsb check: " << i << "\t" << testbit( array, i ) << std::endl;
         if( testbit( array, i ) )
