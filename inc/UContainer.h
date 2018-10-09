@@ -1,24 +1,20 @@
 #pragma once
 
-#include <set>
+#include <stdio.h>
+#include <iostream>
+#include "globals.h"
+#include "helper.h"
+#include <jemalloc/jemalloc.h>
 
-#include "Container.h"
-#include "Bkmer.h"
+typedef struct {
+    uint8_t* suffixes;
+    uint16_t size;
+} __attribute__ ((__packed__)) UC;
 
-class UContainer : public Container
-{
-    private:
-        std::set< Bkmer >* m_bkmers;
-
-    public:
-        UContainer();
-        ~UContainer();
-        size_t size() { return m_bkmers->size(); }
-        bool contains( Bkmer* bkmer );
-        void insert( Bkmer* bkmer );
-        bool is_full();
-        std::set< Bkmer >* get_bkmers();
-        void remove( Bkmer* bkmer );
-};
-
+void print( UC* uc, int k, int depth );
+void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx );
+void free_uc( UC* uc );
+int uc_contains( UC* uc, int k, int depth, uint8_t* bseq );
+void init_uc( UC* uc );
+void uc_remove( UC* uc, int bk, int idx );
 

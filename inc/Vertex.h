@@ -1,41 +1,33 @@
 #pragma once
 
-#include <vector>
-#include <iostream>
-#include <memory>
-//#include <co2/recursive_generator.hpp>
-//#include "aco.h"
-#include "Container.h"
-#include "UContainer.h"
 #include "CContainer.h"
-#include "SufClustData.h"
-#include "Bkmer.h"
+#include "UContainer.h"
+#include "globals.h"
+#include <jemalloc/jemalloc.h>
 
+/*typedef struct {
+    CC* cc;
+    UC uc;
+} __attribute__ ((__packed__)) Vertex;*/
 
-class Vertex
-{
-    private:
-        // Containers
-        UContainer* m_uc;
-        std::vector< CContainer* >* m_ccs;
-
-    public:
-        Vertex();
-        ~Vertex();
-        UContainer* get_uc() const { return m_uc; }
-        std::vector< CContainer* >* get_ccs() const { return m_ccs; }
-
-        void burst_uc( Bkmer* bkmer );
-        size_t size();
-        
-        void insert( Bkmer* bkmer );
-        static void insert( Vertex* v, Bkmer* bkmer );
-        
-        bool contains( Bkmer* bkmer );
-        static bool contains( const Vertex* v, Bkmer* bkmer );
-        
-        void remove( Bkmer* bkmer );
-        static void remove( Vertex* v, Bkmer* bkmer );
+struct Vertex{
+    CC* cc;
+    UC uc;
+    uint16_t cc_size;
+    bool start;
 };
+
+struct CS {
+    Vertex v;
+    uint8_t suffix;
+};
+
+void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth );
+uint64_t vertex_size( Vertex* v );
+void init_vertex( Vertex* v );
+void free_vertex( Vertex* v );
+bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth );
+void burst_uc( Vertex* v, int k, int depth );
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth );
 
 

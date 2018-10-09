@@ -1,263 +1,22 @@
 #include "CContainer.h"
 #include "Vertex.h"
 
-// length of prefix = 1 for 1 uint
-// each prefix holds 4 bases
-// there are 4 different possible bases
-const int CContainer::PREF_SIZE = std::pow( Container::get_prfx_prefix_length() * 4, 4 );
-
-CContainer::CContainer() : Container()
+void init_cc( CC* cc, int suffix_size )
 {
-    bf = new BloomFilter( 256, 5 );
-    m_suf_clust_data = new std::vector< SufClustData* >();
-    m_pref = new std::vector< bool >( PREF_SIZE );
-}
-
-CContainer::~CContainer()
-{
-    delete bf;
+    cc->child_suffixes = NULL;
+    cc->suffix_size = suffix_size;
     
-    for( std::vector< SufClustData* >::iterator it = m_suf_clust_data->begin(); it != m_suf_clust_data->end(); it++ )
-    {
-        delete *it;
-    }
-    m_suf_clust_data->clear();
-
-    delete m_suf_clust_data;
-    delete m_pref;
+    cc->size = 0;
+    memset( &cc->pref, 0, 32 );
+    init_bf( &cc->bf );
 }
 
-bool CContainer::may_contain( Bkmer* sfpx )
+int rank( CC* cc, int clust_num )
 {
-    return bf->may_contain( sfpx->get_bseq(), sfpx->get_bk() );
-}
-
-bool CContainer::contains_prefix( Bkmer* sfpx )
-{
-    if( sfpx->get_bk() == 0 )
+    int clust_size = cc->size;
+    for( int clust_pos = 0; clust_pos < clust_size; clust_pos++ )
     {
-        return true;
-    }
-
-    std::unique_ptr< Bkmer > sfpx_prefix = sfpx->get_prefix( Container::get_prfx_prefix_length() );
-    std::unique_ptr< Bkmer > sfpx_suffix = sfpx->get_suffix( Container::get_prfx_suffix_length() );
-    int pref_index = get_index_in_pref( sfpx_prefix.get() );
-
-    if( m_pref->at( pref_index ) )
-    {
-        int cluster_num = hamming_weight( pref_index );
-        int start = rank( cluster_num );
-        int pos = start;
-        while( pos < m_suf_clust_data->size()
-                && ( pos == start || m_suf_clust_data->at( pos )->is_cluster_start() == false ) )
-        {
-            if( *( m_suf_clust_data->at( pos )->get_sfpx_suffix() ) == *sfpx_suffix )
-            {
-                return true;
-            }
-            pos++;
-        }
-    }
-    return false;
-}
-
-void CContainer::insert( Bkmer* sfpx )
-{
-    if( contains_prefix( sfpx ) )
-    {
-        return;
-    }
-
-    std::unique_ptr< Bkmer >sfpx_prefix = sfpx->get_prefix( Container::get_prfx_prefix_length() );
-    std::unique_ptr< Bkmer >sfpx_suffix = sfpx->get_suffix( Container::get_prfx_suffix_length() );
-    int pref_index = get_index_in_pref( sfpx_prefix.get() );
-
-    bool was_pref_index_set = m_pref->at( pref_index );
-    m_pref->at( pref_index ) = true;
-
-    int clust_num = hamming_weight( pref_index );
-    int clust_pos = rank( clust_num );
-    
-    // sfpxPrefix was not present
-    if( !was_pref_index_set )
-    {
-        //SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, true );
-        //m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos, suf_clust_data );
-        m_suf_clust_data->emplace( m_suf_clust_data->begin() + clust_pos, new SufClustData( sfpx_suffix.get(), true ) );
-        add_to_bloom_filter( sfpx );
-        return;
-    }
-
-    // sfpxPrefix was already present
-    if( was_pref_index_set )
-    {
-        // if sfpx_suffix starts its cluster...
-        bool is_new_sfx_less_than_pos = *sfpx_suffix < *m_suf_clust_data->at( clust_pos )->get_sfpx_suffix();
-        if( is_new_sfx_less_than_pos )
-        {
-            //SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, true );
-            //m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos, suf_clust_data );
-            m_suf_clust_data->emplace( m_suf_clust_data->begin() + clust_pos, new SufClustData( sfpx_suffix.get(), true ) );
-            m_suf_clust_data->at( clust_pos + 1 )->set_cluster_start( false );
-            add_to_bloom_filter( sfpx );
-            return;
-        }
-
-        // if sfpx_suffix does not start its cluster...
-        clust_pos++;
-
-        // if clust_pos is at end of bit-array
-        if(clust_pos >= m_suf_clust_data->size()) {
-            //SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, false );
-            //m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos, suf_clust_data );
-            m_suf_clust_data->emplace( m_suf_clust_data->begin() + clust_pos, new SufClustData( sfpx_suffix.get(), false ) );
-            add_to_bloom_filter( sfpx );
-            return;
-        }
-
-        // while sfpx_suffix is greater than previous suffix...
-        bool is_new_sfx_greater_than_prev_pos =
-            *sfpx_suffix > *m_suf_clust_data->at( clust_pos - 1 )->get_sfpx_suffix();
-
-        while (is_new_sfx_greater_than_prev_pos) {
-            // if clust_pos is at end of bit-array OR if next cluster is reached (ie. if sfpx_suffix is greatest in its cluster)...
-            if( clust_pos >= m_suf_clust_data->size() || m_suf_clust_data->at( clust_pos )->is_cluster_start() )
-            {
-                //SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, false );
-                //m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos, suf_clust_data );
-                m_suf_clust_data->emplace( m_suf_clust_data->begin() + clust_pos, new SufClustData( sfpx_suffix.get(), false ) );
-                add_to_bloom_filter( sfpx );
-                return;
-            }
-
-            clust_pos++;
-            is_new_sfx_greater_than_prev_pos = *sfpx_suffix > *m_suf_clust_data->at( clust_pos - 1 )->get_sfpx_suffix();
-        }
-
-        // if sfpx_suffix is less than previous suffix...
-        //SufClustData* suf_clust_data = new SufClustData( sfpx_suffix, false );
-        //m_suf_clust_data->insert( m_suf_clust_data->begin() + clust_pos - 1, suf_clust_data );
-        m_suf_clust_data->emplace( m_suf_clust_data->begin() + clust_pos, new SufClustData( sfpx_suffix.get(), false ) );
-        add_to_bloom_filter( sfpx );
-        return;
-    }    
-}
-
-/*std::unique_ptr< SufClustData > CContainer::get_suf_clust_data_item( Bkmer* sfpx )
-{
-    int index_of_child = index_of( sfpx );
-    if( index_of_child > -1 )
-    {
-        return m_suf_clust_data->at( index_of_child );
-    }
-    return NULL;
-}*/
-
-Vertex* CContainer::get_child_of( Bkmer* sfpx )
-{
-    int index_of_child = index_of( sfpx );
-    if( index_of_child > -1 )
-    {
-        return m_suf_clust_data->at( index_of_child )->get_child_vertex();
-    }
-    return NULL;
-}
-
-bool CContainer::is_full()
-{
-    if( m_suf_clust_data->size() == s_capacity )
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-BloomFilter* CContainer::get_bf()
-{
-    return new BloomFilter( *bf );
-}
-
-std::vector< bool >* CContainer::get_clust()
-{
-    std::vector< bool >* clust = new std::vector< bool >( m_suf_clust_data->size() );
-    for( int i = 0; i < m_suf_clust_data->size(); i++ )
-    {
-        clust->push_back( ( *m_suf_clust_data )[ i ]->is_cluster_start() );
-    }
-    return clust;
-}
-
-std::vector< Vertex* >* CContainer::get_child_vertices()
-{
-    std::vector< Vertex* >* child_vertices = new std::vector< Vertex* >();
-    for( int i = 0; i < m_suf_clust_data->size(); i++ )
-    {
-        child_vertices->push_back( ( *m_suf_clust_data )[ i ]->get_child_vertex() );
-    }
-    return child_vertices;
-}
-
-int CContainer::next_set_bit( int pos )
-{
-    for( int i = pos; i < m_pref->size(); i++ )
-    {
-        if( m_pref->at( i ) )
-        {
-            return i;
-        }
-    }
-    return -1;
-}
-
-int CContainer::hamming_weight( int index )
-{
-    int hamming_weight = 0;
-    for( int i = next_set_bit( 0 ); i > -1 && i <= index; i = next_set_bit( i + 1 ) )
-    {
-        hamming_weight++;
-    }
-
-    return hamming_weight;
-}
-
-int CContainer::pref_index_from_hamming_weight( int clust_num )
-{
-    for( int i = 0; i < m_pref->size(); i++ )
-    {
-        if( m_pref->at( i ) )
-        {
-            clust_num--;
-            if( clust_num == 0 )
-            {
-                return i;
-            }
-        }
-    }
-    return -1;
-}
-
-int CContainer::clust_num_from_rank( int clust_pos )
-{
-    int clust_num = 0;
-    for( ; clust_pos >= 0; clust_pos-- )
-    {
-        if( m_suf_clust_data->at( clust_pos )->is_cluster_start() )
-        {
-            clust_num++;
-        }
-    }
-    return clust_num;
-}
-
-int CContainer::rank( int clust_num )
-{
-    int clust_size = m_suf_clust_data->size();
-    for ( int clust_pos = 0; clust_pos < clust_size; clust_pos++ )
-    {
-        if( m_suf_clust_data->at( clust_pos )->is_cluster_start() )
+        if( cc->child_suffixes[ clust_pos ].v.start )
         {
             clust_num--;
         }
@@ -268,45 +27,162 @@ int CContainer::rank( int clust_num )
         }
     }
 
-    return m_suf_clust_data->size();
+    return cc->size;
 }
 
-char* CContainer::prefix_from_clust( int clust_pos )
+int hamming_weight( CC* cc, int index )
 {
-    int clust_num = clust_num_from_rank( clust_pos );
-    int pref_index = pref_index_from_hamming_weight( clust_num );
-    return index_to_pref( pref_index );
-}
-
-/* Converts prefix string to its location on mPref bit-array
- * this should always be a single 8*/
-unsigned int CContainer::get_index_in_pref( Bkmer* sfpx_prefix )
-{
-    assert ( sfpx_prefix->get_bk() == 1 );
-    return unsigned( sfpx_prefix->get_bseq()[ 0 ] );
-}
-
-char* CContainer::index_to_pref( uint8_t index )
-{
-    return Bkmer::deserialize_seq( 4, 1, &index );
-}
-
-/* Algorithm to return index of the child vertex that holds a given suffix's prefix */
-int CContainer::index_of( Bkmer* sfpx )
-{
-    std::unique_ptr< Bkmer >sfpx_prefix = sfpx->get_prefix( Container::get_prfx_prefix_length() );
-    std::unique_ptr< Bkmer >sfpx_suffix = sfpx->get_suffix( Container::get_prfx_prefix_length() );
-    int pref_index = get_index_in_pref( sfpx_prefix.get() );
-
-    if( m_pref->at( pref_index ) == true )
+    int hamming_weight = 0;
+    for (
+            int i = next_set_bit( cc->pref, 0, 256 );
+            i > -1 && i <= index;
+            i = next_set_bit( cc->pref, i + 1, 256 )
+            )
     {
-        int clust_num = hamming_weight( pref_index );
-        int start = rank( clust_num );
-        int pos = start;
-        while( pos < m_suf_clust_data->size()
-                && ( pos == start || !m_suf_clust_data->at( pos )->is_cluster_start() ) )
+        hamming_weight++;
+    }
+
+    return hamming_weight;
+}
+
+Vertex* insert_cluster( CC* cc, int idx, uint8_t suffix, bool start )
+{
+    int to_move = cc->size - idx;
+    
+    if( cc->child_suffixes == NULL )
+    {
+        cc->child_suffixes = ( CS* ) calloc( 1, sizeof( CS ) );
+    }
+    else
+    {
+        cc->child_suffixes = ( CS* ) realloc(
+                cc->child_suffixes,
+                ( cc->size + 1 ) * sizeof( CS )
+                );
+    }
+
+
+    Vertex* v = ( Vertex* ) malloc( sizeof( Vertex ) );
+    init_vertex( v );
+    v->start = start;
+    if( to_move > 0 )
+    {
+        std::memmove(
+                &cc->child_suffixes[ idx + 1 ],
+                &cc->child_suffixes[ idx ],
+                to_move * sizeof( CS )
+                );
+    }
+
+    std::memcpy(
+            &cc->child_suffixes[ idx ].v,
+            v,
+            sizeof( Vertex )
+            );
+    free_vertex( v );
+    free( v );
+
+    cc->child_suffixes[ idx ].suffix = suffix;
+    cc->size++;
+    return &cc->child_suffixes[ idx ].v;
+}
+
+Vertex* cc_insert( CC* cc, int k, int depth, uint8_t* sfpx )
+{
+    int idx = cc_contains_prefix( cc, sfpx );
+    if( idx > -1 )
+    {
+        return get_child_of( cc, sfpx, idx );
+    }
+    uint8_t prefix = sfpx[ 0 ];
+    uint8_t suffix = sfpx[ 0 ];
+
+    //int suffix_size = calc_bk( k ) - depth;
+    int pref_index = unsigned( prefix );
+    bool was_pref_index_set = testbit( cc->pref, pref_index );
+    setbit( cc->pref, pref_index );
+
+
+    int clust_num = hamming_weight( cc, pref_index );
+    int clust_pos = rank( cc, clust_num );
+    Vertex* child;
+
+    // sfpxPrefix was not present
+    if( !was_pref_index_set )
+    {
+        child = insert_cluster( cc, clust_pos, suffix, true );
+        add_to_bloom_filter( &cc->bf, sfpx, 1 );
+        return child;
+    }
+
+    // sfpxPrefix was already present
+    if( was_pref_index_set )
+    {
+        // if sfpx_suffix starts its cluster...
+        if( unsigned( suffix ) < unsigned( cc->child_suffixes[ clust_pos ].suffix ) )
         {
-            if( *( m_suf_clust_data->at( pos )->get_sfpx_suffix() ) == *sfpx_suffix )
+            child = insert_cluster( cc, clust_pos, suffix, false );
+            cc->child_suffixes[ clust_pos + 1 ].v.start = false;
+            add_to_bloom_filter( &cc->bf, sfpx, 1 );
+            return child;
+        }
+
+        // if sfpx_suffix does not start its cluster...
+        clust_pos++;
+
+        // if clust_pos is at end of bit-array
+        //if( clust_pos >= cc->size )
+        if( unsigned( suffix ) >= unsigned( cc->child_suffixes[ clust_pos ].suffix ) )
+        {
+            child = insert_cluster( cc, clust_pos, suffix, false );
+            add_to_bloom_filter( &cc->bf, sfpx, 1 );
+            return child;
+        }
+
+        // while sfpx_suffix is greater than previous suffix...
+        while ( unsigned( suffix ) > unsigned( cc->child_suffixes[ clust_pos - 1 ].suffix ) )
+        {
+            // if clust_pos is at end of bit-array OR if next cluster is reached (ie. if sfpx_suffix is greatest in its cluster)...
+            if(
+                    clust_pos >= cc->size
+                    || cc->child_suffixes[ clust_pos ].v.start
+                    )
+            {
+                child = insert_cluster( cc, clust_pos, suffix, false );
+                add_to_bloom_filter( &cc->bf, sfpx, 1 );
+                return child;
+            }
+
+            clust_pos++;
+        }
+
+        // if sfpx_suffix is less than previous suffix...
+        std::cout << "less than previous suffix!" << std::endl;
+        child = insert_cluster( cc, clust_pos - 1, suffix, false );
+        add_to_bloom_filter( &cc->bf, sfpx, 1 );
+        return child;
+    }
+}
+
+int cc_contains_prefix( CC* cc, uint8_t* sfpx )
+{
+    uint8_t prefix = sfpx[ 0 ];
+    uint8_t suffix = sfpx[ 0 ];
+    int pref_index = unsigned( prefix );
+
+    if( testbit( cc->pref, pref_index ) )
+    {
+        int cluster_num = hamming_weight( cc, pref_index );
+        int start = rank( cc, cluster_num );
+        int pos = start;
+        while( pos < cc->size
+                && (
+                    pos == start
+                    || cc->child_suffixes[ pos ].v.start == false
+                    )
+                )
+        {
+            if( unsigned( suffix ) == unsigned( cc->child_suffixes[ pos ].suffix ) )
             {
                 return pos;
             }
@@ -317,20 +193,64 @@ int CContainer::index_of( Bkmer* sfpx )
     return -1;
 }
 
-/* Adds suffix-prefix (sfpx) to Bloom filter mQuer */
-void CContainer::add_to_bloom_filter( Bkmer* sfpx )
+bool cc_may_contain( CC* cc, uint8_t* bseq )
 {
-    bf->add( sfpx );
+    bool res = bf_may_contain( &cc->bf, bseq, 2);
+    //std::cout << "\t\t\tmay contain: " << res << std::endl;
+    return res;
 }
 
-size_t CContainer::size()
+void cc_shrink( CC* cc )
 {
-    size_t t_size = 0;
-    for( SufClustData* sfc : *m_suf_clust_data )
+}
+
+void free_cc( CC* cc )
+{
+    //free( cc->suffixes );
+    for( int i = 0; i < cc->size; i++ )
     {
-        t_size += sfc->get_child_vertex()->size();
+        free_vertex( &cc->child_suffixes[ i ].v );
     }
-    return t_size;
+    free( cc->child_suffixes );
+    free_bf( &( cc->bf ) );
+}
+
+Vertex* get_child_of( CC* cc, uint8_t* sfpx, int idx )
+{
+    if( idx > -1 )
+    {
+        return &cc->child_suffixes[ idx ].v;
+    }
+    return NULL;
+}
+
+int index_of( CC* cc, uint8_t* sfpx )
+{
+    uint8_t prefix = sfpx[ 0 ];
+    uint8_t suffix = sfpx[ 0 ];
+    int pref_index = unsigned( prefix );
+
+    if( testbit( cc->pref, pref_index ) )
+    {
+        int cluster_num = hamming_weight( cc, pref_index );
+        int start = rank( cc, cluster_num );
+        int pos = start;
+        while( pos < cc->size
+                && (
+                    pos == start
+                    || !cc->child_suffixes[ pos ].v.start
+                   )
+             )
+        {
+            if( unsigned( cc->child_suffixes[ pos ].suffix ) == unsigned( suffix ) )
+            {
+                return pos;
+            }
+            pos++;
+        }
+    }
+
+    return -1;
 }
 
 

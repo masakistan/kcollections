@@ -1,190 +1,182 @@
 #include "Vertex.h"
 
-Vertex::Vertex()
+
+void init_vertex( Vertex* v )
 {
-    m_ccs = new std::vector< CContainer* >();
-    m_uc = new UContainer();
-    //m_terminal_colors = new std::vector< bool >();
-    //m_cardinality = 0;
+    v->start = false;
+    v->cc = NULL;
+    v->cc_size = 0;
+    init_uc( &( v->uc ) );
 }
 
-Vertex::~Vertex()
+void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
 {
-    for( std::vector< CContainer* >::iterator it = m_ccs->begin(); it != m_ccs->end(); it++ )
+    int uc_idx = uc_contains( &( v->uc ), k, depth, bseq );
+    if( uc_idx != v->uc.size )
     {
-        delete *it;
+        uc_remove( &( v->uc ), calc_bk( k ), uc_idx );
     }
-    m_ccs->clear();
-    delete m_ccs;
-    delete m_uc;
-    //delete m_terminal_colors;
-}
 
-void Vertex::insert( Bkmer* bkmer )
-{
-    insert( this, bkmer );
-}
 
-void Vertex::insert( Vertex* v, Bkmer* bkmer )
-{
-    // get prefix position
-    int sfpx_len = Container::get_prefix_length();
-    std::unique_ptr< Bkmer > sfpx = bkmer->get_prefix( sfpx_len );
-
-    // check if item is in the uncompressed container
-    if( v->m_uc->contains( bkmer ) )
+    if( v->cc != NULL )
     {
-        // can skip, kmer already added
-        return;
-    }
-    
-    // check all compressed containers
-    for( CContainer* cc : *v->m_ccs )
-    {
-        // check if item is possibly in a compressed container
-        if( cc->may_contain( sfpx.get() ) )
+        int size = sizeof( *v->cc ) / sizeof( CC );
+        bool res = false;
+        CC* cc;
+        for( int i = 0; i < v->cc_size; i++ )
         {
-            // check if item is actually in compressed container
-            if( cc->contains_prefix( sfpx.get() ) )
+            cc = &v->cc[ i ];
+            if( cc_may_contain( cc, bseq ) )
             {
-                sfpx = bkmer->emit_prefix( sfpx_len );
-                Vertex* child_vertex = cc->get_child_of( sfpx.get() );
-                insert( child_vertex, bkmer );
-                return;
-            }
-            // if it was a false positive
-            else
-            {
-                cc->insert( sfpx.get() );
-                Vertex* child_vertex = cc->get_child_of( sfpx.get() );
-                bkmer->emit_prefix( sfpx_len );
-                insert( child_vertex, bkmer );
-                return;
+                int idx = cc_contains_prefix( cc, bseq );
+                if ( idx > -1 )
+                {
+                    Vertex* child = get_child_of( cc, bseq, idx );
+                    vertex_remove( child, &bseq[ 1 ], k - 4, depth + 1 );
+                }
             }
         }
     }
-    
-    if( v->m_uc->is_full() )
-    {
-        // burst container if necessary
-        v->burst_uc( bkmer );
-    }
-    else
-    {
-        // add to uncompressed container
-        v->m_uc->insert( bkmer );
-    }
 }
 
-bool Vertex::contains( Bkmer* bkmer )
+bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
 {
-    return contains( this, bkmer );
-}
-
-bool Vertex::contains( const Vertex* v, Bkmer* bkmer )
-{
-    UContainer* uc = v->get_uc();
-
-    if( uc->contains( bkmer ) )
+    int uc_idx = uc_contains( &( v->uc ), k, depth, bseq );
+    if( uc_idx < 0 )
     {
         return true;
     }
 
-    std::vector< CContainer* >* ccs = v->get_ccs();
-    int sfpx_length = Container::get_prefix_length();
-    std::unique_ptr< Bkmer > sfpx = bkmer->get_prefix( sfpx_length );
 
-    for( CContainer* cc : *( ccs ) )
+    if( v->cc != NULL )
     {
-        if( cc->may_contain( sfpx.get() ) && cc->contains_prefix( sfpx.get() ) )
+        int size = sizeof( *v->cc ) / sizeof( CC );
+        bool res = false;
+        CC* cc;
+        for( int i = 0; i < v->cc_size; i++ )
         {
-            sfpx = bkmer->emit_prefix( sfpx_length );
-            Vertex* child_vertex = cc->get_child_of( sfpx.get() );
-            return contains( child_vertex, bkmer );
+            cc = &v->cc[ i ];
+            if( cc_may_contain( cc, bseq ) )
+            {
+                int idx = cc_contains_prefix( cc, bseq );
+                if ( idx > -1 )
+                {
+                    Vertex* child = get_child_of( cc, bseq, idx );
+                    return vertex_contains( child, &bseq[ 1 ], k - 4, depth + 1 );
+                }
+            }
         }
     }
 
     return false;
 }
 
-void Vertex::burst_uc( Bkmer* bkmer )
+void burst_uc( Vertex* v, int k, int depth )
 {
-     UContainer* nuc = new UContainer(); //new UContainer();
-    CContainer* ncc = new CContainer(); //new CContainer();
-    m_uc->insert( bkmer );
+    CC* cc = ( CC* ) malloc( sizeof( CC ) );
+    int suffix_size = calc_bk( k );
+    init_cc( cc, suffix_size );
 
-    std::unique_ptr< Bkmer > sfpx;
-
-    for( Bkmer uc_bkmer : *( m_uc->get_bkmers() ) )
+    uint8_t* suffixes = v->uc.suffixes;
+    int idx;
+    for( int i = 0; i < CAPACITY; i++ )
     {
-        sfpx = uc_bkmer.get_prefix( Container::get_prefix_length() );
+        idx = i * suffix_size;
 
-        // check if compressed container is at capacity
-        if( !ncc->is_full() )
+        uint8_t* bseq = &suffixes[ idx ];
+        uint8_t prefix = bseq[ 0 ];
+        uint8_t* suffix = &bseq[ 1 ];
+
+        // check if full TODO finish
+        if( !false )
         {
-            ncc->insert( sfpx.get() );
-            uc_bkmer.emit_prefix( Container::get_prefix_length() );
-            ncc->get_child_of( sfpx.get() )->insert( &uc_bkmer );
-        }
-        else if( !nuc->is_full() )
-        {
-            nuc->insert( &uc_bkmer );
-        }
-        else
-        {
-            /// this is an error state
+            Vertex* child = cc_insert( cc, k, depth, bseq );
+            //Vertex* child = get_child_of( cc, bseq, index_of( cc, bseq ) );
+            vertex_insert( child, suffix, k - 4, depth + 1 );
         }
     }
 
-    delete m_uc;
-    m_uc = nuc;
-    m_ccs->push_back( ncc );
-}
-
-size_t Vertex::size()
-{
-    // check if the kmer exists
-    size_t t_size = m_uc->size();
-
-    for( CContainer* cc : *( m_ccs ) )
+    if( v->cc == NULL )
     {
-        t_size += cc->size();
+        v->cc = cc;
+        v->cc_size++;
+    }
+    else
+    {
+        v->cc = ( CC* ) realloc( v->cc, ( v->cc_size + 1 ) * sizeof( CC ) );
+        std::memcpy( &v->cc[ v->cc_size ], cc, sizeof( CC ) );
+        v->cc_size++;
+        free( cc );
     }
 
-    return t_size;
+    free_uc( &( v->uc ) );
+    init_uc( &( v->uc ) );
+    //v->uc.size = 0;
 }
 
-void Vertex::remove( Bkmer* bkmer )
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 {
-    remove( this, bkmer );
-}
-
-void Vertex::remove( Vertex* v, Bkmer* bkmer )
-{
-    // check if the kmer exists
-    UContainer* uc = v->get_uc();
-
-    if( uc->contains( bkmer ) )
+    int uc_idx = uc_contains( &( v->uc ), k, depth, bseq );
+    if( uc_idx < 0 )
     {
-        uc->remove( bkmer );
         return;
     }
-
-    std::vector< CContainer* >* ccs = v->get_ccs();
-    int sfpx_length = Container::get_prefix_length();
-    std::unique_ptr< Bkmer > sfpx = bkmer->get_prefix( sfpx_length );
-
-    for( CContainer* cc : *( ccs ) )
+    
+    for( int i = 0; i < v->cc_size; i++ )
     {
-        if( cc->may_contain( sfpx.get() ) && cc->contains_prefix( sfpx.get() ) )
+        CC* cc = &v->cc[ i ];
+        if( cc_may_contain( cc, bseq ) )
         {
-            sfpx = bkmer->emit_prefix( sfpx_length );
-            Vertex* child_vertex = cc->get_child_of( sfpx.get() );
-            return remove( child_vertex, bkmer );
+            uint8_t* suffix = &bseq[ 1 ];
+            int idx = cc_contains_prefix( cc, bseq );
+            Vertex* child;
+            if( idx > -1 )
+            {
+                child = get_child_of( cc, bseq, idx );
+            }
+            else
+            {
+                child = cc_insert( cc, k, depth, bseq );
+            }
+            vertex_insert( child, suffix, k - 4, depth + 1 );
+            return;
         }
     }
 
-    return;
+    if( v->uc.size < CAPACITY - 1 )
+    {
+        uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
+    }
+    else
+    {
+        uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
+        burst_uc( v, k, depth );
+    }
 }
 
+void free_vertex( Vertex* v )
+{
+    free_uc( &( v->uc ) );
+    if( v->cc != NULL )
+    {
+        for( int i = 0; i < v->cc_size; i++ )
+        {
+            free_cc( &v->cc[ i ] );
+        }
+        free( v->cc );
+    }
+}
+
+uint64_t vertex_size( Vertex* v )
+{
+    uint64_t c = v->uc.size;
+    for( int i = 0; i < v->cc_size; i++ )
+    {
+        for( int j = 0; j < v->cc[ i ].size; j++ )
+        {
+            c += vertex_size( &v->cc[ i ].child_suffixes[ j ].v );
+        }
+    }
+    return c;
+}
 

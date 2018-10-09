@@ -3,8 +3,8 @@
 #include <vector>
 #include <array>
 #include "MurmurHash3.h"
-#include "Globals.h"
-#include "Bkmer.h"
+#include "globals.h"
+#include "helper.h"
 
 
 inline uint64_t nthHash( uint8_t n,
@@ -15,22 +15,50 @@ inline uint64_t nthHash( uint8_t n,
     return (hashA + n * hashB) % filterSize;
 }
 
+typedef struct {
+    uint32_t m_bits[ HASHSIZE / 32 ]; // divide by 32 because we store it in a 32 bit uint
+    int m_nHashes;
+} __attribute__ ((__packed__)) BloomFilter;
 
-class BloomFilter
+inline void init_bf( BloomFilter* bf )
 {
-    private:
-        std::vector<bool>* m_bits;
-        uint8_t m_nHashes;
+    bf->m_nHashes = NHASHES;
+    memset( &bf->m_bits, 0, HASHSIZE / 32 );
+}
 
-        std::array< uint64_t, 2 > hash( const uint8_t* data, std::size_t len ) const;
+static std::array< uint64_t, 2 > hash( const uint8_t* data, const std::size_t len )
+{
+    std::array< uint64_t, 2 > hashValue;
+    MurmurHash3_x64_128( data, len, 0, hashValue.data() );
+    return hashValue;
+}
 
-    public:
-        BloomFilter( uint64_t size, uint8_t nHashes);
-        BloomFilter( const BloomFilter& bf );
-        ~BloomFilter();
-        void add( const Bkmer* data );
-        bool may_contain( const uint8_t* data, std::size_t len ) const;
-        std::vector<bool>* get_bits() const { return m_bits; }
-};
+inline void add_to_bloom_filter( BloomFilter* bf, uint8_t* data, int size )
+{
+    auto hashValues = hash( data, size );
+
+    for ( int n = 0; n < bf->m_nHashes; n++ )
+    {
+        setbit( bf->m_bits, nthHash( n, hashValues[ 0 ], hashValues[ 1 ], HASHSIZE ) );
+    }
+}
+
+inline bool bf_may_contain( BloomFilter* bf, uint8_t* data, int size )
+{
+    auto hashValues = hash( data, size );
+    for ( int n = 0; n < bf->m_nHashes; n++ )
+    {
+        if ( !testbit( bf->m_bits, nthHash( n, hashValues[ 0 ], hashValues[ 1 ], HASHSIZE ) ) )
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+inline void free_bf( BloomFilter* bf )
+{
+}
 
 

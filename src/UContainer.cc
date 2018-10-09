@@ -1,55 +1,115 @@
 #include "UContainer.h"
 
-UContainer::UContainer() : Container()
+void init_uc( UC* uc )
 {
-    m_bkmers = new std::set< Bkmer >();
+    uc->suffixes = NULL;
+    uc->size = 0;
 }
 
-UContainer::~UContainer()
+void print( UC* uc, int k, int depth )
 {
-    delete m_bkmers;
-}
-
-bool UContainer::contains( Bkmer* bkmer )
-{
-    std::set< Bkmer >::iterator index = m_bkmers->find( *bkmer );
-    if( index == m_bkmers->end() )
+    int len = calc_bk( k );
+    int idx;
+    for( int i = 0; i < uc->size; i++ )
     {
-        return false;
+        idx = i * len;
+        char* dseq = deserialize_kmer( k, len, &uc->suffixes[ idx ] );
+        std::cout << "kmer: " << dseq << std::endl;
+        free( dseq );
     }
-    return true;
 }
 
-void UContainer::insert( Bkmer* bkmer )
+void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
 {
-    /*std::set< Bkmer >::iterator index = m_bkmers->find( *bkmer );
-    if( index == m_bkmers->end() )
+    int len = calc_bk( k );
+    if( uc->suffixes == NULL )
     {
-        m_bkmers->insert( *bkmer );
-    }*/
-    m_bkmers->insert( *bkmer ); 
-}
-
-bool UContainer::is_full()
-{
-    if( m_bkmers->size() == s_capacity )
-    {
-        return true;
+        uc->suffixes = ( uint8_t* ) calloc( len , sizeof( uint8_t ) );
     }
     else
     {
-        return false;
+        uc->suffixes = ( uint8_t* ) realloc(
+                uc->suffixes,
+                len * ( uc->size + 1 ) * sizeof( uint8_t )
+                );
+    }
+
+    if( uc->size < CAPACITY )
+    {
+        //int idx = binary_search( uc->suffixes, uc->size, len, bseq );
+
+        int bytes_to_move = ( uc->size - idx ) * len;
+        idx = idx * len;
+        if( bytes_to_move > 0 )
+        {
+            std::memmove(
+                    &uc->suffixes[ idx + len ],
+                    &uc->suffixes[ idx ],
+                    bytes_to_move
+                    );
+        }
+
+        std::memcpy( &uc->suffixes[ idx ], bseq, len );
+        uc->size++;
     }
 }
 
-std::set< Bkmer >* UContainer::get_bkmers()
+void free_uc( UC* uc )
 {
-    return m_bkmers;
+    if( uc->suffixes != NULL )
+    {
+        free( uc->suffixes );
+    }
 }
 
-void UContainer::remove( Bkmer* bkmer )
+void uc_remove( UC* uc, int bk, int idx )
 {
-    m_bkmers->erase( *bkmer );
+    int suffix_idx = idx * bk;
+    int bytes_to_move = ( uc->size - ( idx + 1 ) ) * bk;
+    std::memmove(
+            &uc->suffixes[ idx ],
+            &uc->suffixes[ idx + bk ],
+            bytes_to_move
+            );
+    uc->size--;
+}
+
+int uc_find( UC* uc, int k, int depth, uint8_t* bseq )
+{
+    if( uc->suffixes == NULL )
+    {
+        return uc->size;
+    }
+
+    int idx = binary_search_contains( uc->suffixes, uc->size, calc_bk( k ), bseq );
+    if( idx > -1 )
+    {
+        return uc->size;
+    }
+    else
+    {
+        idx = ( idx + 1 ) * -1;
+        return idx;
+    }
+
+}
+
+int uc_contains( UC* uc, int k, int depth, uint8_t* bseq )
+{
+    if( uc->suffixes == NULL )
+    {
+        return 0;
+    }
+
+    int idx = binary_search_contains( uc->suffixes, uc->size, calc_bk( k ), bseq );
+    if( idx > -1 )
+    {
+        return idx;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 
