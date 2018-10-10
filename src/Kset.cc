@@ -38,6 +38,18 @@ void Kset::remove( char* kmer )
 
 PYBIND11_MODULE( Kcollections, m )
 {
+    m.doc() = R"pbdoc(
+        kcollections python bindings
+        ----------------------------
+
+        .. currentmodule:: Kcollections
+
+        .. autosummary::
+           :toctree: _generate
+
+           Kset
+    )pbdoc";
+
     py::class_<Kset>(m, "Kset")
         .def(py::init<const int>())
         .def("add", &Kset::insert)
