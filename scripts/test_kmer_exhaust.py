@@ -10,7 +10,8 @@ bad = []
 k = int( sys.argv[ 1 ] )
 ks = Kcollections.Kset( k )
 
-for kmer in itertools.product(bases, repeat=k):
+for kmer in tqdm( itertools.product(bases, repeat=k) ):
+    kmer = ''.join( kmer )
     if( random.random() > .75 ):
         good.append( kmer )
     else:
@@ -27,10 +28,10 @@ for kmer in good:
 assert len( ks ) == c
 print 'Done! Processed', len( ks ), 'kmers!'
 
-for kmer in good:
+for kmer in tqdm( good ):
     assert kmer in ks, 'ERROR: kmer not found! ' + kmer
 
-for kmer in bad:
+for kmer in tqdm( bad ):
     assert kmer not in ks, 'ERROR: erroneous kmer found! ' + kmer
 
 print 'Done! Passed contains test!'
