@@ -26,6 +26,7 @@ set (Kdict_VERSION_MINOR 1)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(SOURCE_DIR "src")
 
 message( "looking in ${CMAKE_MODULE_PATH}" )
 
@@ -34,11 +35,11 @@ include_directories(inc)
 include_directories(libs/pybind11-2.2.4/include)
 
 # Add src files
-string(APPEND SOURCES "src/CContainer.cc;")
-string(APPEND SOURCES "src/MurmurHash3.cc;")
-string(APPEND SOURCES "src/UContainer.cc;")
-string(APPEND SOURCES "src/Vertex.cc;")
-string(APPEND SOURCES "src/Kset.cc;")
+string(APPEND SOURCES "${SOURCE_DIR}/CContainer.cc;")
+string(APPEND SOURCES "${SOURCE_DIR}/MurmurHash3.cc;")
+string(APPEND SOURCES "${SOURCE_DIR}/UContainer.cc;")
+string(APPEND SOURCES "${SOURCE_DIR}/Vertex.cc;")
+string(APPEND SOURCES "${SOURCE_DIR}/Kset.cc;")
 
 # Python library
 find_package(PythonLibs 2.7 REQUIRED)
@@ -66,7 +67,7 @@ set (CMAKE_CXX_STANDARD 14)
 #    #${Boost_LIBRARIES}
 #    )
 
-add_executable( test_driver "src/TestLosePoint.cc;" ${SOURCES} )
+add_executable( test_driver "${SOURCE_DIR}/TestLosePoint.cc;" ${SOURCES} )
 target_link_libraries( test_driver ${PYTHON_LIBRARIES} )
 
 
