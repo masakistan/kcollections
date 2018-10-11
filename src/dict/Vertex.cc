@@ -48,7 +48,6 @@ void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
     int uc_idx = uc_find( &( v->uc ), k, depth, bseq );
     if( uc_idx != v->uc.size )
     {
-        std::cout << "removing from pos: " << uc_idx << std::endl;
         uc_remove( &( v->uc ), calc_bk( k ), uc_idx );
     }
 
@@ -72,6 +71,8 @@ void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
             }
         }
     }
+    
+    throw pybind11::key_error( "Key not in dictionary!" );
 }
 
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
@@ -180,7 +181,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object* obj 
         }
     }
 
-    if( v->uc.size < CAPACITY )
+    if( v->uc.size < CAPACITY - 1 )
     {
         uc_insert( &( v->uc ), bseq, k, depth, uc_idx, obj );
     }
