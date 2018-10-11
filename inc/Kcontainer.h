@@ -1,9 +1,11 @@
 #pragma once
 
 #include <stdlib.h>
-#include "set/Vertex.h"
+#include "Vertex.h"
 #include "helper.h"
 #include <jemalloc/jemalloc.h>
+
+namespace py = pybind11;
 
 typedef struct {
     int k;
@@ -29,13 +31,30 @@ inline void free_kcontainer( Kcontainer* kd )
     free( kd );
 }
 
+#if KDICT
+inline void kcontainer_insert( Kcontainer* kd, char* kmer, py::object* obj )
+#elif KSET
 inline void kcontainer_insert( Kcontainer* kd, char* kmer )
+#endif
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
     serialize_kmer( kmer, kd->k, bseq );
+#if KDICT
+    vertex_insert( &( kd->v ), bseq, kd->k, 0, obj );
+#elif KSET
     vertex_insert( &( kd->v ), bseq, kd->k, 0 );
+#endif
     free( bseq );
 }
+
+#if KDICT
+inline py::object* kcontainer_get( Kcontainer* kd, char* kmer )
+{
+    uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
+    serialize_kmer( kmer, kd->k, bseq );
+    return vertex_get( &kd->v, bseq, kd->k, 0 );
+}
+#endif
 
 inline bool kcontainer_contains( Kcontainer* kd, char* kmer )
 {

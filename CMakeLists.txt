@@ -38,16 +38,12 @@ include_directories(libs/pybind11-2.2.4/include)
 
 # Add src files
 string(APPEND SOURCES "${SOURCE_DIR}/MurmurHash3.cc;")
+string(APPEND SOURCES "${SOURCE_DIR}/CContainer.cc;")
+string(APPEND SOURCES "${SOURCE_DIR}/UContainer.cc;")
+string(APPEND SOURCES "${SOURCE_DIR}/Vertex.cc;")
 
-string(APPEND DICT_SOURCES "${SOURCE_DIR}/${DICT_DIR}/CContainer.cc;")
-string(APPEND DICT_SOURCES "${SOURCE_DIR}/${DICT_DIR}/UContainer.cc;")
-string(APPEND DICT_SOURCES "${SOURCE_DIR}/${DICT_DIR}/Vertex.cc;")
-string(APPEND DICT_SOURCES "${SOURCE_DIR}/${DICT_DIR}/Kdict.cc;")
-
-string(APPEND SET_SOURCES "${SOURCE_DIR}/${SET_DIR}/CContainer.cc;")
-string(APPEND SET_SOURCES "${SOURCE_DIR}/${SET_DIR}/UContainer.cc;")
-string(APPEND SET_SOURCES "${SOURCE_DIR}/${SET_DIR}/Vertex.cc;")
-string(APPEND SET_SOURCES "${SOURCE_DIR}/${SET_DIR}/Kset.cc;")
+string(APPEND DICT_SOURCES "${SOURCE_DIR}/Kdict.cc;")
+string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
 
 
 # Python library
@@ -77,16 +73,25 @@ set (CMAKE_CXX_STANDARD 14)
 #    )
 
 add_executable( test_set_driver "${SOURCE_DIR}/TestLosePoint.cc;" ${SOURCES} ${SET_SOURCES} )
-#add_executable( test_dict_driver "${SOURCE_DIR}/TestLosePoint.cc;" ${SOURCES} ${DICT_SOURCES} )
 target_link_libraries( test_set_driver ${PYTHON_LIBRARIES} )
-#target_link_libraries( test_dict_driver ${PYTHON_LIBRARIES} )
 
+
+#add_executable( test_dict_driver "${SOURCE_DIR}/TestLosePoint.cc;" ${SOURCES} ${DICT_SOURCES} )
+#target_link_libraries( test_dict_driver ${PYTHON_LIBRARIES} )
 
 
 set(PYBIND11_PYTHON_VERSION 2.7)
 #set(bindings_python_version 2.7)
+<<<<<<< HEAD
 pybind11_add_module(_Kset ${SOURCES} ${SET_SOURCES} )
 pybind11_add_module(_Kdict ${SOURCES} ${DICT_SOURCES} )
+=======
+pybind11_add_module(Kset ${SOURCES} ${SET_SOURCES} )
+set_target_properties( Kset test_set_driver PROPERTIES COMPILE_DEFINITIONS "KSET" )
+
+pybind11_add_module(Kdict ${SOURCES} ${DICT_SOURCES} )
+set_target_properties( Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
+>>>>>>> master
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
