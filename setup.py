@@ -9,7 +9,7 @@ __version__ = '0.0.1dev'
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
-        Extension.__init__(self, name, sources=[sourcedir + '/Kset.cc'])
+        Extension.__init__(self, name, sources=[sourcedir + 'src/set/Kset.cc', sourcedir + 'src/dict/Kdict.cc'])
         self.sourcedir = os.path.abspath(sourcedir)
 
 
@@ -72,7 +72,7 @@ setup(
     license='GPLv3',
     description='A BloomFilterTrie implementation to be generally applicable for genomic applications.',
     long_description=open('README.md').read(),
-    ext_modules=[CMakeExtension('kcollections')],
+    ext_modules=[CMakeExtension('Kcollections._Kdict'), CMakeExtension('Kcollections._Kset')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False
 )
