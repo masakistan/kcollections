@@ -2,6 +2,7 @@
 
 Kset::Kset( int k )
 {
+    this->k = k;
     kc = create_kcontainer( k );
 }
 

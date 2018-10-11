@@ -1,8 +1,8 @@
 #include "Kdict.h"
 
-
 Kdict::Kdict( int k )
 {
+    this->k = k;
     kc = create_kcontainer( k );
 }
 
