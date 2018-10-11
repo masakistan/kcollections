@@ -1,14 +1,12 @@
 #pragma once
 
+#include <utility>
 #include <stdlib.h>
 #include <sstream>
 #include <stdint.h>
 #include <iostream>
 #include <cstring>
 
-//#define setbit(A,k)     ( A[(k/32)] |= (1 << (k%32)) )
-//#define clearbit(A,k)   ( A[(k/32)] &= ~(1 << (k%32)) )
-//#define testbit(A,k)    ( A[(k/32)] & (1 << (k%32)) )
 
 static int testbit( uint32_t A[],  unsigned int k )
    {
@@ -27,11 +25,8 @@ static void  setbit( uint32_t A[],  unsigned int k )
 
 static int next_set_bit( uint32_t* array, int pos, int len )
 {
-    //std::cout << "nsb start at: " << pos << std::endl;
-    //std::cout << "\n\n" << std::endl;
     for( unsigned int i = pos; i < len; i++ )
     {
-        //std::cout << "\t\t\tnsb check: " << i << "\t" << testbit( array, i ) << std::endl;
         if( testbit( array, i ) )
         {
             return i;
@@ -52,9 +47,6 @@ inline int calc_bk( int k )
 }
 
 static const uint8_t MASK_INSERT[ 3 ][ 4 ] = {
-        /*{ 64, 16, 4, 1 },
-        { 128, 32, 8, 2 },
-        { 192, 48, 12, 3 }*/
         { 1, 4, 16, 64 },
         { 2, 8, 32, 128 },
         { 3, 12, 48, 192 }
@@ -112,53 +104,11 @@ static char* deserialize_kmer( int k, int bk, uint8_t* bseq )
     return kmer;
 }
 
-struct compare_bseq
-{
-    inline bool operator() ( const uint8_t* left, const uint8_t* right )
-    {
-        /*std::cout << "comparing " << left->get_seq() << "\t" << right->get_seq() << std::endl;
-        if( left < right )
-            std::cout << "\tleft < right" << std::endl;
-        else
-            std::cout << "\tleft >= right" << std::endl;*/
-        return *left < *right;
-    }
-};
-
-static int binary_search( uint8_t* suffixes, int max, int len, uint8_t* bseq )
+static std::pair< bool, int > binary_search( uint8_t* suffixes, int max, int len, uint8_t* bseq )
 {
     if( max == 0 )
     {
-        return 0;
-    }
-
-    int min = 0, mid, idx, cmp;
-    while( min < max )
-    {
-        mid = min + ( max - min ) / 2;
-        idx = mid * len;
-
-        cmp = std::memcmp( bseq, &suffixes[ idx ], len );
-        if( cmp < 0 )
-        {
-            max = mid;
-        }
-        else
-        {
-            min = mid + 1;;
-        }
-    }
-
-    return min;
-}
-
-// return value is kind of backwards, returns a positive int if it is not in it
-// or a negative int if it is
-static int binary_search_contains( uint8_t* suffixes, int max, int len, uint8_t* bseq )
-{
-    if( max == 0 )
-    {
-        return 0;
+        return std::make_pair( false, 0 );
     }
 
     int min = 0, mid, idx, cmp;
@@ -174,7 +124,7 @@ static int binary_search_contains( uint8_t* suffixes, int max, int len, uint8_t*
         }
         else if( cmp == 0 )
         {
-            return ( -1 * min ) - 1;
+            return std::make_pair( true, mid );
         }
         else
         {
@@ -182,7 +132,7 @@ static int binary_search_contains( uint8_t* suffixes, int max, int len, uint8_t*
         }
     }
 
-    return min;
+    return std::make_pair( false, min );
 }
 
 

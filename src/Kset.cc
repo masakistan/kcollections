@@ -1,4 +1,4 @@
-#include "set/Kset.h"
+#include "Kset.h"
 
 Kset::Kset( int k )
 {

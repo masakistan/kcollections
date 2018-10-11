@@ -1,5 +1,5 @@
-#include "set/CContainer.h"
-#include "set/Vertex.h"
+#include "CContainer.h"
+#include "Vertex.h"
 
 void init_cc( CC* cc, int suffix_size )
 {
@@ -198,10 +198,6 @@ bool cc_may_contain( CC* cc, uint8_t* bseq )
     bool res = bf_may_contain( &cc->bf, bseq, 1);
     //std::cout << "\t\t\tmay contain: " << res << std::endl;
     return res;
-}
-
-void cc_shrink( CC* cc )
-{
 }
 
 void free_cc( CC* cc )
