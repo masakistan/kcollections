@@ -1,5 +1,5 @@
-#include "CContainer.h"
-#include "Vertex.h"
+#include "set/CContainer.h"
+#include "set/Vertex.h"
 
 void init_cc( CC* cc, int suffix_size )
 {

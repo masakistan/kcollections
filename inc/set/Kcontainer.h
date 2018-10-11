@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdlib.h>
-#include "Vertex.h"
+#include "set/Vertex.h"
 #include "helper.h"
 #include <jemalloc/jemalloc.h>
 

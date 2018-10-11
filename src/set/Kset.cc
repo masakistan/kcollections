@@ -1,4 +1,4 @@
-#include "Kset.h"
+#include "set/Kset.h"
 
 Kset::Kset( int k )
 {
@@ -36,7 +36,7 @@ void Kset::remove( char* kmer )
     kcontainer_remove( kc, kmer );
 }
 
-PYBIND11_MODULE( Kcollections, m )
+PYBIND11_MODULE( Kset, m )
 {
     m.doc() = R"pbdoc(
         kcollections python bindings
