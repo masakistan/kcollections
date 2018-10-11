@@ -43,7 +43,7 @@ void Kdict::remove( char* kmer )
 }
 
 
-PYBIND11_MODULE( Kdict, m )
+PYBIND11_MODULE( _Kdict, m )
 {
     m.doc() = R"pbdoc(
         kcollections python bindings

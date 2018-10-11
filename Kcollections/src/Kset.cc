@@ -36,7 +36,7 @@ void Kset::remove( char* kmer )
     kcontainer_remove( kc, kmer );
 }
 
-PYBIND11_MODULE( Kset, m )
+PYBIND11_MODULE( _Kset, m )
 {
     m.doc() = R"pbdoc(
         kcollections python bindings
