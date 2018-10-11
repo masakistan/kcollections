@@ -38,7 +38,7 @@ void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
         }
     }
     
-    throw pybind11::key_error( "Key not in dictionary!" );
+    throw pybind11::key_error( "Key not in set!" );
 }
 
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
