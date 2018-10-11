@@ -9,7 +9,7 @@ __version__ = '0.0.1dev'
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
-        Extension.__init__(self, name, sources=[sourcedir + 'src/set/Kset.cc', sourcedir + 'src/dict/Kdict.cc'])
+        Extension.__init__(self, name, sources=[sourcedir + 'src/Kset.cc', sourcedir + 'src/Kdict.cc'])
         self.sourcedir = os.path.abspath(sourcedir)
 
 
