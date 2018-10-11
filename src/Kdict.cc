@@ -1,4 +1,4 @@
-#include "dict/Kdict.h"
+#include "Kdict.h"
 
 
 Kdict::Kdict( int k )
@@ -6,12 +6,10 @@ Kdict::Kdict( int k )
     kc = create_kcontainer( k );
 }
 
-
 Kdict::~Kdict()
 {
     free_kcontainer( kc );
 }
-
 
 void Kdict::clear()
 {
@@ -34,17 +32,16 @@ bool Kdict::contains( char* kmer )
     return kcontainer_contains( kc, kmer );
 }
 
-
 uint64_t Kdict::size()
 {
     return kcontainer_size( kc );
 }
 
-
 void Kdict::remove( char* kmer )
 {
     kcontainer_remove( kc, kmer );
 }
+
 
 PYBIND11_MODULE( Kdict, m )
 {

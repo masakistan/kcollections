@@ -1,4 +1,4 @@
-#include "set/Vertex.h"
+#include "Vertex.h"
 
 
 void init_vertex( Vertex* v )
@@ -9,14 +9,51 @@ void init_vertex( Vertex* v )
     init_uc( &( v->uc ) );
 }
 
-void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
+#if KDICT
+py::object* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
 {
     int uc_idx = uc_find( &( v->uc ), k, depth, bseq );
     if( uc_idx != v->uc.size )
     {
-        uc_remove( &( v->uc ), calc_bk( k ), uc_idx );
+        //std::cout << "returning object at : " << uc_idx << std::endl;
+        //uc_remove( &( v->uc ), calc_bk( k ), uc_idx );
+        return &v->uc.objs[ uc_idx ];
     }
 
+
+    if( v->cc != NULL )
+    {
+        int size = sizeof( *v->cc ) / sizeof( CC );
+        bool res = false;
+        CC* cc;
+        for( int i = 0; i < v->cc_size; i++ )
+        {
+            cc = &v->cc[ i ];
+            if( cc_may_contain( cc, bseq ) )
+            {
+                int idx = cc_contains_prefix( cc, bseq );
+                if ( idx > -1 )
+                {
+                    Vertex* child = get_child_of( cc, bseq, idx );
+                    return vertex_get( child, &bseq[ 1 ], k - 4, depth + 1 );
+                }
+            }
+        }
+    }
+
+    throw pybind11::key_error( "Key not in dictionary!" );
+}
+#endif
+
+void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
+{
+    int uc_idx = uc_find( &( v->uc ), k, depth, bseq );
+    //std::cout << "remove index: " << uc_idx << std::endl;
+    if( uc_idx != v->uc.size )
+    {
+        uc_remove( &( v->uc ), calc_bk( k ), uc_idx );
+        return;
+    }
 
     if( v->cc != NULL )
     {
@@ -38,13 +75,13 @@ void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
         }
     }
     
-    throw pybind11::key_error( "Key not in set!" );
+    throw pybind11::key_error( "Key not found!" );
 }
 
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
 {
-    int uc_idx = uc_contains( &( v->uc ), k, depth, bseq );
-    if( uc_idx < 0 )
+    int uc_idx = uc_find( &( v->uc ), k, depth, bseq );
+    if( uc_idx != v->uc.size )
     {
         return true;
     }
@@ -53,7 +90,6 @@ bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
     if( v->cc != NULL )
     {
         int size = sizeof( *v->cc ) / sizeof( CC );
-        bool res = false;
         CC* cc;
         for( int i = 0; i < v->cc_size; i++ )
         {
@@ -80,6 +116,9 @@ void burst_uc( Vertex* v, int k, int depth )
     init_cc( cc, suffix_size );
 
     uint8_t* suffixes = v->uc.suffixes;
+#if KDICT
+    py::object* objs = v->uc.objs;
+#endif
     int idx;
     for( int i = 0; i < CAPACITY; i++ )
     {
@@ -94,7 +133,11 @@ void burst_uc( Vertex* v, int k, int depth )
         {
             Vertex* child = cc_insert( cc, k, depth, bseq );
             //Vertex* child = get_child_of( cc, bseq, index_of( cc, bseq ) );
+#if KDICT
+            vertex_insert( child, suffix, k - 4, depth + 1, &objs[ i ] );
+#elif KSET
             vertex_insert( child, suffix, k - 4, depth + 1 );
+#endif
         }
     }
 
@@ -116,11 +159,23 @@ void burst_uc( Vertex* v, int k, int depth )
     //v->uc.size = 0;
 }
 
+#if KDICT
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object* obj )
+#elif KSET
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
+#endif
 {
-    int uc_idx = uc_contains( &( v->uc ), k, depth, bseq );
-    if( uc_idx < 0 )
+    int uc_idx = uc_find( &( v->uc ), k, depth, bseq );
+    if( uc_idx != v->uc.size )
     {
+        // set the object here
+#if KDICT
+        std::memmove(
+                &v->uc.objs[ uc_idx ],
+                obj,
+                sizeof( py::object )
+                );
+#endif
         return;
     }
     
@@ -140,18 +195,30 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
             {
                 child = cc_insert( cc, k, depth, bseq );
             }
+#if KDICT
+            vertex_insert( child, suffix, k - 4, depth + 1, obj );
+#elif KSET
             vertex_insert( child, suffix, k - 4, depth + 1 );
+#endif
             return;
         }
     }
 
     if( v->uc.size < CAPACITY - 1 )
     {
+#if KDICT
+        uc_insert( &( v->uc ), bseq, k, depth, uc_idx, obj );
+#elif KSET
         uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
+#endif
     }
     else
     {
+#if KDICT
+        uc_insert( &( v->uc ), bseq, k, depth, uc_idx, obj );
+#elif KSET
         uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
+#endif
         burst_uc( v, k, depth );
     }
 }
