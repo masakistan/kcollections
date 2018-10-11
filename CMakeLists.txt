@@ -82,16 +82,10 @@ target_link_libraries( test_set_driver ${PYTHON_LIBRARIES} )
 
 set(PYBIND11_PYTHON_VERSION 2.7)
 #set(bindings_python_version 2.7)
-<<<<<<< HEAD
-pybind11_add_module(_Kset ${SOURCES} ${SET_SOURCES} )
-pybind11_add_module(_Kdict ${SOURCES} ${DICT_SOURCES} )
-=======
-pybind11_add_module(Kset ${SOURCES} ${SET_SOURCES} )
-set_target_properties( Kset test_set_driver PROPERTIES COMPILE_DEFINITIONS "KSET" )
-
-pybind11_add_module(Kdict ${SOURCES} ${DICT_SOURCES} )
-set_target_properties( Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
->>>>>>> master
+pybind11_add_module( _Kset ${SOURCES} ${SET_SOURCES} )
+set_target_properties( _Kset test_set_driver PROPERTIES COMPILE_DEFINITIONS "KSET" )
+pybind11_add_module( _Kdict ${SOURCES} ${DICT_SOURCES} )
+set_target_properties( _Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
