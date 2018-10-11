@@ -27,8 +27,6 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(SOURCE_DIR "Kcollections/src")
-set(SET_DIR "set")
-set(DICT_DIR "dict")
 
 message( "looking in ${CMAKE_MODULE_PATH}" )
 
