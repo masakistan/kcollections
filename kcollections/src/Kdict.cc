@@ -19,16 +19,19 @@ void Kdict::clear()
 
 void Kdict::insert( char* kmer, py::object* obj )
 {
+    CHECK_KMER_LENGTH( kmer, this->k, "Kdict" );
     kcontainer_insert( kc, kmer, obj );
 }
 
 py::object* Kdict::get( char* kmer )
 {
+    CHECK_KMER_LENGTH( kmer, this->k, "Kdict" );
     return kcontainer_get( kc, kmer );
 }
 
 bool Kdict::contains( char* kmer )
 {
+    CHECK_KMER_LENGTH( kmer, this->k, "Kdict" );
     return kcontainer_contains( kc, kmer );
 }
 
@@ -39,6 +42,7 @@ uint64_t Kdict::size()
 
 void Kdict::remove( char* kmer )
 {
+    CHECK_KMER_LENGTH( kmer, this->k, "Kdict" );
     kcontainer_remove( kc, kmer );
 }
 

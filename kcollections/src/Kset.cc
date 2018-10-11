@@ -19,11 +19,13 @@ void Kset::clear()
 
 void Kset::insert( char* kmer )
 {
+    CHECK_KMER_LENGTH( kmer, this->k, "Kset" );
     kcontainer_insert( kc, kmer );
 }
 
 bool Kset::contains( char* kmer )
 {
+    CHECK_KMER_LENGTH( kmer, this->k, "Kset" );
     return kcontainer_contains( kc, kmer );
 }
 
@@ -34,6 +36,7 @@ uint64_t Kset::size()
 
 void Kset::remove( char* kmer )
 {
+    CHECK_KMER_LENGTH( kmer, this->k, "Kset" );
     kcontainer_remove( kc, kmer );
 }
 

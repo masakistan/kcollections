@@ -1,11 +1,23 @@
 #pragma once
 
 #include <stdlib.h>
+#include <string>
+#include <stdexcept>
 #include "Vertex.h"
 #include "helper.h"
 #include <jemalloc/jemalloc.h>
 
 namespace py = pybind11;
+
+#define CHECK_KMER_LENGTH(kmer, k, type) ({\
+    if( strlen(kmer) != k )\
+    {\
+        char buffer[1000];\
+        sprintf( buffer, "kmer %s of length %d does not match the %s length of %d",\
+            kmer, strlen(kmer), type, k );\
+        throw std::length_error(std::string(buffer));\
+    }\
+})
 
 typedef struct {
     int k;
