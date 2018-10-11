@@ -27,6 +27,8 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(SOURCE_DIR "src")
+set(SET_DIR "set")
+set(DICT_DIR "dict")
 
 message( "looking in ${CMAKE_MODULE_PATH}" )
 
@@ -35,11 +37,18 @@ include_directories(inc)
 include_directories(libs/pybind11-2.2.4/include)
 
 # Add src files
-string(APPEND SOURCES "${SOURCE_DIR}/CContainer.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/MurmurHash3.cc;")
-string(APPEND SOURCES "${SOURCE_DIR}/UContainer.cc;")
-string(APPEND SOURCES "${SOURCE_DIR}/Vertex.cc;")
-string(APPEND SOURCES "${SOURCE_DIR}/Kset.cc;")
+
+string(APPEND DICT_SOURCES "${SOURCE_DIR}/${DICT_DIR}/CContainer.cc;")
+string(APPEND DICT_SOURCES "${SOURCE_DIR}/${DICT_DIR}/UContainer.cc;")
+string(APPEND DICT_SOURCES "${SOURCE_DIR}/${DICT_DIR}/Vertex.cc;")
+string(APPEND DICT_SOURCES "${SOURCE_DIR}/${DICT_DIR}/Kdict.cc;")
+
+string(APPEND SET_SOURCES "${SOURCE_DIR}/${SET_DIR}/CContainer.cc;")
+string(APPEND SET_SOURCES "${SOURCE_DIR}/${SET_DIR}/UContainer.cc;")
+string(APPEND SET_SOURCES "${SOURCE_DIR}/${SET_DIR}/Vertex.cc;")
+string(APPEND SET_SOURCES "${SOURCE_DIR}/${SET_DIR}/Kset.cc;")
+
 
 # Python library
 find_package(PythonLibs 2.7 REQUIRED)
@@ -67,14 +76,17 @@ set (CMAKE_CXX_STANDARD 14)
 #    #${Boost_LIBRARIES}
 #    )
 
-add_executable( test_driver "${SOURCE_DIR}/TestLosePoint.cc;" ${SOURCES} )
-target_link_libraries( test_driver ${PYTHON_LIBRARIES} )
+add_executable( test_set_driver "${SOURCE_DIR}/TestLosePoint.cc;" ${SOURCES} ${SET_SOURCES} )
+#add_executable( test_dict_driver "${SOURCE_DIR}/TestLosePoint.cc;" ${SOURCES} ${DICT_SOURCES} )
+target_link_libraries( test_set_driver ${PYTHON_LIBRARIES} )
+#target_link_libraries( test_dict_driver ${PYTHON_LIBRARIES} )
 
 
 
 set(PYBIND11_PYTHON_VERSION 2.7)
 #set(bindings_python_version 2.7)
-pybind11_add_module(Kcollections ${SOURCES})
+pybind11_add_module(Kset ${SOURCES} ${SET_SOURCES} )
+pybind11_add_module(Kdict ${SOURCES} ${DICT_SOURCES} )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
@@ -82,8 +94,11 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
 
         if(APPLE)
-            add_custom_command(TARGET test_driver POST_BUILD
-                COMMAND dsymutil test_driver
+            add_custom_command(TARGET test_set_driver POST_BUILD
+                COMMAND dsymutil test_set_driver
+                )
+            add_custom_command(TARGET test_dict_driver POST_BUILD
+                COMMAND dsymutil test_dict_driver
                 )
             message( "Detected Mac OS with clang, modifying exe with dsymutil for debugging." )
         endif()
@@ -118,9 +133,12 @@ add_library(jemalloc_shared SHARED IMPORTED)
 set_property(TARGET jemalloc PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_STATIC_LIBRARY_SUFFIX})
 set_property(TARGET jemalloc PROPERTY INTERFACE_LINK_LIBRARIES pthread dl)
 set_property(TARGET jemalloc_shared PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_SHARED_LIBRARY_SUFFIX})
-include_directories(test_driver "${install_dir}/include")
+include_directories(test_set_driver "${install_dir}/include")
+#include_directories(test_dict_driver "${install_dir}/include")
 
-add_dependencies(test_driver project_jemalloc)
-target_link_libraries(test_driver m jemalloc)
+#add_dependencies(test_dict_driver project_jemalloc)
+add_dependencies(test_set_driver project_jemalloc)
+#target_link_libraries(test_dict_driver m jemalloc)
+target_link_libraries(test_set_driver m jemalloc)
 
 

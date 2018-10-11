@@ -1,4 +1,4 @@
-#include "Vertex.h"
+#include "set/Vertex.h"
 
 
 void init_vertex( Vertex* v )
