@@ -19,6 +19,7 @@ void print( UC* uc, int k, int depth );
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::object* obj );
 void free_uc( UC* uc );
 int uc_contains( UC* uc, int k, int depth, uint8_t* bseq );
+int uc_find( UC* uc, int k, int depth, uint8_t* bseq );
 void init_uc( UC* uc );
 void uc_remove( UC* uc, int bk, int idx );
 

@@ -76,9 +76,7 @@ static void serialize_kmer( char* kmer, int k, uint8_t* bseq )
             case 'G': bseq[ pos / 4 ] |= MASK_INSERT[ 1 ][ pos % 4 ]; break;
             case 't': bseq[ pos / 4 ] |= MASK_INSERT[ 2 ][ pos % 4 ]; break;
             case 'T': bseq[ pos / 4 ] |= MASK_INSERT[ 2 ][ pos % 4 ]; break;
-            default: std::ostringstream errMsg;
-                     errMsg << "Runtime Error: bad symbol \"" << kmer[ pos ] << "\" when serializing kmer";
-                     throw std::runtime_error( errMsg.str() );
+            default: throw std::runtime_error( "Could not serialize kmer." );
         }
     }
 }
