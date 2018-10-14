@@ -175,13 +175,13 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
     {
         // set the object here
 #if KDICT
-        v->uc.objs[ uc_idx ].dec_ref()
+        v->uc.objs[ uc_idx ].dec_ref();
         std::memcpy(
                 &v->uc.objs[ uc_idx ],
                 obj,
                 sizeof( py::handle )
                 );
-        v->uc.objs[ uc_idx ].inc_ref()
+        v->uc.objs[ uc_idx ].inc_ref();
 #endif
         return;
     }

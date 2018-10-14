@@ -36,7 +36,7 @@ uint64_t Kset::size()
 
 void Kset::remove( char* kmer )
 {
-    CHECK_KMER_LENGTH( kmer, this->k, "Kset" );
+    CHECK_KMER_LENGTH( kmer, m_k, "Kset" );
     kcontainer_remove( kc, kmer );
 }
 

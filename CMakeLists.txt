@@ -26,7 +26,7 @@ set (Kdict_VERSION_MINOR 1)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-set(SOURCE_DIR "Kcollections/src")
+set(SOURCE_DIR "kcollections/src")
 
 message( "looking in ${CMAKE_MODULE_PATH}" )
 

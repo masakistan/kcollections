@@ -71,7 +71,6 @@ setup(
     url='https://github.com/masakistan/kcollections',
     license='GPLv3',
     description='A BloomFilterTrie implementation to be generally applicable for genomic applications.',
-    packages=['kcollections'],
     long_description=open('README.md').read(),
     packages=['kcollections'],
     ext_modules=[CMakeExtension('kcollections._Kdict'), CMakeExtension('kcollections._Kset')],
