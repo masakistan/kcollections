@@ -9,14 +9,18 @@ void init_vertex( Vertex* v )
     init_uc( &( v->uc ) );
 }
 
-#if KDICT
-py::object* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
+CC* get_cc( Vertex* v, int idx )
 {
-    int uc_idx = uc_find( &( v->uc ), k, depth, bseq );
-    if( uc_idx != v->uc.size )
+    return &v->cc[ idx ];
+}
+
+#if KDICT
+py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
+{
+    std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
+    int uc_idx = sres.second;
+    if( sres.first )
     {
-        //std::cout << "returning object at : " << uc_idx << std::endl;
-        //uc_remove( &( v->uc ), calc_bk( k ), uc_idx );
         return &v->uc.objs[ uc_idx ];
     }
 
@@ -47,9 +51,9 @@ py::object* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
 
 void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
 {
-    int uc_idx = uc_find( &( v->uc ), k, depth, bseq );
-    //std::cout << "remove index: " << uc_idx << std::endl;
-    if( uc_idx != v->uc.size )
+    std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
+    int uc_idx = sres.second;
+    if( sres.first )
     {
         uc_remove( &( v->uc ), calc_bk( k ), uc_idx );
         return;
@@ -80,8 +84,8 @@ void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
 
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
 {
-    int uc_idx = uc_find( &( v->uc ), k, depth, bseq );
-    if( uc_idx != v->uc.size )
+    std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
+    if( sres.first )
     {
         return true;
     }
@@ -117,7 +121,7 @@ void burst_uc( Vertex* v, int k, int depth )
 
     uint8_t* suffixes = v->uc.suffixes;
 #if KDICT
-    py::object* objs = v->uc.objs;
+    py::handle* objs = v->uc.objs;
 #endif
     int idx;
     for( int i = 0; i < CAPACITY; i++ )
@@ -160,21 +164,24 @@ void burst_uc( Vertex* v, int k, int depth )
 }
 
 #if KDICT
-void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object* obj )
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj )
 #elif KSET
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 #endif
 {
-    int uc_idx = uc_find( &( v->uc ), k, depth, bseq );
-    if( uc_idx != v->uc.size )
+    std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
+    int uc_idx = sres.second;
+    if( sres.first )
     {
         // set the object here
 #if KDICT
-        std::memmove(
+        v->uc.objs[ uc_idx ].dec_ref()
+        std::memcpy(
                 &v->uc.objs[ uc_idx ],
                 obj,
-                sizeof( py::object )
+                sizeof( py::handle )
                 );
+        v->uc.objs[ uc_idx ].inc_ref()
 #endif
         return;
     }
