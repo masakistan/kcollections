@@ -1,8 +1,8 @@
-from _Kdict as KdictS
-from _Kset as 
+import _Kdict as KdictS
+import _Kset as KsetS
 
 
-class Kdict( KdictParent ):
+class Kdict( KdictS.Kdict ):
     def __init__( self, k ):
         super().__init__( k )
 
