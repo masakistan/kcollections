@@ -1,36 +1,54 @@
-import _Kdict as KdictS
-import _Kset as KsetS
+from _Kdict import Kdict as KdictParent
+from _Kset import Kset as KsetParent
 
 
-class Kdict( KdictS.Kdict ):
+class Kdict( KdictParent ):
     def __init__( self, k ):
-        super().__init__( k )
+        super( Kdict, self ).__init__( k )
 
     def __iter__( self ):
-        return self._get_kmers( super.kc.v, super.k )
+        return self._get_kmers( self.get_root(), self.k )
 
-    def _get_kmers( v, k, prefix = '' ):
-        uc = v.uc
-        luc = uc.size
-        for i in range( luc ):
-            yield prefix + get_kmer_from_uc( uc, k, i )
+    def _get_kmers( self, v, k, prefix = '' ):
+        # get from UC
+        for i in range( self.get_uc_size( v ) ):
+            yield prefix + self.get_uc_kmer( v, k, i )
+
+        for i in range( self.get_cc_size( v ) ):
+            for j in range( self.get_cc_child_size( v, i ) ):
+                child_prefix = prefix + self.get_cc_child_suffix( v, i, j )
+                for kmer in self._get_kmers( self.get_cc_child_vertex( v, i, j ), k - 4, child_prefix ):
+                    yield kmer
+
+    def iteritems( self ):
+        for kmer in self._get_kmers( self.get_root(), self.k ):
+            yield ( kmer, self[ kmer ] )
+
+    def keys( self ):
+        for kmer in self._get_kmers( self.get_root(), self.k ):
+            yield kmer
+
+    def values( self ):
+        for kmer in self._get_kmers( self.get_root(), self.k ):
+            yield self[ kmer ]
 
 
 class Kset( KsetParent ):
     def __init__( self, k ):
-        super().__init__( k )
+        super( Kset, self ).__init__( k )
 
     def __iter__( self ):
-        return self._get_kmers( super.kc.v, super.k )
+        return self._get_kmers( self.get_root(), self.k )
 
-    def _get_kmers( v, k, prefix = '' ):
-        uc = v.uc
-        luc = uc.size
-        for i in range( luc ):
-            yield prefix + get_kmer_from_uc( uc, k, i )
+    def _get_kmers( self, v, k, prefix = '' ):
+        # get from UC
+        for i in range( self.get_uc_size( v ) ):
+            yield prefix + self.get_uc_kmer( v, k, i )
 
-        lcc = v.cc_size
-        for i in range( lcc ):
-            pass
+        for i in range( self.get_cc_size( v ) ):
+            for j in range( self.get_cc_child_size( v, i ) ):
+                child_prefix = prefix + self.get_cc_child_suffix( v, i, j )
+                for kmer in self._get_kmers( self.get_cc_child_vertex( v, i, j ), k - 4, child_prefix ):
+                    yield kmer
 
 
