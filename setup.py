@@ -73,6 +73,7 @@ setup(
     description='A BloomFilterTrie implementation to be generally applicable for genomic applications.',
     packages=['kcollections'],
     long_description=open('README.md').read(),
+    packages=['kcollections'],
     ext_modules=[CMakeExtension('kcollections._Kdict'), CMakeExtension('kcollections._Kset')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False
