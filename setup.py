@@ -72,6 +72,7 @@ setup(
     license='GPLv3',
     description='A BloomFilterTrie implementation to be generally applicable for genomic applications.',
     long_description=open('README.md').read(),
+    packages=['Kcollections'],
     ext_modules=[CMakeExtension('Kcollections._Kdict'), CMakeExtension('Kcollections._Kset')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False
