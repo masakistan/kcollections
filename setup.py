@@ -64,7 +64,7 @@ class CMakeBuild(build_ext):
         )
         
 setup(
-    name='Kcollections',
+    name='kcollections',
     version=__version__,
     author='M. Stanley Fujimoto',
     author_email='sfujimoto@gmail.com',
@@ -72,8 +72,8 @@ setup(
     license='GPLv3',
     description='A BloomFilterTrie implementation to be generally applicable for genomic applications.',
     long_description=open('README.md').read(),
-    packages=['Kcollections'],
-    ext_modules=[CMakeExtension('Kcollections._Kdict'), CMakeExtension('Kcollections._Kset')],
+    packages=['kcollections'],
+    ext_modules=[CMakeExtension('kcollections._Kdict'), CMakeExtension('kcollections._Kset')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False
 )
