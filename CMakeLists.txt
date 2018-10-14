@@ -39,6 +39,7 @@ string(APPEND SOURCES "${SOURCE_DIR}/MurmurHash3.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/CContainer.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/UContainer.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/Vertex.cc;")
+string(APPEND SOURCES "${SOURCE_DIR}/Kcollections.cc;")
 
 string(APPEND DICT_SOURCES "${SOURCE_DIR}/Kdict.cc;")
 string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
@@ -70,8 +71,8 @@ set (CMAKE_CXX_STANDARD 14)
 #    #${Boost_LIBRARIES}
 #    )
 
-add_executable( test_set_driver "${SOURCE_DIR}/TestLosePoint.cc;" ${SOURCES} ${SET_SOURCES} )
-target_link_libraries( test_set_driver ${PYTHON_LIBRARIES} )
+#add_executable( test_set_driver "${SOURCE_DIR}/TestLosePoint.cc;" ${SOURCES} ${SET_SOURCES} )
+#target_link_libraries( test_set_driver ${PYTHON_LIBRARIES} )
 
 
 #add_executable( test_dict_driver "${SOURCE_DIR}/TestLosePoint.cc;" ${SOURCES} ${DICT_SOURCES} )
@@ -81,7 +82,7 @@ target_link_libraries( test_set_driver ${PYTHON_LIBRARIES} )
 set(PYBIND11_PYTHON_VERSION 2.7)
 #set(bindings_python_version 2.7)
 pybind11_add_module( _Kset ${SOURCES} ${SET_SOURCES} )
-set_target_properties( _Kset test_set_driver PROPERTIES COMPILE_DEFINITIONS "KSET" )
+set_target_properties( _Kset PROPERTIES COMPILE_DEFINITIONS "KSET" )
 pybind11_add_module( _Kdict ${SOURCES} ${DICT_SOURCES} )
 set_target_properties( _Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
 
@@ -91,12 +92,12 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
 
         if(APPLE)
-            add_custom_command(TARGET test_set_driver POST_BUILD
-                COMMAND dsymutil test_set_driver
-                )
-            add_custom_command(TARGET test_dict_driver POST_BUILD
-                COMMAND dsymutil test_dict_driver
-                )
+            #add_custom_command(TARGET test_set_driver POST_BUILD
+            #    COMMAND dsymutil test_set_driver
+            #    )
+            #add_custom_command(TARGET test_dict_driver POST_BUILD
+            #    COMMAND dsymutil test_dict_driver
+            #    )
             message( "Detected Mac OS with clang, modifying exe with dsymutil for debugging." )
         endif()
 
@@ -134,8 +135,8 @@ include_directories(test_set_driver "${install_dir}/include")
 #include_directories(test_dict_driver "${install_dir}/include")
 
 #add_dependencies(test_dict_driver project_jemalloc)
-add_dependencies(test_set_driver project_jemalloc)
+#add_dependencies(test_set_driver project_jemalloc)
 #target_link_libraries(test_dict_driver m jemalloc)
-target_link_libraries(test_set_driver m jemalloc)
+#target_link_libraries(test_set_driver m jemalloc)
 
 

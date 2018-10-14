@@ -17,13 +17,13 @@ void print( UC* uc, int k, int depth )
     {
         idx = i * len;
         char* dseq = deserialize_kmer( k, len, &uc->suffixes[ idx ] );
-        std::cout << "kmer: " << dseq << std::endl;
+        //std::cout << "kmer: " << dseq << std::endl;
         free( dseq );
     }
 }
 
 #if KDICT
-void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::object* obj )
+void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::handle* obj )
 #elif KSET
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
 #endif
@@ -33,7 +33,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
     {
         uc->suffixes = ( uint8_t* ) calloc( len , sizeof( uint8_t ) );
 #if KDICT
-        uc->objs = ( py::object* ) calloc( len , sizeof( py::object ) );
+        uc->objs = ( py::handle* ) calloc( len , sizeof( py::handle ) );
 #endif
     }
     else
@@ -43,9 +43,9 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
                 len * ( uc->size + 1 ) * sizeof( uint8_t )
                 );
 #if KDICT
-        uc->objs = ( py::object* ) realloc(
+        uc->objs = ( py::handle* ) realloc(
                 uc->objs,
-                ( uc->size + 1 ) * sizeof( py::object )
+                ( uc->size + 1 ) * sizeof( py::handle )
                 );
 #endif
     }
@@ -63,7 +63,8 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
                     );
             
 #if KDICT
-            bytes_to_move = ( uc->size - idx ) * sizeof( py::object );
+            bytes_to_move = ( uc->size - idx ) * sizeof( py::handle );
+            //std::cout << "moving " << bytes_to_move << " bytes.\t" << uc->size * sizeof( py::handle ) << "\t" << sizeof( py::handle ) << "\t" << uc->size << std::endl;
             std::memmove(
                     &uc->objs[ idx + 1 ],
                     &uc->objs[ idx ],
@@ -73,7 +74,9 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
         }
 
 #if KDICT
-        std::memcpy( &uc->objs[ idx ], obj, sizeof( py::object ) );
+        std::memcpy( &uc->objs[ idx ], obj, sizeof( py::handle ) );
+        uc->objs[ idx ].inc_ref();
+        //uc->objs[ idx ] = py::handle( *obj );
 #endif
         std::memcpy( &uc->suffixes[ suffix_idx ], bseq, len );
         uc->size++;
@@ -86,6 +89,10 @@ void free_uc( UC* uc )
     {
         free( uc->suffixes );
 #if KDICT
+        for( int i = 0; i < uc->size; i++ )
+        {
+            uc->objs[ i ].dec_ref();
+        }
         free( uc->objs );
 #endif
     }
@@ -101,7 +108,8 @@ void uc_remove( UC* uc, int bk, int idx )
             bytes_to_move
             );
 #if KDICT
-    bytes_to_move = ( uc->size - ( idx + 1 ) ) * sizeof( py::object );
+    bytes_to_move = ( uc->size - ( idx + 1 ) ) * sizeof( py::handle );
+    uc->objs[ idx ].dec_ref();
     std::memmove(
             &uc->objs[ idx ],
             &uc->objs[ idx + 1 ],
@@ -112,22 +120,14 @@ void uc_remove( UC* uc, int bk, int idx )
     uc->size--;
 }
 
-int uc_find( UC* uc, int k, int depth, uint8_t* bseq )
+std::pair< bool, int > uc_find( UC* uc, int k, int depth, uint8_t* bseq )
 {
     if( uc->suffixes == NULL )
     {
-        return uc->size;
+        return std::make_pair( false, uc->size );
     }
 
-    std::pair< bool, int > res = binary_search( uc->suffixes, uc->size, calc_bk( k ), bseq );
-    if( res.first )
-    {
-        return res.second;
-    }
-    else
-    {
-        return uc->size;
-    }
+    return binary_search( uc->suffixes, uc->size, calc_bk( k ), bseq );
 }
 
 

@@ -9,14 +9,20 @@ void init_vertex( Vertex* v )
     init_uc( &( v->uc ) );
 }
 
-#if KDICT
-py::object* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
+CC* get_cc( Vertex* v, int idx )
 {
-    int uc_idx = uc_find( &( v->uc ), k, depth, bseq );
-    if( uc_idx != v->uc.size )
+    return &v->cc[ idx ];
+}
+
+#if KDICT
+py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
+{
+    std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
+    int uc_idx = sres.second;
+    //std::cout << "vertex get: " << uc_idx << std::endl;
+    if( sres.first )
     {
-        //std::cout << "returning object at : " << uc_idx << std::endl;
-        //uc_remove( &( v->uc ), calc_bk( k ), uc_idx );
+        //std::cout << "\treturning object at: " << uc_idx << std::endl;
         return &v->uc.objs[ uc_idx ];
     }
 
@@ -47,9 +53,9 @@ py::object* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
 
 void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
 {
-    int uc_idx = uc_find( &( v->uc ), k, depth, bseq );
-    //std::cout << "remove index: " << uc_idx << std::endl;
-    if( uc_idx != v->uc.size )
+    std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
+    int uc_idx = sres.second;
+    if( sres.first )
     {
         uc_remove( &( v->uc ), calc_bk( k ), uc_idx );
         return;
@@ -80,8 +86,8 @@ void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
 
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
 {
-    int uc_idx = uc_find( &( v->uc ), k, depth, bseq );
-    if( uc_idx != v->uc.size )
+    std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
+    if( sres.first )
     {
         return true;
     }
@@ -111,13 +117,14 @@ bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
 
 void burst_uc( Vertex* v, int k, int depth )
 {
+    //std::cout << "bursting!" << std::endl;
     CC* cc = ( CC* ) malloc( sizeof( CC ) );
     int suffix_size = calc_bk( k );
     init_cc( cc, suffix_size );
 
     uint8_t* suffixes = v->uc.suffixes;
 #if KDICT
-    py::object* objs = v->uc.objs;
+    py::handle* objs = v->uc.objs;
 #endif
     int idx;
     for( int i = 0; i < CAPACITY; i++ )
@@ -134,6 +141,8 @@ void burst_uc( Vertex* v, int k, int depth )
             Vertex* child = cc_insert( cc, k, depth, bseq );
             //Vertex* child = get_child_of( cc, bseq, index_of( cc, bseq ) );
 #if KDICT
+            //std::cout << "burst: " << deserialize_kmer( k, suffix_size, bseq ) << std::endl << std::flush;
+            //py::print( py::str( objs[ i ] ) );
             vertex_insert( child, suffix, k - 4, depth + 1, &objs[ i ] );
 #elif KSET
             vertex_insert( child, suffix, k - 4, depth + 1 );
@@ -160,20 +169,23 @@ void burst_uc( Vertex* v, int k, int depth )
 }
 
 #if KDICT
-void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object* obj )
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj )
 #elif KSET
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 #endif
 {
-    int uc_idx = uc_find( &( v->uc ), k, depth, bseq );
-    if( uc_idx != v->uc.size )
+    //std::cout << "vertex insert: " << deserialize_kmer( k, calc_bk( k ), bseq ) << std::endl;
+    std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
+    int uc_idx = sres.second;
+    //std::cout << "\tuc idx: " << uc_idx << std::endl;
+    if( sres.first )
     {
         // set the object here
 #if KDICT
-        std::memmove(
+        std::memcpy(
                 &v->uc.objs[ uc_idx ],
                 obj,
-                sizeof( py::object )
+                sizeof( py::handle )
                 );
 #endif
         return;

@@ -31,8 +31,17 @@ inline void free_kcontainer( Kcontainer* kd )
     free( kd );
 }
 
+inline bool kcontainer_contains( Kcontainer* kd, char* kmer )
+{
+    uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
+    serialize_kmer( kmer, kd->k, bseq );
+    bool res = vertex_contains( &( kd->v ), bseq, kd->k, 0 );
+    free( bseq );
+    return res;
+}
+
 #if KDICT
-inline void kcontainer_insert( Kcontainer* kd, char* kmer, py::object* obj )
+inline void kcontainer_insert( Kcontainer* kd, char* kmer, py::handle* obj )
 #elif KSET
 inline void kcontainer_insert( Kcontainer* kd, char* kmer )
 #endif
@@ -48,22 +57,18 @@ inline void kcontainer_insert( Kcontainer* kd, char* kmer )
 }
 
 #if KDICT
-inline py::object* kcontainer_get( Kcontainer* kd, char* kmer )
+inline py::handle* kcontainer_get( Kcontainer* kd, char* kmer )
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
     serialize_kmer( kmer, kd->k, bseq );
-    return vertex_get( &kd->v, bseq, kd->k, 0 );
-}
-#endif
-
-inline bool kcontainer_contains( Kcontainer* kd, char* kmer )
-{
-    uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
-    serialize_kmer( kmer, kd->k, bseq );
-    bool res = vertex_contains( &( kd->v ), bseq, kd->k, 0 );
+    py::handle* res = vertex_get( &kd->v, bseq, kd->k, 0 );
+    //std::cout << "kcontainer get start" << std::endl;
+    //py::print( py::str( *res ) );
+    //std::cout << "kcontainer get end" << std::endl;
     free( bseq );
     return res;
 }
+#endif
 
 inline uint64_t kcontainer_size( Kcontainer* kd )
 {
