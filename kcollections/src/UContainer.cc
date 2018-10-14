@@ -17,7 +17,7 @@ void print( UC* uc, int k, int depth )
     {
         idx = i * len;
         char* dseq = deserialize_kmer( k, len, &uc->suffixes[ idx ] );
-        //std::cout << "kmer: " << dseq << std::endl;
+        std::cout << "kmer: " << dseq << std::endl;
         free( dseq );
     }
 }
@@ -64,7 +64,6 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
             
 #if KDICT
             bytes_to_move = ( uc->size - idx ) * sizeof( py::handle );
-            //std::cout << "moving " << bytes_to_move << " bytes.\t" << uc->size * sizeof( py::handle ) << "\t" << sizeof( py::handle ) << "\t" << uc->size << std::endl;
             std::memmove(
                     &uc->objs[ idx + 1 ],
                     &uc->objs[ idx ],
@@ -76,7 +75,6 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
 #if KDICT
         std::memcpy( &uc->objs[ idx ], obj, sizeof( py::handle ) );
         uc->objs[ idx ].inc_ref();
-        //uc->objs[ idx ] = py::handle( *obj );
 #endif
         std::memcpy( &uc->suffixes[ suffix_idx ], bseq, len );
         uc->size++;
