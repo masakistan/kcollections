@@ -51,4 +51,3 @@ class Kset( KsetParent ):
                 for kmer in self._get_kmers( self.get_cc_child_vertex( v, i, j ), k - 4, child_prefix ):
                     yield kmer
 
-
