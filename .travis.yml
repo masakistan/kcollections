@@ -10,5 +10,4 @@ addons:
 script:
   - export CC=gcc-7
   - export CXX=g++-7
-script:
   - mkdir build && cd build && cmake .. && make
