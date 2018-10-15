@@ -132,6 +132,8 @@ set_property(TARGET jemalloc PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libje
 set_property(TARGET jemalloc PROPERTY INTERFACE_LINK_LIBRARIES pthread dl)
 set_property(TARGET jemalloc_shared PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_SHARED_LIBRARY_SUFFIX})
 include_directories(test_set_driver "${install_dir}/include")
+include_directories(_Kdict "${install_dir}/include")
+include_directories(_Kset "${install_dir}/include")
 #include_directories(test_dict_driver "${install_dir}/include")
 
 #add_dependencies(test_dict_driver project_jemalloc)
