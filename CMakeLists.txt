@@ -136,6 +136,9 @@ include_directories(_Kdict "${install_dir}/include")
 include_directories(_Kset "${install_dir}/include")
 #include_directories(test_dict_driver "${install_dir}/include")
 
+add_dependencies(_Kdict project_jemalloc)
+add_dependencies(_Kset project_jemalloc)
+
 #add_dependencies(test_dict_driver project_jemalloc)
 #add_dependencies(test_set_driver project_jemalloc)
 #target_link_libraries(test_dict_driver m jemalloc)
