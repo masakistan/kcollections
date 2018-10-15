@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include <utility>
 #include <stdlib.h>
 #include <sstream>
