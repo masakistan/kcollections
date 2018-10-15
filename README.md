@@ -2,8 +2,11 @@
 [![Build Status](https://travis-ci.com/masakistan/kcollections.svg?token=oruFeF6Jkw9aGsjG6xUW&branch=master)](https://travis-ci.com/masakistan/kcollections)
 
 ## About
-`kcollections` is a python-like `dictionary` and `set` that efficiently store kmers as elements or keys of the collection.
-It is designed to be used for building/prototyping bioinformatic tools that rely on kmers but where the included `dict` and `set` consume too much memory for use.
+`kcollections` is a python-like `dict` and `set` that efficiently store kmers as elements or keys of the collection.
+It is designed for building/prototyping bioinformatic tools that rely on kmers but where the included `dict` and `set` consume too much memory for use.
+
+It uses the [Bloom Filter Trie](https://github.com/GuillaumeHolley/BloomFilterTrie) and is based off code provided [here](https://github.com/anuvedverma/bloom-filter-trie-reddit).
+This implementation differs from Guillaume et al. by allowing kmers of arbitrary size and by providing generic a generic dictionary/map data structure for associating arbitrary values with kmers.
 
 
 ## Installation
