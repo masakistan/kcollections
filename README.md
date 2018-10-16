@@ -77,8 +77,14 @@ Times are `h:mm:ss`.
 ```python
 import kcollections
 kd = kcollections.Kdict(27)
+
+# insertion and value assignment
 kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] = 'banana phone'
 assert kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] == 'banana phone'
+
+# iteration
+for kmer, val in kd.iteritems():
+    print kmer, val
 ```
 
 ### Using Kset
@@ -86,8 +92,14 @@ assert kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] == 'banana phone'
 ```python
 import kcollections
 ks = kcollections.Kset(27)
+
+# insertion
 ks.add('AAACTGTCTTCCTTTATTTGTTCAGGG')
 assert 'AAACTGTCTTCCTTTATTTGTTCAGGG' in ks
+
+# iteration
+for kmer in ks:
+    print kmer
 ```
 
 ### Read Mapper and Assembler
