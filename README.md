@@ -2,15 +2,16 @@
 [![Build Status](https://travis-ci.com/masakistan/kcollections.svg?token=oruFeF6Jkw9aGsjG6xUW&branch=master)](https://travis-ci.com/masakistan/kcollections)
 
 ## About
-`kcollections` is a python-like `dict` and `set` that efficiently store kmers as elements or keys of the collection.
-It is designed for building/prototyping bioinformatic tools that rely on kmers but where the included `dict` and `set` consume too much memory for use.
+`kcollections` is a python-like `dict` and `set` that efficiently store kmers as keys or elements of the collection.
+It is designed for building/prototyping Bioinformatics tools that rely on kmers but where the included `dict` and `set` consume too much memory for use.
 
 It implements the [Bloom Filter Trie](https://github.com/GuillaumeHolley/BloomFilterTrie) algorithm.
-This implementation differs from Guillaume et al. by allowing kmers of arbitrary size and by providing generic a generic dictionary/map data structure for associating arbitrary values with kmers.
+This implementation differs from Guillaume et al. by allowing kmers of arbitrary size and by providing a generic dictionary/map data structure for associating arbitrary values with kmers.
 
+`kcollections` is currently only available for Python version 2.7.
 
 ## Installation
-The recomended way of installing `kcollections` is:
+The recommended way of installing `kcollections` is:
 
 `pip install kcollections`
 
@@ -23,9 +24,9 @@ Prerequisites include:
   - [jemalloc](http://jemalloc.net/)
   - [pybind11](https://github.com/pybind/pybind11)
   
-These prerequisites are are included or retrieved automatically using the `cmake` or `setup.py`.
+These prerequisites are included or retrieved automatically using the `cmake` or `setup.py` build tools.
 
-to build and install the python module from source:
+To build and install the python module from source:
 
 ```bash
 git clone https://github.com/masakistan/kcollections.git
@@ -48,6 +49,8 @@ We measured memory usage and running time using `/usr/bin/time -v` on a `Intel(R
 |500 million|2.42 GB|48.54 GB|
 |2.4 billion|10.08 GB|220.06 GB|
 
+![Figure of memory usage](./memory_fig.png)
+
 ### Insertion Time
 Times are `h:mm:ss`.
 
@@ -59,6 +62,8 @@ Times are `h:mm:ss`.
 |500 million|0:41:13|0:13:10|
 |2.4 billion|3:24:58|1:30:26|
 
+![Figure of insertion time](./insert_fig.png)
+
 ### Querying Time
 Times are `h:mm:ss`.
 
@@ -69,6 +74,8 @@ Times are `h:mm:ss`.
 |100 million|0:06:17|0:02:02|
 |500 million|0:36:33|0:12:26|
 |2.4 billion|3:16:52|2:02:14|
+
+![Figure of query time](./query_fig.png)
 
 ## Example Usage
 
@@ -110,4 +117,4 @@ An example read mapping algorithm and assembler are provided using `kcollections
 ## Acknowledgements
 `kcollections` was built at the Computational Science Laboratory at Brigham Young University by Stanley Fujimoto (@masakistan) and Cole Lyman (@colelyman).
 
-Funding was provided by the Utah NASA Space Grant Consoritium and the BYU Graduate Research Fellowship.
+Funding was provided by the Utah NASA Space Grant Consortium and the BYU Graduate Research Fellowship.
