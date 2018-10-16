@@ -45,6 +45,35 @@ int hamming_weight( CC* cc, int index )
     return hamming_weight;
 }
 
+int pref_index_from_hamming_weight( CC* cc, int clust_num )
+{
+    for( int i = 0; i < cc->size; i++ )
+    {
+        if( testbit( cc->pref, i ) )
+        {
+            clust_num--;
+            if( clust_num == 0 )
+            {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+int clust_num_from_rank( CC* cc, int clust_pos )
+{
+    int clust_num = 0;
+    for( ; clust_pos >= 0; clust_pos-- )
+    {
+        if( cc->child_suffixes[ clust_pos ].v.start )
+        {
+            clust_num++;
+        }
+    }
+    return clust_num;
+}
+
 Vertex* insert_cluster( CC* cc, int idx, uint8_t suffix, bool start )
 {
     int to_move = cc->size - idx;

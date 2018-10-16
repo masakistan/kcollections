@@ -1,0 +1,14 @@
+dist: trusty
+language: cpp
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-trusty-7
+    packages:
+      - clang-7
+      - clang++-7
+script:
+  - export CC=clang-7
+  - export CXX=clang++-7
+  - mkdir build && cd build && cmake .. && make
