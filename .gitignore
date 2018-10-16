@@ -1,4 +1,8 @@
 build/
 data/
+__pycache__/
+kcollections.egg-info/
 *.swp
 *.dump
+*.so
+*.pyc
