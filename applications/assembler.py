@@ -22,7 +22,7 @@ def build_de_bruijn_graph(reads, k=KMER_SIZE):
             for read in SeqIO.parse(read_fh, 'fastq'):
                 for kmer in get_kmers(read.seq):
                     graph.add(kmer.upper())
-    return graph
+    return graph, len(read.seq)
 
 
 def get_neighbors(graph, node, f_concat):
@@ -46,15 +46,14 @@ def get_suffix_neighbors(graph, node):
     return get_neighbors(graph, node, append)
 
 
-def assemble_reads(graph):
+def assemble_reads(graph, read_length):
     visited = Kset(KMER_SIZE)
     contig_num = 0
     for node in graph:
-        suffix_contig = create_contig_suffix(graph, visited, node, node)
-        # visited.remove(node)
-        # prefix_contig = create_contig_prefix(graph, visited, node, node)
-        if len(suffix_contig) > KMER_SIZE:
-            print('> contig {}\n{}'.format(contig_num, suffix_contig))
+        suffix_contig = create_contig_suffix(graph, visited, node, node[1:])
+        prefix_contig = create_contig_prefix(graph, visited, node, node[0])
+        if len(suffix_contig) > read_length:
+            print('> contig {}\n{}'.format(contig_num, prefix_contig + suffix_contig))
             contig_num += 1
 
 
@@ -84,6 +83,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    graph = build_de_bruijn_graph(args.reads)
+    graph, read_length = build_de_bruijn_graph(args.reads)
 
-    assemble_reads(graph)
+    assemble_reads(graph, read_length)
