@@ -59,8 +59,8 @@ def map_reads(reads, ref_dict):
             score, locus = score_loci(loci)
             # print out the reads that are mapped
             if score > 0:
-                print('*\t0\t{}\t{}\t0\t{}M\t*\t0\t{}\t{}\t*'.format(
-                    locus[0], locus[1], len(read.seq), len(read.seq), rev_comp(read.seq) if locus[2] else read.seq))
+                print('*\t{}\t{}\t{}\t0\t{}M\t*\t0\t{}\t{}\t*'.format(
+                    16 if locus[2] else 0, locus[0], locus[1], len(read.seq), len(read.seq), read.seq))
 
 
 def score_loci(loci):
