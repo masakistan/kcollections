@@ -14,31 +14,15 @@ def get_kmers(seq, k=KMER_SIZE):
         yield kmer
 
 
-<<<<<<< Updated upstream
-=======
 def rev_comp(kmer):
     complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
     return ''.join(complement[bp] for bp in kmer[::-1])
 
 
->>>>>>> Stashed changes
 def build_reference(reference, k=KMER_SIZE):
     ref_dict = Kdict(k)
     with open(reference, 'rU') as ref_fh:
         for chromosome in SeqIO.parse(ref_fh, 'fasta'):
-<<<<<<< Updated upstream
-            print('@SQ SN:{} LN:{}'.format(chromosome.id.split()[0], len(chromosome.seq)))
-            build_chromosome(chromosome, ref_dict)
-    return ref_dict
-
-
-def build_chromosome(chromosome, ref_dict, k=KMER_SIZE):
-    locus = 1
-    for kmer in get_kmers(chromosome.seq):
-        if kmer not in ref_dict:
-            ref_dict[kmer] = []
-        ref_dict[kmer] += [locus]
-=======
             chromosome_id = chromosome.id.split()[0]
             print('@HD\tVN:1.6\tSO:unsorted')
             print('@SQ\tSN:{}\tLN:{}'.format(chromosome_id, len(chromosome.seq)))
@@ -53,7 +37,6 @@ def build_chromosome(chromosome, chromosome_id, ref_dict, k=KMER_SIZE):
         if kmer not in ref_dict:
             ref_dict[kmer] = []
         ref_dict[kmer] += [(chromosome_id, locus)]
->>>>>>> Stashed changes
         locus += 1
 
 
@@ -62,17 +45,6 @@ def map_reads(reads, ref_dict):
         for read in SeqIO.parse(reads_fh, 'fastq'):
             loci = Counter()
             for offset, kmer in enumerate(get_kmers(read.seq)):
-<<<<<<< Updated upstream
-                if kmer in ref_dict:
-                    for locus in ref_dict[kmer]:
-                        loci[locus - offset] += 1
-            score, locus = score_loci(loci)
-            print('*\t0\tNC_007779.1\t{}\t0\t*\t*\t0\t{}\t{}\t*'.format(locus, len(read.seq), read.seq))
-
-
-def score_loci(loci):
-    max_score, max_locus = 0, 0
-=======
                 kmer = kmer.upper()
                 if kmer in ref_dict:
                     for locus in ref_dict[kmer]:
@@ -93,7 +65,6 @@ def score_loci(loci):
 
 def score_loci(loci):
     max_score, max_locus = 0, None
->>>>>>> Stashed changes
     for locus, score in loci.iteritems():
         if score > max_score:
             max_score, max_locus = score, locus
