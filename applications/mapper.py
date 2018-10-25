@@ -54,13 +54,13 @@ def map_reads(reads, ref_dict):
                 kmer_rev_comp = rev_comp(kmer)
                 if kmer_rev_comp in ref_dict:
                     for locus in ref_dict[kmer_rev_comp]:
-                        loci[(locus[0], locus[1] - offset, True)] += 1
+                        loci[(locus[0], locus[1] + offset - len(read.seq) + KMER_SIZE, True)] += 1
 
             score, locus = score_loci(loci)
             # print out the reads that are mapped
             if score > 0:
                 print('*\t{}\t{}\t{}\t0\t{}M\t*\t0\t{}\t{}\t*'.format(
-                    16 if locus[2] else 0, locus[0], locus[1], len(read.seq), len(read.seq), read.seq))
+                    16 if locus[2] else 0, locus[0], locus[1], len(read.seq), len(read.seq), rev_comp(read.seq) if locus[2] else read.seq))
 
 
 def score_loci(loci):
