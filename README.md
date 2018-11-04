@@ -47,6 +47,9 @@ We measured memory usage and running time using `/usr/bin/time -v` on a `Intel(R
 |10 million|63.74 MB|906.96 MB|
 |100 million|0.56 GB|11.98 GB|
 |500 million|2.42 GB|48.54 GB|
+|1 billion|4.43 GB||
+|1.5 billion|6.44 GB||
+|2 billion|8.44 GB||
 |2.4 billion|10.08 GB|220.06 GB|
 
 ![Figure of memory usage](./memory_fig.png)
@@ -60,6 +63,9 @@ Times are `h:mm:ss`.
 |10 million|0:00:36|0:00:13|
 |100 million|0:07:45|0:02:20|
 |500 million|0:41:13|0:13:10|
+|1 billion|1:27:07||
+|1.5 billion|2:11:11||
+|2 billion|2:52:22||
 |2.4 billion|3:24:58|1:30:26|
 
 ![Figure of insertion time](./insert_fig.png)
@@ -73,6 +79,9 @@ Times are `h:mm:ss`.
 |10 million|0:00:33|0:00:11|
 |100 million|0:06:17|0:02:02|
 |500 million|0:36:33|0:12:26|
+|1 billion|1:18:40||
+|1.5 billion|2:02:06||
+|2 billion|2:44:30||
 |2.4 billion|3:16:52|2:02:14|
 
 ![Figure of query time](./query_fig.png)
