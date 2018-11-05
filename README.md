@@ -82,7 +82,7 @@ Times are `h:mm:ss`.
 |1 billion|1:18:40|0:30:24|
 |1.5 billion|2:02:06|0:55:00|
 |2 billion|2:44:30|1:15:59|
-|2.4 billion|3:16:52|2:02:14|
+|2.4 billion|3:16:52|1:33:03|
 
 ![Figure of query time](./query_fig.png)
 
@@ -95,12 +95,17 @@ import kcollections
 kd = kcollections.Kdict(27)
 
 # insertion and value assignment
-kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] = 'banana phone'
-assert kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] == 'banana phone'
+kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] = 'banana'
+kd['AAACTGTCTTCCTTTATTTGTTCAGGT'] = 'phone'
+assert kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] == 'banana'
+assert kd['AAACTGTCTTCCTTTATTTGTTCAGGT'] == 'phone'
 
 # iteration
 for kmer, val in kd.iteritems():
     print kmer, val
+
+# removal
+del kd['AAACTGTCTTCCTTTATTTGTTCAGGT']
 ```
 
 ### Using Kset
