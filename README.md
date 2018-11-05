@@ -49,7 +49,7 @@ We measured memory usage and running time using `/usr/bin/time -v` on a `Intel(R
 |500 million|2.42 GB|48.54 GB|
 |1 billion|4.43 GB|97.07 GB|
 |1.5 billion|6.44 GB|191.61 GB|
-|2 billion|8.44 GB||
+|2 billion|8.44 GB|194.14 GB|
 |2.4 billion|10.08 GB|220.06 GB|
 
 ![Figure of memory usage](./memory_fig.png)
