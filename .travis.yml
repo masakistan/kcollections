@@ -1,13 +1,13 @@
 matrix:
   include:
     - os: linux
-      sudo: required
+      sudo: yes
       python: 3.7
       env: TOXENV=py37
       dist: xenial
 
     - os: linux
-      sudo: required
+      sudo: yes
       python: 2.7
       env: TOXENV=py27
       dist: trusty
@@ -32,16 +32,14 @@ addons:
       - clang++-7
   homebrew:
     packages:
-      - if [[ "$TOXENV" == "py27" ]]; then brew update; fi
-      - if [[ "$TOXENV" == "py27" ]]; then brew install python@2; fi
-      - if [[ "$TOXENV" == "py37" ]]; then brew update; fi
-      - if [[ "$TOXENV" == "py37" ]]; then brew install python; fi
+      - if [ "$TOXENV" = "py27" ]; then brew update && brew install python@2; fi
+      - if [ "$TOXENV" = "py37" ]; then brew update && brew install python; fi
 
 before_install:
   - export CC=clang-7
   - export CXX=clang++-7
 install:
-  - pip install .
+  - sudo pip install .
 script:
   - cd
   - python -c 'from kcollections import Kset, Kdict'
