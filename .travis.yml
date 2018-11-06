@@ -18,9 +18,10 @@ python:
   - "2.7"
   - "3.6"
   - "3.7"
-install:
+before_install:
   - export CC=clang-7
   - export CXX=clang++-7
+install:
   - pip install . && pip3 install .
 script:
   - python2 -c 'from kcollections import Kset, Kdict'
