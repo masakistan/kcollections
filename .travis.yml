@@ -1,9 +1,26 @@
 matrix:
   include:
     - os: linux
+      sudo: required
+      python: 3.7
+      env: TOXENV=py37
+      dist: xenial
+
+    - os: linux
+      sudo: required
+      python: 2.7
+      env: TOXENV=py27
       dist: trusty
+
     - os: osx
       osx_image: xcode10.1
+      language: generic
+      env: TOXENV=py37
+
+    - os: osx
+      osx_image: xcode10.1
+      language: generic
+      env: TOXENV=py27
 
 addons:
   apt:
@@ -13,11 +30,13 @@ addons:
     packages:
       - clang-7
       - clang++-7
+  homebrew:
+    packages:
+      - if [[ "$TOXENV" == "py27" ]]; then brew update; fi
+      - if [[ "$TOXENV" == "py27" ]]; then brew install python@2; fi
+      - if [[ "$TOXENV" == "py37" ]]; then brew update; fi
+      - if [[ "$TOXENV" == "py37" ]]; then brew install python; fi
 
-language: python
-python:
-  - "2.7"
-  - "3.7"
 before_install:
   - export CC=clang-7
   - export CXX=clang++-7
