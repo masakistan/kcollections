@@ -17,7 +17,6 @@ addons:
 language: python
 python:
   - "2.7"
-  - "3.6"
   - "3.7"
 before_install:
   - export CC=clang-7
@@ -25,4 +24,5 @@ before_install:
 install:
   - pip install .
 script:
+  - cd
   - python -c 'from kcollections import Kset, Kdict'
