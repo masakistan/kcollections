@@ -7,7 +7,6 @@ matrix:
       dist: xenial
 
     - os: linux
-      sudo: yes
       python: 2.7
       env: TOXENV=py27
       dist: trusty
@@ -28,14 +27,13 @@ addons:
       - ubuntu-toolchain-r-test
       - llvm-toolchain-trusty-7
     packages:
+      - cmake
       - clang-7
       - clang++-7
-  homebrew:
-    packages:
-      - if [ "$TOXENV" = "py27" ]; then brew update && brew install python@2; fi
-      - if [ "$TOXENV" = "py37" ]; then brew update && brew install python; fi
 
 before_install:
+  - if [ $TRAVIS_OS_NAME = osx && $TOXENV = py27 ]; then brew update && brew install python@2; fi
+  - if [ $TRAVIS_OS_NAME = osx && $TOXENV = py37 ]; then brew update && brew install python; fi
   - export CC=clang-7
   - export CXX=clang++-7
 install:
