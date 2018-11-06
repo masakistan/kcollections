@@ -2,16 +2,17 @@ matrix:
   include:
     - os: linux
       dist: trusty
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-7
-          packages:
-            - clang-7
-            - clang++-7
     - os: osx
       osx_image: xcode10.1
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-trusty-7
+    packages:
+      - clang-7
+      - clang++-7
 
 language: python
 python:
