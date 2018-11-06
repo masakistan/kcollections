@@ -21,7 +21,7 @@ python:
 install:
   - export CC=clang-7
   - export CXX=clang++-7
-  -pip install . && pip3 install .
+  - pip install . && pip3 install .
 script:
   - python2 -c 'from kcollections import Kset, Kdict'
   - python3 -c 'from kcollections import Kset, Kdict'
