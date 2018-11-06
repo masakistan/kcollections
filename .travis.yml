@@ -32,12 +32,12 @@ addons:
       - clang++-7
 
 before_install:
-  - if [ $TRAVIS_OS_NAME = osx && $TOXENV = py27 ]; then brew update && brew install python@2; fi
-  - if [ $TRAVIS_OS_NAME = osx && $TOXENV = py37 ]; then brew update && brew install python; fi
+  - if [ $TRAVIS_OS_NAME == "osx" && $TOXENV == "py27" ]; then brew update && brew install python@2; fi
+  - if [ $TRAVIS_OS_NAME == "osx" && $TOXENV == "py37" ]; then brew update && brew install python; fi
   - export CC=clang-7
   - export CXX=clang++-7
 install:
-  - sudo pip install .
+  - if [ $TOXENV == "py27" ]; then pip2 install .; else pip3 install .; fi
 script:
   - cd
   - python -c 'from kcollections import Kset, Kdict'
