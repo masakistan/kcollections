@@ -21,6 +21,7 @@ matrix:
         - "3.6"
         - "3.7"
       install:
-        pip install .
+        pip install . && pip3 install .
       script:
-        - python -c 'from kcollections import Kset, Kdict'
+        - python2 -c 'from kcollections import Kset, Kdict'
+        - python3 -c 'from kcollections import Kset, Kdict'
