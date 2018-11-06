@@ -1,8 +1,9 @@
 matrix:
   include:
     - os: linux
-      sudo: yes
-      python: 3.7
+      sudo: required
+      language: python
+      python: "3.7"
       env: TOXENV=py37
       dist: xenial
 
@@ -25,7 +26,7 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty-7
+      - if [ $TOXENV == "py37" ]; then llvm-toolchain-xenial-7; else llvm-toolchain-trusty-7; fi
     packages:
       - cmake
       - clang-7
@@ -34,10 +35,10 @@ addons:
 before_install:
   - if [ $TRAVIS_OS_NAME == "osx" && $TOXENV == "py27" ]; then brew update && brew install python@2; fi
   - if [ $TRAVIS_OS_NAME == "osx" && $TOXENV == "py37" ]; then brew update && brew install python; fi
-  - export CC=clang-7
-  - export CXX=clang++-7
+  - if [ $TRAVIS_OS_NAME == "linux" ]; then export CC=clang-7; fi
+  - if [ $TRAVIS_OS_NAME == "linux" ]; then export CXX=clang++-7; fi
 install:
-  - if [ $TOXENV == "py27" ]; then pip2 install .; else pip3 install .; fi
+  - if [ $TOXENV == "py27" ]; then sudo pip2 install .; else sudo pip3 install .; fi
 script:
   - cd
   - python -c 'from kcollections import Kset, Kdict'
