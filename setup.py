@@ -5,7 +5,7 @@ import os, re, sys, sysconfig, platform, subprocess
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 
-__version__ = '0.0.1dev'
+__version__ = '0.0.2dev'
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
@@ -21,23 +21,29 @@ class CMakeBuild(build_ext):
             raise RuntimeError(
                 'CMake is required to install kcollections'
             )
-        
+
         for ext in self.extensions:
             self.build_extension(ext)
-    
+
     def build_extension(self, ext):
         extdir = os.path.abspath(
             os.path.dirname(self.get_ext_fullpath(ext.name))
         )
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
                       '-DPYTHON_EXECUTABLE=' + sys.executable]
-        
+
+        if sys.version_info[0] > 2:
+            cmake_args += ['-DPython3=ON']
+            print('Using Python version 3')
+        else:
+            print('Using Python version 2')
+
         if self.debug:
             cfg = 'Debug'
         else:
             cfg = 'Release'
         build_args = ['--config', cfg]
-        
+
         if platform.system() == 'Windows':
             cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(
                 cfg.upper(), extdir
@@ -48,7 +54,7 @@ class CMakeBuild(build_ext):
         else:
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
             build_args += ['--', '-j4']
-        
+
         env = os.environ.copy()
         env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(
             env.get('CXXFLAGS', ''),
@@ -62,7 +68,7 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', '--build', '.'] + build_args,
                               cwd=self.build_temp
         )
-        
+
 setup(
     name='kcollections',
     version=__version__,
@@ -72,6 +78,7 @@ setup(
     license='GPLv3',
     description='A BloomFilterTrie implementation to be generally applicable for genomic applications.',
     long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
     packages=['kcollections'],
     ext_modules=[CMakeExtension('kcollections._Kdict'), CMakeExtension('kcollections._Kset')],
     cmdclass=dict(build_ext=CMakeBuild),

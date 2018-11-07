@@ -1,0 +1,4 @@
+include CMakeLists.txt
+recursive-include kcollections *
+recursive-include libs *
+recursive-include inc *

@@ -1,14 +1,83 @@
-dist: trusty
-language: cpp
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty-7
-    packages:
-      - clang-7
-      - clang++-7
+matrix:
+  include:
+  - os: linux
+    language: cpp
+    env: TOXENV=py37
+    dist: trusty
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-7
+        packages:
+        - clang-7
+        - clang++-7
+  - os: linux
+    language: cpp
+    env: TOXENV=py27
+    dist: trusty
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-7
+        packages:
+        - clang-7
+        - clang++-7
+  - os: osx
+    osx_image: xcode10.1
+    language: generic
+    env: TOXENV=py37
+  - os: osx
+    osx_image: xcode10.1
+    language: generic
+    env: TOXENV=py27
+before_install:
+- if [ $TRAVIS_OS_NAME == "osx" ] && [ $TOXENV == "py27" ];
+  then
+    brew update;
+    brew install python@2;
+  fi
+- if [ $TRAVIS_OS_NAME == "osx" ] && [ $TOXENV == "py37" ];
+  then
+    brew update;
+    brew install python;
+  fi
+- if [ $TRAVIS_OS_NAME == "linux" ];
+  then
+    sudo apt-get purge cmake;
+    export CC=clang-7;
+    export CXX=clang++-7;
+    if [ $TOXENV == "py37" ];
+    then
+      sudo apt-get install python3-pip python3-dev build-essential;
+    else
+      sudo apt-get install python-pip python-dev build-essential;
+    fi
+  fi
+install:
+- if [ $TOXENV == "py27" ];
+  then
+    echo "building for python 2 ...";
+    python2 setup.py bdist_wheel;
+    ls dist;
+    pip2 install --user dist/*.whl;
+  else
+    echo "building for python 3 ...";
+    python3 setup.py bdist_wheel;
+    ls dist;
+    pip3 install --user dist/*.whl;
+  fi
 script:
-  - export CC=clang-7
-  - export CXX=clang++-7
-  - mkdir build && cd build && cmake .. && make
+- cd
+- if [ $TOXENV == "py27" ]; then echo "testing python 2"; python2 -c 'from kcollections
+  import Kset, Kdict'; else echo "testing python 3"; python3 -c 'from kcollections
+  import Kset, Kdict'; fi
+deploy:
+  provider: pypi
+  user: masakistan
+  distributions: "sdist bdist_wheel"
+  on:
+    branch: master
+  password:
+    secure: I2Fq7TUUS7hXpFDEATnP2HHfw7oXRM6O+7vRqvUwTzIKTUHeceqG4Svzkp5kDd+NS2h9O5lu7cLVM8HQrv3CbH4/59ZdFG2kJE6oZ6vvfVHHA25whlqaqodM2qyWE4ZIayypn4EXB2pxpzqT5taGNTzgU/QRUIvSDrMcpZzel6xKhn9uiXXL72Qw2zh9Xk46eto07DS4nsUSTvUL6lMmQwwSoTTHL0cFEvxSG8/0SoUY7nkFj09plLAUd0HPCiBxG70fC63+qcYBZ5FC32Ez+zXVHVyI7+XYvRRnAEI+daDed+KzfFZwC3S4b9v5yYNZerT7Zrp9WHe9lm3URjR5QdmtjBb2WVqJX0PIkP7txLPsahFAhEBpD/+1+pJX7qmf55ipVrIExAgMJqAieerYm5qgXwnWeNy8qbdanMHUxbHKbJMA3e0PLMN8uvcGXXmh2sGcLTPpQ7erR/lM+gDtpKBRN/+DrpoF1RsnaxglzqZKfxxWkhKdNaPDzDZ3fd7nVJA+0Gd+eCACo2hEfFifx2yq84/EV6F+RJ+UyKULZhNozl5YdxK7UMs3joEcTTx41LSP65Onfphl+2budFe9R0t5NNJp+z32VdJ1lvUdt+k/KeMThhf+bYzeISOkc1qmyOkEOHMVGyOTYke9w5Nm+dydG6GWKW+K3M5vx2vYzH4=

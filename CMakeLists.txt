@@ -6,7 +6,7 @@ if (POLICY CMP0025)
 endif ()
 
 set(default_build_type "Release")
- 
+
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
   set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
@@ -30,6 +30,20 @@ set(SOURCE_DIR "kcollections/src")
 
 message( "looking in ${CMAKE_MODULE_PATH}" )
 
+# set the default version of Python to use at 2.7
+# can be changed via command line, e.g. cmake -DPython3=ON ..
+option(Python2 "Python2" ON)
+option(Python3 "Python3" OFF)
+
+if(Python2)
+  set(PYTHON_VERSION 2.7)
+endif()
+if(Python3)
+  set(PYTHON_VERSION 3.4)
+endif()
+
+message("Using Python version " ${PYTHON_VERSION})
+
 # Add inc directory
 include_directories(inc)
 include_directories(libs/pybind11-2.2.4/include)
@@ -46,8 +60,8 @@ string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
 
 
 # Python library
-find_package(PythonLibs 2.7 REQUIRED)
-find_package(PythonInterp 2.7 REQUIRED)
+find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
+find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIR})
 
 
@@ -79,7 +93,7 @@ set (CMAKE_CXX_STANDARD 14)
 #target_link_libraries( test_dict_driver ${PYTHON_LIBRARIES} )
 
 
-set(PYBIND11_PYTHON_VERSION 2.7)
+set(PYBIND11_PYTHON_VERSION ${PYTHON_VERSION})
 #set(bindings_python_version 2.7)
 pybind11_add_module( _Kset ${SOURCES} ${SET_SOURCES} )
 set_target_properties( _Kset PROPERTIES COMPILE_DEFINITIONS "KSET" )
