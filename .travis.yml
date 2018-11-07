@@ -74,10 +74,6 @@ script:
   import Kset, Kdict'; else echo "testing python 3"; python3 -c 'from kcollections
   import Kset, Kdict'; fi
 - cd -
-before_deploy:
-- if [ $TOXENV == "py27" ];
-  then
-    pip3 install --user
 deploy:
   provider: pypi
   user: masakistan
