@@ -58,6 +58,9 @@ deploy:
   provider: releases
   api_key:
     secure: UExI7BFNq1ghy5HQjqkMRiJ9i2q1GcdyKiMBKDQPXS3E2PeCd5AOeu6EZN63ixLwLsDCq19R0ur+RnXyj4UOZqaKWd8dVKbAC9AkOXw+XoV8z2GlOf44M1rdkKsfYR8F1zJCETgV4F1FaGgOK4XgaGEkWckx0u5XQKeplJyb0H6J0y/i/1cwO+YYCMHFrz0VkhCUgyAcgSemsQVXm3stJ5uqnNeUnqu3Yl0yc6HpCN28c8xAuNyP8oMFfH97OIL2lyGKfHBNcMdGUgiDwcD1EYpxszkZFwhL/dvV+OUrvVIy4Hd6p1n6bBvI30fjZJ+PcdmHCB/ciqdlGL0zUQ+XyFQSJHfepreXW7vFC5s9QO/ThNGu0w7QR5sXUWtGI4GUeYSggruC66TXipaO3WK3Psaukq8v1efimsBSmZp7KLWoxEiqnoECEVcxYTqPCOeD8GBrZJEuf4FwaogybgG0YVJ7BuoC/1IdxqXL6h18nXCpL35k3D0mN/D2sL/xoQF7X1PyR2toYrnOIUDj120TxBrrpGowi9mcP714NiOj1TEZRlMgcg1X0v2rddWLXJ9mBvcRK+4bdiLYAT7JpZXG06CulPcTGon8MZBPNrmTMWq/KgcnSZpJPccfR0VUpJDwVw443Qkucv3s/BMKSZHSWSFbKdfV8T+BSyU5Yf7dlyQ=
+  file_glob: true
   file: dist/*.whl
   on:
     repo: masakistan/kcollections
+    tags: true
+    branch: master
