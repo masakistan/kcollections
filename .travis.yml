@@ -62,11 +62,15 @@ install:
     python2 setup.py bdist_wheel;
     ls dist;
     pip2 install --user dist/*.whl;
+    python2 -m pip install --user --upgrade setuptools wheel;
+    python2 -m pip install --user --upgrade twine;
   else
     echo "building for python 3 ...";
     python3 setup.py bdist_wheel;
     ls dist;
     pip3 install --user dist/*.whl;
+    python3 -m pip install --user --upgrade setuptools wheel;
+    python3 -m pip install --user --upgrade twine;
   fi
 script:
 - cd
