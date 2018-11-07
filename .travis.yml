@@ -1,57 +1,63 @@
 matrix:
   include:
-    - sudo: required
-      services:
-        - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 PLAT=linux BIT=64 PY=3
-    - sudo: required
-      services:
-        - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
-            PRE_CMD=linux32 PLAT=linux BIT=32 PY=3
-    - sudo: required
-      services:
-        - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 PLAT=linux BIT=64 PY=2
-    - sudo: required
-      services:
-        - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
-            PRE_CMD=linux32 PLAT=linux32 BIT=32 PY=2
-    - os: osx
-      osx_image: xcode10.1
-      language: generic
-      env: TOXENV=py37
-    - os: osx
-      osx_image: xcode10.1
-      language: generic
-      env: TOXENV=py27
+  - os: linux
+    language: cpp
+    env: TOXENV=py37
+    dist: trusty
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-7
+        packages:
+        - clang-7
+        - clang++-7
+  - os: linux
+    language: cpp
+    env: TOXENV=py27
+    dist: trusty
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-trusty-7
+        packages:
+        - clang-7
+        - clang++-7
+  - os: osx
+    osx_image: xcode10.1
+    language: generic
+    env: TOXENV=py37
+  - os: osx
+    osx_image: xcode10.1
+    language: generic
+    env: TOXENV=py27
 before_install:
-- if [ $TRAVIS_OS_NAME == "osx" ] && [ $TOXENV == "py27" ];
-  then
-    brew update;
-    brew install python@2;
-  fi
-- if [ $TRAVIS_OS_NAME == "osx" ] && [ $TOXENV == "py37" ];
-  then
-    brew update;
-    brew install python;
-  fi
-
+- if [ $TRAVIS_OS_NAME == "osx" ] && [ $TOXENV == "py27" ]; then brew update; brew
+  install python@2; fi
+- if [ $TRAVIS_OS_NAME == "osx" ] && [ $TOXENV == "py37" ]; then brew update; brew
+  install python; fi
+- if [ $TRAVIS_OS_NAME == "linux" ]; then sudo apt-get purge cmake; export CC=clang-7;
+  export CXX=clang++-7; if [ $TOXENV == "py37" ]; then sudo apt-get install python3-pip
+  python3-dev build-essential; else sudo apt-get install python-pip python-dev build-essential;
+  fi fi
 install:
-- if [ $PLAT == "linux" ];
-  then
-    docker pull $DOCKER_IMAGE;
-    docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/generate_wheels.sh;
-  fi
-
+- if [ $TOXENV == "py27" ]; then echo "building for python 2 ..."; python2 -m pip
+  install --user --upgrade setuptools wheel; python2 -m pip install --user --upgrade
+  twine; python2 setup.py bdist_wheel; ls dist; pip2 install --user dist/*.whl; else
+  echo "building for python 3 ..."; python3 -m pip install --user --upgrade setuptools
+  wheel; python3 -m pip install --user --upgrade twine; python3 setup.py bdist_wheel;
+  ls dist; pip3 install --user dist/*.whl; fi
+script:
+- cd
+- if [ $TOXENV == "py27" ]; then echo "testing python 2"; python2 -c 'from kcollections
+  import Kset, Kdict'; else echo "testing python 3"; python3 -c 'from kcollections
+  import Kset, Kdict'; fi
+- cd -
 deploy:
-  provider: pypi
-  user: masakistan
-  distributions: "sdist bdist_wheel"
-  edge:
-    branch: v1.8.45
+  provider: releases
+  api_key:
+    secure: UExI7BFNq1ghy5HQjqkMRiJ9i2q1GcdyKiMBKDQPXS3E2PeCd5AOeu6EZN63ixLwLsDCq19R0ur+RnXyj4UOZqaKWd8dVKbAC9AkOXw+XoV8z2GlOf44M1rdkKsfYR8F1zJCETgV4F1FaGgOK4XgaGEkWckx0u5XQKeplJyb0H6J0y/i/1cwO+YYCMHFrz0VkhCUgyAcgSemsQVXm3stJ5uqnNeUnqu3Yl0yc6HpCN28c8xAuNyP8oMFfH97OIL2lyGKfHBNcMdGUgiDwcD1EYpxszkZFwhL/dvV+OUrvVIy4Hd6p1n6bBvI30fjZJ+PcdmHCB/ciqdlGL0zUQ+XyFQSJHfepreXW7vFC5s9QO/ThNGu0w7QR5sXUWtGI4GUeYSggruC66TXipaO3WK3Psaukq8v1efimsBSmZp7KLWoxEiqnoECEVcxYTqPCOeD8GBrZJEuf4FwaogybgG0YVJ7BuoC/1IdxqXL6h18nXCpL35k3D0mN/D2sL/xoQF7X1PyR2toYrnOIUDj120TxBrrpGowi9mcP714NiOj1TEZRlMgcg1X0v2rddWLXJ9mBvcRK+4bdiLYAT7JpZXG06CulPcTGon8MZBPNrmTMWq/KgcnSZpJPccfR0VUpJDwVw443Qkucv3s/BMKSZHSWSFbKdfV8T+BSyU5Yf7dlyQ=
+  file: dist/*.whl
   on:
-    branch: master
-  password:
-    secure: I2Fq7TUUS7hXpFDEATnP2HHfw7oXRM6O+7vRqvUwTzIKTUHeceqG4Svzkp5kDd+NS2h9O5lu7cLVM8HQrv3CbH4/59ZdFG2kJE6oZ6vvfVHHA25whlqaqodM2qyWE4ZIayypn4EXB2pxpzqT5taGNTzgU/QRUIvSDrMcpZzel6xKhn9uiXXL72Qw2zh9Xk46eto07DS4nsUSTvUL6lMmQwwSoTTHL0cFEvxSG8/0SoUY7nkFj09plLAUd0HPCiBxG70fC63+qcYBZ5FC32Ez+zXVHVyI7+XYvRRnAEI+daDed+KzfFZwC3S4b9v5yYNZerT7Zrp9WHe9lm3URjR5QdmtjBb2WVqJX0PIkP7txLPsahFAhEBpD/+1+pJX7qmf55ipVrIExAgMJqAieerYm5qgXwnWeNy8qbdanMHUxbHKbJMA3e0PLMN8uvcGXXmh2sGcLTPpQ7erR/lM+gDtpKBRN/+DrpoF1RsnaxglzqZKfxxWkhKdNaPDzDZ3fd7nVJA+0Gd+eCACo2hEfFifx2yq84/EV6F+RJ+UyKULZhNozl5YdxK7UMs3joEcTTx41LSP65Onfphl+2budFe9R0t5NNJp+z32VdJ1lvUdt+k/KeMThhf+bYzeISOkc1qmyOkEOHMVGyOTYke9w5Nm+dydG6GWKW+K3M5vx2vYzH4=
+    repo: masakistan/kcollections
