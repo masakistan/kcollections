@@ -11,9 +11,21 @@ This implementation differs from Guillaume et al. by allowing kmers of arbitrary
 `kcollections` is currently only available for Python version 2.7.
 
 ## Installation
-The recommended way of installing `kcollections` is:
+We provide some pre-compiled binaries for python 2/3 and Linux and MacOS:
 
-`pip install kcollections`
+```bash
+# linux 64-bit, python 3
+pip install https://github.com/masakistan/kcollections/releases/download/0.0.7/kcollections-0.0.7-cp34-cp34m-linux_x86_64.whl
+
+# linux 64-bit, python 2
+pip install https://github.com/masakistan/kcollections/releases/download/0.0.7/kcollections-0.0.7-cp27-cp27mu-linux_x86_64.whl
+
+# MacOS 10.13, python 3
+pip install https://github.com/masakistan/kcollections/releases/download/0.0.7/kcollections-0.0.7-cp37-cp37m-macosx_10_13_x86_64.whl
+
+# MacOS 10.13, python 2
+pip install https://github.com/masakistan/kcollections/releases/download/0.0.7/kcollections-0.0.7-cp27-cp27m-macosx_10_13_x86_64.whl
+```
 
 Alternatively, you can build from source.
 
@@ -31,7 +43,14 @@ To build and install the python module from source:
 ```bash
 git clone https://github.com/masakistan/kcollections.git
 cd kcollections
-pip install .
+
+# python 3
+python3 setup.py bdist_wheel
+pip3 install dist/*.whl
+
+# python 2
+python2 setup.py bdist_wheel
+pip2 install dist/*.whl
 ```
 
 ## Performance
