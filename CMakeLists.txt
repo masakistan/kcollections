@@ -39,7 +39,7 @@ if(Python2)
   set(PYTHON_VERSION 2.7)
 endif()
 if(Python3)
-  set(PYTHON_VERSION 3.6)
+  set(PYTHON_VERSION 3.7)
 endif()
 
 message("Using Python version " ${PYTHON_VERSION})

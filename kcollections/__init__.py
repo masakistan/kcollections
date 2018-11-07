@@ -1,5 +1,5 @@
-from _Kdict import Kdict as KdictParent
-from _Kset import Kset as KsetParent
+from ._Kdict import Kdict as KdictParent
+from ._Kset import Kset as KsetParent
 
 
 class Kdict( KdictParent ):
