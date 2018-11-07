@@ -48,7 +48,7 @@ before_install:
       brew install python;
     fi
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
-      sudo apt-get purge cmake
+      sudo apt-get purge cmake;
       export CC=clang-7;
       export CXX=clang++-7;
       if [ $TOXENV == "py37" ]; then
@@ -60,12 +60,14 @@ before_install:
 
 install:
   - if [ $TOXENV == "py27" ]; then
-      echo "building for python 2 ..."
+      echo "building for python 2 ...";
       python2 setup.py bdist_wheel;
-      pip2 install dist/*.whl
+      ls dist;
+      pip2 install dist/*.whl;
     else
-      echo "building for python 3 ..."
+      echo "building for python 3 ...";
       python3 setup.py bdist_wheel;
+      ls dist;
       pip3 install dist/*.whl;
     fi
 script:
