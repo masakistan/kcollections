@@ -65,7 +65,7 @@ install:
       pip2 install dist/*.whl
     else
       python3 setup.py bdist_wheel;
-      pip3 install dist/*.whl
+      pip3 install dist/*.whl;
     fi
 script:
   - cd
