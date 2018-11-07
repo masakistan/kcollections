@@ -51,15 +51,21 @@ before_install:
     fi
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
       export CC=clang-7;
-    fi
-  - if [ $TRAVIS_OS_NAME == "linux" ]; then
       export CXX=clang++-7;
+      if [ $TOXENV == "py37" ]; then
+        sudo apt-get install python3-pip python3-dev build-essential;
+      else
+        sudo apt-get install python-pip python-dev build-essential;
+      fi
     fi
+
 install:
   - if [ $TOXENV == "py27" ]; then
-      sudo pip2 install .;
+      python2 setup.py bdist_wheel;
+      pip2 install dist/*.whl
     else
-      sudo pip3 install .;
+      python3 setup.py bdist_wheel;
+      pip3 install dist/*.whl
     fi
 script:
   - cd
