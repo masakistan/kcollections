@@ -1,31 +1,31 @@
 matrix:
   include:
-  - sudo: required
-    services:
-      - docker
-    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 PLAT=linux BIT=64 PY=3
-  - sudo: required
-    services:
-      - docker
-    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
-          PRE_CMD=linux32 PLAT=linux BIT=32 PY=3
-   - sudo: required
-    services:
-      - docker
-    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 PLAT=linux BIT=64 PY=2
-  - sudo: required
-    services:
-      - docker
-    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
-          PRE_CMD=linux32 PLAT=linux32 BIT=32 PY=2
-  - os: osx
-    osx_image: xcode10.1
-    language: generic
-    env: TOXENV=py37
-  - os: osx
-    osx_image: xcode10.1
-    language: generic
-    env: TOXENV=py27
+    - sudo: required
+      services:
+        - docker
+      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 PLAT=linux BIT=64 PY=3
+    - sudo: required
+      services:
+        - docker
+      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
+            PRE_CMD=linux32 PLAT=linux BIT=32 PY=3
+    - sudo: required
+      services:
+        - docker
+      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 PLAT=linux BIT=64 PY=2
+    - sudo: required
+      services:
+        - docker
+      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
+            PRE_CMD=linux32 PLAT=linux32 BIT=32 PY=2
+    - os: osx
+      osx_image: xcode10.1
+      language: generic
+      env: TOXENV=py37
+    - os: osx
+      osx_image: xcode10.1
+      language: generic
+      env: TOXENV=py27
 before_install:
 - if [ $TRAVIS_OS_NAME == "osx" ] && [ $TOXENV == "py27" ];
   then
@@ -39,11 +39,11 @@ before_install:
   fi
 
 install:
-  - if [ $PLAT == "linux" ];
-    then
-      docker pull $DOCKER_IMAGE;
-      docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD generate_wheels.sh;
-    fi
+- if [ $PLAT == "linux" ];
+  then
+    docker pull $DOCKER_IMAGE;
+    docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD generate_wheels.sh;
+  fi
 
 deploy:
   provider: pypi
