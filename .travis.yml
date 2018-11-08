@@ -13,15 +13,14 @@ matrix:
     language: generic
     env: TOXENV=py27
 before_install:
-- if [ $TRAVIS_OS_NAME == "linux" ]; then sudo apt-get purge cmake; export CC=clang-7;
-  export CXX=clang++-7; if [ $TOXENV == "py34" ]; then sudo apt-get install python3-pip
-  python3-dev build-essential; else sudo apt-get install python-pip python-dev build-essential;
-  fi fi
+- if [ $TRAVIS_OS_NAME == "linux" ];
+    pip install --user --upgrade twine
+  fi
 install:
 - if [ $TRAVIS_OS_NAME == "linux" ];
   then
-    echo "building linux..."
-    - docker pull $DOCKER_IMAGE
+    echo "building linux...";
+    docker pull $DOCKER_IMAGE
   else
   - if [ $TOXENV == "py27" ];
     then
