@@ -14,13 +14,13 @@ matrix:
     env: TOXENV=py27
 before_install:
 - if [ $TRAVIS_OS_NAME == "linux" ];
-    pip install --user --upgrade twine
+    pip install --user --upgrade twine;
   fi
 install:
 - if [ $TRAVIS_OS_NAME == "linux" ];
   then
     echo "building linux...";
-    docker pull $DOCKER_IMAGE
+    docker pull $DOCKER_IMAGE;
   else
   - if [ $TOXENV == "py27" ];
     then
