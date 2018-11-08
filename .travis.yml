@@ -45,11 +45,12 @@ install:
     fi
   fi
 script:
+- echo "starting script"
 - if [ $TRAVIS_OS_NAME == "linux" ];
   then
     docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh;
   else
-    echo "not linux"
+    echo "not linux";
   fi
 deploy:
   provider: script
