@@ -23,7 +23,7 @@ install:
     echo "building linux...";
     docker pull $DOCKER_IMAGE;
   else
-  - if [ $TOXENV == "py27" ];
+    if [ $TOXENV == "py27" ];
     then
       echo "building for python 2 ...";
       python2 -m pip install --user --upgrade setuptools wheel;
