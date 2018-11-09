@@ -7,10 +7,13 @@ yum install zlib-devel -y
 curl -o cmake.tar.gz https://cmake.org/files/v3.12/cmake-3.12.4.tar.gz
 tar xf cmake.tar.gz
 cd cmake-3.12.4/
+pwd
 ./bootstrap --system-curl
 gmake install
 
 cd /io
+pwd
+ls
 
 # Compile wheels
 for PYBIN in /opt/python/*/bin; do
