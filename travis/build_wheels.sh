@@ -12,7 +12,7 @@ gmake install
 
 # Compile wheels
 for PYBIN in /opt/python/*/bin; do
-    "${PYBIN}/python" setup.py bdist_wheel sdist
+    "${PYBIN}/python" /io/setup.py bdist_wheel sdist
 done
 cp /io/dist/*.tar.gz /io/wheelhouse
 
