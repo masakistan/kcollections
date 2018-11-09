@@ -16,7 +16,7 @@ typedef struct {
     py::handle* objs;
 #endif
     uint16_t size;
-} __attribute__ ((__packed__)) UC;
+} UC;
 
 void print( UC* uc, int k, int depth );
 
