@@ -12,6 +12,7 @@ pwd
 gmake install
 
 cd /io
+echo "checking /io"
 pwd
 ls
 
@@ -20,6 +21,8 @@ for PYBIN in /opt/python/*/bin; do
     "${PYBIN}/python" /io/setup.py bdist_wheel sdist
 done
 cp /io/dist/*.tar.gz /io/wheelhouse
+echo "checking /io/wheelhouse"
+ls /io/wheelhouse
 
 # Bundle external shared libraries into the wheels
 for whl in /io/dist/*.whl; do
