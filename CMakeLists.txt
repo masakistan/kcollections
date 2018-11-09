@@ -60,8 +60,8 @@ string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
 
 
 # Python library
-find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
-find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
+#find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
+#find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIR})
 
 
