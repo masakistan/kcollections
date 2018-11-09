@@ -26,8 +26,8 @@ install:
     if [ $TOXENV == "py27" ];
     then
       echo "building for python 2 ...";
-      python2 -m pip install --user --upgrade setuptools wheel;
-      python2 -m pip install --user --upgrade twine;
+      python2 -m pip install --upgrade setuptools wheel;
+      python2 -m pip install --upgrade twine;
       python2 setup.py bdist_wheel;
       ls dist;
       mkdir wheelhouse;
@@ -35,8 +35,8 @@ install:
       pip2 install --user dist/*.whl;
     else
       echo "building for python 3 ...";
-      python3 -m pip install --user --upgrade setuptools wheel;
-      python3 -m pip install --user --upgrade twine;
+      python3 -m pip install --upgrade setuptools wheel;
+      python3 -m pip install --upgrade twine;
       python3 setup.py bdist_wheel;
       ls dist;
       mkdir wheelhouse;
@@ -45,16 +45,27 @@ install:
     fi
   fi
 script:
-- echo "starting script"
 - if [ $TRAVIS_OS_NAME == "linux" ];
   then
     docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh;
   else
-    echo "not linux";
+    cd;
+    if [ $TOXENV == "py27" ];
+    then
+      echo "testing python 2";
+      python2 -c 'from kcollections import Kset, Kdict';
+    else
+      echo "testing python 3";
+      python3 -c 'from kcollections import Kset, Kdict';
+    fi
+    cd - ;
   fi
 deploy:
+  skip_cleanup: true
   provider: script
   script: bash travis/deploy.sh $TWINEPASS
+  on:
+    branch: master
 env:
   global:
     secure: Ba/Ls0qEmzL895q8hqs4/PeVcOHzu6oLqKqp9mroRu2rwUJGvYwA5YpeWNM8c+qaN9M1WCAioZL/3e5q0X0SGIUFY9uBsL8s+Eb+4eTl8bNkpw/gBvvVXgq2b9lxDSWHptiRzX1RTBYaAMnoN39w4Y7eIk5o8cB1qyjb1w+y+RCGFSuPRhYw+IAt5qBA99MaXSbIrcsZeNwO82cFXNzgpzk+V9tO8WF8xsfOuDBDuiZ11GhemAUKq8hq5y5kc7fld0wnVqrS2/21MqQTNBKxEFE+2z1X3/vWmNEeVPeD3zLHyPTeLXsIiO6iBX4smLCm1NItGLZoI+YiWl17kgsEWUTopQ+ojmGTxIwg+3j2zvPdHOifxUAX4wCE4S5TGsb+HyiTEREkf7zB1fLVjjdp3cqlnanYFMp16ePEr/bt4WZkx54ucKxoZFz8o6C0rWFcJu+uYyN7b7PJfiebvsx8YlKomV21q6H7YnpFvhDhnbe7nQpUXsiDhD+j5ELDlnURV+RIbh6SFF1W7uHvzGc8WuJrkqA+i5F2tHQng5g+IjhtY231JVO4gzsRCul+tsGFFWE+c6K7c7oM7/pZZNGBGC5DROc8lrPzxaADM3T4cYOkRlAGn3Ivnxkm7actLNPsf43zfLgbU3wozJdNDjZDaBZvAkbdMI04iUNFPnrtEn0=
