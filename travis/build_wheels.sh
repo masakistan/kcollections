@@ -10,6 +10,8 @@ cd cmake-3.12.4/
 ./bootstrap --system-curl
 gmake install
 
+cd /io
+
 # Compile wheels
 for PYBIN in /opt/python/*/bin; do
     "${PYBIN}/python" /io/setup.py bdist_wheel sdist
