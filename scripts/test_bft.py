@@ -1,9 +1,9 @@
 import sys
 from tqdm import tqdm
-import Kcollections
+import kcollections
 
 k = int( sys.argv[ 1 ] )
-ks = Kcollections.Kset( k )
+ks = kcollections.Kset( k )
 
 c = 0
 with open( sys.argv[ 2 ], 'r' ) as fh:

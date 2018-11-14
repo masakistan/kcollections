@@ -14,23 +14,12 @@ This implementation differs from Guillaume et al. by allowing kmers of arbitrary
 We provide some pre-compiled binaries for python 2/3 and Linux and MacOS:
 
 ```bash
-# linux 64-bit, python 3
-pip install https://github.com/masakistan/kcollections/releases/download/0.0.7/kcollections-0.0.7-cp34-cp34m-linux_x86_64.whl
-
-# linux 64-bit, python 2
-pip install https://github.com/masakistan/kcollections/releases/download/0.0.7/kcollections-0.0.7-cp27-cp27mu-linux_x86_64.whl
-
-# MacOS 10.13, python 3
-pip install https://github.com/masakistan/kcollections/releases/download/0.0.7/kcollections-0.0.7-cp37-cp37m-macosx_10_13_x86_64.whl
-
-# MacOS 10.13, python 2
-pip install https://github.com/masakistan/kcollections/releases/download/0.0.7/kcollections-0.0.7-cp27-cp27m-macosx_10_13_x86_64.whl
+pip install kcollections
 ```
 
 Alternatively, you can build from source.
 
 ### Build from source
-`kcollections` must be built using `clang` due to a bug that exists in [`gcc`](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=36566).
 Prerequisites include:
 
   - [jemalloc](http://jemalloc.net/)
@@ -55,7 +44,8 @@ pip2 install dist/*.whl
 
 ## Performance
 `kcollections` is quite a bit slower than the `dict` or `set` but is much more memory-efficient.
-We measured memory usage and running time using `/usr/bin/time -v` on a `Intel(R) Xeon(R) E5-2650v4 @2.20GHz` with 256 GB RAM.
+We measured memory usage and running time using `/usr/bin/time -v` on a`Intel(R)
+Xeon(R) E5-2650v4 @2.20GHz` with 256 GB RAM using `Clang`.
 27mers used for testing were taken from the human genome, no repetitive kmers appear in our dataset providing a worst case scenario where no insertions or queries are pruned before traversing the entire data structure.
 
 ### Memory Usage

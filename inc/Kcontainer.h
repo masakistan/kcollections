@@ -95,4 +95,60 @@ inline void kcontainer_remove( Kcontainer* kd, char* kmer )
     free( bseq );
 }
 
+#if KSET
+inline void kcontainer_add_seq(Kcontainer* kd, char* seq) {
+    uint8_t* bseq = (uint8_t*) calloc(kd->k, sizeof(uint8_t));
+    uint char_pos = kd->k - 1;
+    uint bk = calc_bk(kd->k);
+    int count = 0;
+    uint8_t holder;
+    uint8_t last_index = (kd->k - 1) % 4;
 
+    // serialize the first kmer
+    serialize_kmer(seq, kd->k, bseq);
+    //std::cout << deserialize_kmer(kd->k, bk, bseq) << std::endl;
+
+    while(true) {
+        vertex_insert(&(kd->v), bseq, kd->k, 0);
+        //std::cout << seq[char_pos] << std::endl;
+
+        // increment char_pos
+        char_pos++;
+        /*count++;
+
+        if(count > 100) {
+            break;
+        }*/
+        if(seq[char_pos] == '\0') {
+            break;
+        }
+
+
+        // shift all the bits over
+        bseq[0] >>= 2;
+        for(int i = 1; i < bk; i++) {
+            holder = bseq[i] & 0x3;
+            holder <<= 6;
+            bseq[i - 1] |= holder;
+            bseq[i] >>= 2;
+        }
+
+        switch( seq[char_pos] )
+        {
+            case 'a': break;
+            case 'A': break;
+            case 'c': bseq[bk - 1] |= MASK_INSERT[0][last_index]; break;
+            case 'C': bseq[bk - 1] |= MASK_INSERT[0][last_index]; break;
+            case 'g': bseq[bk - 1] |= MASK_INSERT[1][last_index]; break;
+            case 'G': bseq[bk - 1] |= MASK_INSERT[1][last_index]; break;
+            case 't': bseq[bk - 1] |= MASK_INSERT[2][last_index]; break;
+            case 'T': bseq[bk - 1] |= MASK_INSERT[2][last_index]; break;
+            default:
+                std::cout << seq[char_pos] << std::endl;
+                throw std::runtime_error( "Could not serialize kmer." );
+        }
+        //std::cout << (char_pos - kd->k) << "\t" << deserialize_kmer(kd->k, bk, bseq) << std::endl;
+    }
+    
+}
+#endif

@@ -115,6 +115,7 @@ PYBIND11_MODULE( _Kset, m )
         .def("get_cc_child_size", &Kset::get_cc_child_size )
         .def("get_cc_child_vertex", &Kset::get_cc_child_vertex, py::return_value_policy::reference )
         .def("get_cc_child_suffix", &Kset::get_cc_child_suffix )
+        .def("add_seq", &Kset::add_seq)
         .def_property_readonly("k", &Kset::get_k);
 
     py::class_<Vertex>(m, "Vertex")
