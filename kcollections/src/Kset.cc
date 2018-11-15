@@ -40,7 +40,7 @@ void Kset::remove( char* kmer )
     kcontainer_remove( kc, kmer );
 }
 
-void Kset::add_seq( char* seq )
+void Kset::add_seq(char* seq, uint32_t length)
 {
-   kcontainer_add_seq(kc, seq);
+   kcontainer_add_seq(kc, seq, length);
 }

@@ -45,6 +45,6 @@ class Kset
         {
             return deserialize_kmer( 4, 1, &v->cc[ cc_idx ].child_suffixes[ child_idx ].suffix );
         }
-        void add_seq(char*seq);
+        void add_seq(char*seq, uint32_t length);
 
 };
