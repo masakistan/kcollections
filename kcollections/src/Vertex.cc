@@ -240,7 +240,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
 #elif KSET
         uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
 #elif KCOUNTER
-        uc_insert( &( v->uc ), bseq, k, depth, uc_idx, count );
+        uc_insert( &( v->uc ), bseq, k, depth, uc_idx, 0 );
 #endif
     }
     else
@@ -250,7 +250,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
 #elif KSET
         uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
 #elif KCOUNTER
-        uc_insert( &( v->uc ), bseq, k, depth, uc_idx, count );
+        uc_insert( &( v->uc ), bseq, k, depth, uc_idx, 0 );
 #endif
         burst_uc( v, k, depth );
     }
