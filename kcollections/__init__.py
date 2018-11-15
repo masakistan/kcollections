@@ -1,5 +1,6 @@
 from ._Kdict import Kdict as KdictParent
 from ._Kset import Kset as KsetParent
+from ._Kcounter import Kcounter as KcounterParent
 
 
 class Kdict( KdictParent ):
@@ -89,7 +90,7 @@ class Kdict( KdictParent ):
                     key = item
                     val = other[ key ]
                 self[ key ] = val
-                
+
 
 
 class Kset( KsetParent ):
