@@ -14,14 +14,22 @@ CC* get_cc( Vertex* v, int idx )
     return &v->cc[ idx ];
 }
 
+#if defined KDICT || defined KCOUNTER
 #if KDICT
 py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
+#elif KCOUNTER
+int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth )
+#endif
 {
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
     int uc_idx = sres.second;
     if( sres.first )
     {
+#if KDICT
         return &v->uc.objs[ uc_idx ];
+#elif KCOUNTER
+        return v->uc.count;
+#endif
     }
 
 
@@ -39,7 +47,11 @@ py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
                 if ( idx > -1 )
                 {
                     Vertex* child = get_child_of( cc, bseq, idx );
+#if KDICT
                     return vertex_get( child, &bseq[ 1 ], k - 4, depth + 1 );
+#elif KCOUNTER
+                    return vertex_get_counter( child, &bseq[ 1 ], k - 4, depth + 1 );
+#endif
                 }
             }
         }
@@ -78,7 +90,7 @@ void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
             }
         }
     }
-    
+
     throw pybind11::key_error( "Key not found!" );
 }
 
@@ -122,6 +134,8 @@ void burst_uc( Vertex* v, int k, int depth )
     uint8_t* suffixes = v->uc.suffixes;
 #if KDICT
     py::handle* objs = v->uc.objs;
+#elif KCOUNTER
+    int count = v->uc.count;
 #endif
     int idx;
     for( int i = 0; i < CAPACITY; i++ )
@@ -141,6 +155,8 @@ void burst_uc( Vertex* v, int k, int depth )
             vertex_insert( child, suffix, k - 4, depth + 1, &objs[ i ] );
 #elif KSET
             vertex_insert( child, suffix, k - 4, depth + 1 );
+#elif KCOUNTER
+            vertex_insert( child, suffix, k - 4, depth + 1, count );
 #endif
         }
     }
@@ -167,6 +183,8 @@ void burst_uc( Vertex* v, int k, int depth )
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj )
 #elif KSET
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
+#elif KCOUNTER
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
 #endif
 {
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
@@ -182,10 +200,12 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
                 sizeof( py::handle )
                 );
         v->uc.objs[ uc_idx ].inc_ref();
+#elif KCOUNTER
+        v->uc.count = count;
 #endif
         return;
     }
-    
+
     for( int i = 0; i < v->cc_size; i++ )
     {
         CC* cc = &v->cc[ i ];
@@ -206,6 +226,8 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
             vertex_insert( child, suffix, k - 4, depth + 1, obj );
 #elif KSET
             vertex_insert( child, suffix, k - 4, depth + 1 );
+#elif KCOUNTER
+            vertex_insert( child, suffix, k - 4, depth + 1, count );
 #endif
             return;
         }
@@ -217,6 +239,8 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
         uc_insert( &( v->uc ), bseq, k, depth, uc_idx, obj );
 #elif KSET
         uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
+#elif KCOUNTER
+        uc_insert( &( v->uc ), bseq, k, depth, uc_idx, count );
 #endif
     }
     else
@@ -225,6 +249,8 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
         uc_insert( &( v->uc ), bseq, k, depth, uc_idx, obj );
 #elif KSET
         uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
+#elif KCOUNTER
+        uc_insert( &( v->uc ), bseq, k, depth, uc_idx, count );
 #endif
         burst_uc( v, k, depth );
     }

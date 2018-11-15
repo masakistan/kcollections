@@ -7,7 +7,7 @@ namespace py = pybind11;
 
 class Kdict
 {
-    private:
+    protected:
         Kcontainer* kc;
         int m_k;
     public:

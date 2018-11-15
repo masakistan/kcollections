@@ -12,6 +12,8 @@ namespace py = pybind11;
 struct dVertex{
 #elif KSET
 struct sVertex{
+#elif KCOUNTER
+struct cVertex{
 #endif
     CC* cc;
     UC uc;
@@ -23,6 +25,8 @@ struct sVertex{
 using Vertex = dVertex;
 #elif KSET
 using Vertex = sVertex;
+#elif KCOUNTER
+using Vertex = cVertex;
 #endif
 
 struct CS {
@@ -42,8 +46,12 @@ CC* get_cc( Vertex* v, int idx );
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj );
 #elif KSET
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth );
+#elif KCOUNTER
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count );
 #endif
 
+#if KDICT
 py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth );
-
-
+#elif KCOUNTER
+int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth );
+#endif

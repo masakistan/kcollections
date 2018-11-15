@@ -26,6 +26,8 @@ void print( UC* uc, int k, int depth )
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::handle* obj )
 #elif KSET
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
+#elif KCOUNTER
+void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count )
 #endif
 {
     int len = calc_bk( k );
@@ -34,6 +36,8 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
         uc->suffixes = ( uint8_t* ) calloc( len , sizeof( uint8_t ) );
 #if KDICT
         uc->objs = ( py::handle* ) calloc( len , sizeof( py::handle ) );
+#elif KCOUNTER
+        uc->count = count;
 #endif
     }
     else
@@ -61,7 +65,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
                     &uc->suffixes[ suffix_idx ],
                     bytes_to_move
                     );
-            
+
 #if KDICT
             bytes_to_move = ( uc->size - idx ) * sizeof( py::handle );
             std::memmove(
