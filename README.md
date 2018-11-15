@@ -131,7 +131,7 @@ ks.add('AAACTGTCTTCCTTTATTTGTTCAGGG')
 
 # sequence insertion
 seq = 'AAACTGTCTTCCTTTATTTGTTCAGGGATCGTGTCAGTA'
-ks.add_seq(seq)
+ks.add_seq(seq, len(seq))
 
 assert 'AAACTGTCTTCCTTTATTTGTTCAGGG' in ks
 
