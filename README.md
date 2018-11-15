@@ -119,12 +119,20 @@ del kd['AAACTGTCTTCCTTTATTTGTTCAGGT']
 
 ### Using Kset
 
+Kmers can be added one at a time with `add`, but the fastest way to add kmers to a set is
+to add an DNA sequence using `add_seq`.
+
 ```python
 import kcollections
 ks = kcollections.Kset(27)
 
-# insertion
+# add single kmer
 ks.add('AAACTGTCTTCCTTTATTTGTTCAGGG')
+
+# sequence insertion
+seq = 'AAACTGTCTTCCTTTATTTGTTCAGGGATCGTGTCAGTA'
+ks.add_seq(seq)
+
 assert 'AAACTGTCTTCCTTTATTTGTTCAGGG' in ks
 
 # iteration
