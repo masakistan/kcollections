@@ -225,3 +225,92 @@ class Kset( KsetParent ):
 
     def __sub__( self, other ):
         return self.difference( other )
+
+
+class Kcounter( KcounterParent ):
+    def __init__( self, k ):
+        super( Kcounter, self ).__init__( k )
+
+    def __iter__( self ):
+        return self._get_kmers( self.get_root(), self.k )
+
+    def _get_kmers( self, v, k, prefix = '' ):
+        # get from UC
+        for i in range( self.get_uc_size( v ) ):
+            yield prefix + self.get_uc_kmer( v, k, i )
+
+        for i in range( self.get_cc_size( v ) ):
+            for j in range( self.get_cc_child_size( v, i ) ):
+                child_prefix = prefix + self.get_cc_child_suffix( v, i, j )
+                for kmer in self._get_kmers( self.get_cc_child_vertex( v, i, j ), k - 4, child_prefix ):
+                    yield kmer
+
+    def __str__( self ):
+        res = []
+        for key, val in self.items():
+            res.append( key + ':' + str( val ) )
+        return '{' + ','.join( res ) + '}'
+
+    def __repr__( self ):
+        return self.__str__()
+
+    def items( self ):
+        for kmer in self._get_kmers( self.get_root(), self.k ):
+            yield ( kmer, self[ kmer ] )
+
+    def iteritems( self ):
+        for kmer in self._get_kmers( self.get_root(), self.k ):
+            yield ( kmer, self[ kmer ] )
+
+    def keys( self ):
+        for kmer in self._get_kmers( self.get_root(), self.k ):
+            yield kmer
+
+    def values( self ):
+        for kmer in self._get_kmers( self.get_root(), self.k ):
+            yield self[ kmer ]
+
+    def copy( self ):
+        new_kcounter = Kcounter( self.k )
+        for kmer in self:
+            new_kcounter[ kmer ] = self[ kmer ]
+        return new_kcounter
+
+    def get( self, key, value = 0 ):
+        if key in self:
+            return self[ key ]
+        else:
+            return value
+
+    def popitem( self ):
+        kmer, item = next( self.items() )
+        del self[ kmer ]
+        return ( kmer, item )
+
+    def setdefault( self, key, value = 0 ):
+        if key not in self:
+            self[ key ] = value
+            return value
+        else:
+            return self[ key ]
+
+    def pop( self, key, *default ):
+        if key in self:
+            value = self[ key ]
+            del self[ key ]
+            return value
+        else:
+            if len( default ) > 0:
+                return default
+            else:
+                raise KeyError( key )
+
+    def update( self, *others ):
+        for other in others:
+            for item in other:
+                try:
+                    key, val = item
+                except:
+                    key = item
+                    val = other[ key ]
+                self[ key ] = val
