@@ -15,7 +15,7 @@ typedef struct {
 #if KDICT
     py::handle* objs;
 #elif KCOUNTER
-    int count;
+    int* counts;
 #endif
     uint16_t size;
 } UC;

@@ -28,7 +28,7 @@ int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth )
 #if KDICT
         return &v->uc.objs[ uc_idx ];
 #elif KCOUNTER
-        return v->uc.count;
+        return v->uc.counts[ uc_idx ];
 #endif
     }
 
@@ -142,7 +142,7 @@ void burst_uc( Vertex* v, int k, int depth )
 #if KDICT
     py::handle* objs = v->uc.objs;
 #elif KCOUNTER
-    int count = v->uc.count;
+    int* counts = v->uc.counts;
 #endif
     int idx;
     for( int i = 0; i < CAPACITY; i++ )
@@ -163,7 +163,7 @@ void burst_uc( Vertex* v, int k, int depth )
 #elif KSET
             vertex_insert( child, suffix, k - 4, depth + 1 );
 #elif KCOUNTER
-            vertex_insert( child, suffix, k - 4, depth + 1, count );
+            vertex_insert( child, suffix, k - 4, depth + 1, counts[ i ] );
 #endif
         }
     }
@@ -208,7 +208,11 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
                 );
         v->uc.objs[ uc_idx ].inc_ref();
 #elif KCOUNTER
-        v->uc.count = count;
+        std::memcpy(
+                &v->uc.counts[ uc_idx ],
+                &count,
+                sizeof( int )
+                );
 #endif
         return;
     }
