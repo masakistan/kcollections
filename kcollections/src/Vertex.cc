@@ -240,25 +240,16 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
         }
     }
 
-    if( v->uc.size < CAPACITY - 1 )
-    {
 #if KDICT
-        uc_insert( &( v->uc ), bseq, k, depth, uc_idx, obj );
+    uc_insert( &( v->uc ), bseq, k, depth, uc_idx, obj );
 #elif KSET
-        uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
+    uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
 #elif KCOUNTER
-        uc_insert( &( v->uc ), bseq, k, depth, uc_idx, 0 );
+    uc_insert( &( v->uc ), bseq, k, depth, uc_idx, count );
 #endif
-    }
-    else
+
+    if( v->uc.size > CAPACITY - 1 )
     {
-#if KDICT
-        uc_insert( &( v->uc ), bseq, k, depth, uc_idx, obj );
-#elif KSET
-        uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
-#elif KCOUNTER
-        uc_insert( &( v->uc ), bseq, k, depth, uc_idx, 0 );
-#endif
         burst_uc( v, k, depth );
     }
 }
