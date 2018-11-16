@@ -57,6 +57,13 @@ int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth )
         }
     }
 
+#if KCOUNTER
+    // add a vertex to be 0 if key is not found
+    int default_count = 0;
+    vertex_insert(v, bseq, k, depth, default_count);
+    return default_count;
+#endif
+
     throw pybind11::key_error( "Key not in dictionary!" );
 }
 #endif
