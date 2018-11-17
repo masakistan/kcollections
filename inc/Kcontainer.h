@@ -107,7 +107,7 @@ inline void kcontainer_remove( Kcontainer* kd, char* kmer )
     free( bseq );
 }
 
-#if KSET
+#if defined KSET || defined KCOUNTER
 inline void kcontainer_add_seq(Kcontainer* kd, char* seq) {
     uint8_t* bseq = (uint8_t*) calloc(kd->k, sizeof(uint8_t));
     uint char_pos = kd->k - 1;
@@ -121,7 +121,13 @@ inline void kcontainer_add_seq(Kcontainer* kd, char* seq) {
     //std::cout << deserialize_kmer(kd->k, bk, bseq) << std::endl;
 
     while(true) {
+#if KSET
         vertex_insert(&(kd->v), bseq, kd->k, 0);
+#elif KCOUNTER
+        // get current count of bseq
+        int count = vertex_get_counter(&(kd->v), bseq, kd->k, 0);
+        vertex_insert(&(kd->v), bseq, kd->k, 0, ++count);
+#endif
         //std::cout << seq[char_pos] << std::endl;
 
         // increment char_pos

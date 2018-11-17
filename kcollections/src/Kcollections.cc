@@ -116,6 +116,7 @@ PYBIND11_MODULE( _Kcounter, m )
         .def("get_cc_child_size", &Kcounter::get_cc_child_size )
         .def("get_cc_child_vertex", &Kcounter::get_cc_child_vertex, py::return_value_policy::reference )
         .def("get_cc_child_suffix", &Kcounter::get_cc_child_suffix )
+        .def("add_seq", &Kcounter::add_seq)
         .def_property_readonly("k", &Kcounter::get_k);
 
     /*py::class_<Kcontainer>(m, "DKcontainer")
