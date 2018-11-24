@@ -79,7 +79,7 @@ void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
         }
     }
     
-    throw pybind11::key_error( "Key not found!" );
+    //throw pybind11::key_error( "Key not found!" );
 }
 
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
@@ -124,7 +124,7 @@ void burst_uc( Vertex* v, int k, int depth )
     py::handle* objs = v->uc.objs;
 #endif
     int idx;
-    for( int i = 0; i < CAPACITY; i++ )
+    for( int i = 0; i < v->uc.size; i++ )
     {
         idx = i * suffix_size;
 

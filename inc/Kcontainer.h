@@ -1,5 +1,8 @@
 #pragma once
 
+#include <pthread.h>
+#include <semaphore.h>
+#include <vector>
 #include <stdlib.h>
 #include <string>
 #include <stdexcept>
@@ -9,38 +12,31 @@
 
 namespace py = pybind11;
 
-#define CHECK_KMER_LENGTH(kmer, k, type) ({\
-    if( strlen(kmer) != k )\
-    {\
-        char buffer[1000];\
-        sprintf( buffer, "kmer %s of length %d does not match the %s length of %d",\
-            kmer, strlen(kmer), type, k );\
-        throw std::length_error(std::string(buffer));\
-    }\
-})
 
 typedef struct {
     int k;
     Vertex v;
 } Kcontainer;
 
-inline void init_kcontainer( Kcontainer* kd, int k )
+
+
+inline void init_kcontainer(Kcontainer* kd, int k)
 {
     kd->k = k;
-    init_vertex( &( kd->v ) );
+    init_vertex(&(kd->v));
 }
 
-inline Kcontainer* create_kcontainer( int k )
+inline Kcontainer* create_kcontainer(int k)
 {
     Kcontainer* kd = ( Kcontainer* ) malloc( sizeof( Kcontainer ) );
-    init_kcontainer( kd, k );
+    init_kcontainer(kd, k);
     return kd;
 }
 
 inline void free_kcontainer( Kcontainer* kd )
 {
-    free_vertex( &( kd->v ) );
-    free( kd );
+    free_vertex(&(kd->v));
+    free(kd);
 }
 
 inline bool kcontainer_contains( Kcontainer* kd, char* kmer )
@@ -50,12 +46,13 @@ inline bool kcontainer_contains( Kcontainer* kd, char* kmer )
     bool res = vertex_contains( &( kd->v ), bseq, kd->k, 0 );
     free( bseq );
     return res;
+    return false;
 }
 
 #if KDICT
 inline void kcontainer_insert( Kcontainer* kd, char* kmer, py::handle* obj )
 #elif KSET
-inline void kcontainer_insert( Kcontainer* kd, char* kmer )
+inline void kcontainer_insert( Kcontainer* kd, const char* kmer )
 #endif
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
@@ -96,6 +93,11 @@ inline void kcontainer_remove( Kcontainer* kd, char* kmer )
 }
 
 #if KSET
+void parallel_kcontainer_insert_init(Kcontainer* kd, int threads);
+void parallel_kcontainer_insert(Kcontainer* kd, const char* kmer);
+void* parallel_insert_consumer(void* bin_ptr);
+void parallel_kcontainer_insert_join(Kcontainer* kc);
+
 inline void kcontainer_add_seq(Kcontainer* kd, char* seq, uint32_t length) {
     int size64 = kd->k / 32;
     if(kd->k % 32 > 0) {

@@ -42,6 +42,11 @@ if(Python3)
   set(PYTHON_VERSION 3.4)
 endif()
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
+find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
+
 message("Using Python version " ${PYTHON_VERSION})
 
 # Add inc directory
@@ -54,9 +59,14 @@ string(APPEND SOURCES "${SOURCE_DIR}/CContainer.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/UContainer.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/Vertex.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/Kcollections.cc;")
+string(APPEND SOURCES "${SOURCE_DIR}/Kcontainer.cc;")
 
 string(APPEND DICT_SOURCES "${SOURCE_DIR}/Kdict.cc;")
 string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
+add_executable(settest "${SOURCE_DIR}/TestSetLoad.cxx;" ${SET_SOURCES} ${SOURCES})
+add_executable(settestserial "${SOURCE_DIR}/TestSetLoadSerial.cxx;" ${SET_SOURCES} ${SOURCES})
+target_link_libraries(settest ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
+target_link_libraries(settestserial ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
 
 
 # Python library
@@ -97,6 +107,13 @@ set(PYBIND11_PYTHON_VERSION ${PYTHON_VERSION})
 #set(bindings_python_version 2.7)
 pybind11_add_module( _Kset ${SOURCES} ${SET_SOURCES} )
 set_target_properties( _Kset PROPERTIES COMPILE_DEFINITIONS "KSET" )
+
+#pybind11_add_module( settestserial "${SOURCE_DIR}/TestSetLoad.cxx;" ${SOURCES} ${SET_SOURCES} )
+set_target_properties( settestserial PROPERTIES COMPILE_DEFINITIONS "KSET" )
+
+#pybind11_add_module( settest "${SOURCE_DIR}/TestSetLoad.cxx;" ${SOURCES} ${SET_SOURCES} )
+set_target_properties( settest PROPERTIES COMPILE_DEFINITIONS "KSET" )
+
 pybind11_add_module( _Kdict ${SOURCES} ${DICT_SOURCES} )
 set_target_properties( _Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
 
@@ -148,10 +165,14 @@ set_property(TARGET jemalloc_shared PROPERTY IMPORTED_LOCATION ${install_dir}/li
 include_directories(test_set_driver "${install_dir}/include")
 include_directories(_Kdict "${install_dir}/include")
 include_directories(_Kset "${install_dir}/include")
+include_directories(settest "${install_dir}/include")
+include_directories(settestserial "${install_dir}/include")
 #include_directories(test_dict_driver "${install_dir}/include")
 
 add_dependencies(_Kdict project_jemalloc)
 add_dependencies(_Kset project_jemalloc)
+add_dependencies(settest project_jemalloc)
+add_dependencies(settestserial project_jemalloc)
 
 #add_dependencies(test_dict_driver project_jemalloc)
 #add_dependencies(test_set_driver project_jemalloc)

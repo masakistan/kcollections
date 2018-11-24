@@ -8,6 +8,16 @@
 #include <iostream>
 #include <cstring>
 
+#define CHECK_KMER_LENGTH(kmer, k, type) ({     \
+    if( strlen(kmer) != k )\
+    {\
+        char buffer[1000];\
+        sprintf( buffer, "kmer %s of length %d does not match the %s length of %d",\
+            kmer, strlen(kmer), type, k );\
+        throw std::length_error(std::string(buffer));\
+    }\
+})
+
 
 static int testbit( uint32_t A[],  unsigned int k )
    {
@@ -55,7 +65,7 @@ static const uint8_t MASK_INSERT[ 3 ][ 4 ] = {
 
 static const char COMP_TO_ASCII[4] = {'A', 'C', 'G', 'T'};
 
-static void serialize_kmer( char* kmer, int k, uint8_t* bseq )
+static void serialize_kmer( const char* kmer, int k, uint8_t* bseq )
 {
     for( int pos = 0; pos < k; pos++ )
     {

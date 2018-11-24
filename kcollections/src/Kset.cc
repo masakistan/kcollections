@@ -17,7 +17,7 @@ void Kset::clear()
     kc = create_kcontainer( m_k );
 }
 
-void Kset::insert( char* kmer )
+void Kset::insert( const char* kmer )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kset" );
     kcontainer_insert( kc, kmer );
