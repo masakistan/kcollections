@@ -156,7 +156,7 @@ void parallel_kcontainer_insert(Kcontainer* kd, const char* kmer) {
     // NOTE: unlock the mutex
 
     // NOTE: if there are enough items in the queue, release the mutex
-    if(wkmers[bin]->size() == 10000) {
+    if(wkmers[bin]->size() == 5000) {
         int value;
         sem_getvalue(rsignal[bin], &value);
         if(value != 1) {

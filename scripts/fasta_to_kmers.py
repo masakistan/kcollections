@@ -11,10 +11,13 @@ with open(sys.argv[2], 'r') as fh:
             seq = ''
         else:
             seq += line.strip()
+    seqs.append(seq)
 
 for seq in seqs:
     for i in range(len(seq) - k + 1):
         kmer = seq[i : i + k]
+        if 'N' in kmer:
+            continue
         print kmer
 
 
