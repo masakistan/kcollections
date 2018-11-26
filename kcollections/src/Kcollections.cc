@@ -118,6 +118,7 @@ PYBIND11_MODULE( _Kset, m )
         .def("add_seq", &Kset::add_seq)
         .def("parallel_insert_init", &Kset::parallel_insert_init)
         .def("parallel_insert", &Kset::parallel_insert)
+        .def("parallel_join", &Kset::parallel_join)
         .def_property_readonly("k", &Kset::get_k);
 
     py::class_<Vertex>(m, "Vertex")
