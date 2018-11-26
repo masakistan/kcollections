@@ -50,9 +50,9 @@ inline bool kcontainer_contains( Kcontainer* kd, char* kmer )
 }
 
 #if KDICT
-inline void kcontainer_insert( Kcontainer* kd, char* kmer, py::handle* obj )
+inline void kcontainer_add( Kcontainer* kd, char* kmer, py::handle* obj )
 #elif KSET
-inline void kcontainer_insert( Kcontainer* kd, const char* kmer )
+inline void kcontainer_add( Kcontainer* kd, const char* kmer )
 #endif
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
@@ -93,10 +93,12 @@ inline void kcontainer_remove( Kcontainer* kd, char* kmer )
 }
 
 #if KSET
-void parallel_kcontainer_insert_init(Kcontainer* kd, int threads);
-void parallel_kcontainer_insert(Kcontainer* kd, const char* kmer);
-void* parallel_insert_consumer(void* bin_ptr);
-void parallel_kcontainer_insert_join(Kcontainer* kc);
+void parallel_kcontainer_add_init(Kcontainer* kd, int threads);
+void parallel_kcontainer_add(Kcontainer* kd, const char* kmer);
+void* parallel_kcontainer_add_consumer(void* bin_ptr);
+void parallel_kcontainer_add_join(Kcontainer* kc);
+void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length);
+void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq);
 
 inline void kcontainer_add_seq(Kcontainer* kd, char* seq, uint32_t length) {
     int size64 = kd->k / 32;

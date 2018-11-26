@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import kcollections, sys, time
+from tqdm import tqdm
 
 k = int(sys.argv[1])
 seqs = []
@@ -19,15 +20,13 @@ with(open(sys.argv[2], 'r')) as fh:
 print 'read', len(seqs), 'seqs, adding to ks...'
 
 ks = kcollections.Kset(k)
-ks.parallel_insert_init(4)
+ks.parallel_add_init(4)
 
 for seq in seqs:
     print '\tadding seq...'
     sys.stdout.flush()
-    for i in xrange(len(seq) - k + 1):
-        kmer = seq[i : i + k]
-        ks.parallel_insert(kmer)
-ks.parallel_join()
+    ks.parallel_add_seq(seq, len(seq))
+ks.parallel_add_join()
 
 print len(ks), 'kmers'
 print 'done!'

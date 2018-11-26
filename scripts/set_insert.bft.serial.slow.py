@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, time
+import kcollections, sys, time
 from tqdm import tqdm
 
 k = int(sys.argv[1])
@@ -19,7 +19,7 @@ with(open(sys.argv[2], 'r')) as fh:
 
 print 'read', len(seqs), 'seqs, adding to ks...'
 
-ks = set()
+ks = kcollections.Kset(k)
 
 for seq in seqs:
     print '\tadding seq...'
@@ -27,5 +27,6 @@ for seq in seqs:
     for i in tqdm(xrange(len(seq) - k + 1)):
         kmer = seq[i : i + k]
         ks.add(kmer)
+
 print len(ks), 'kmers'
 print 'done!'

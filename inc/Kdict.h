@@ -13,7 +13,7 @@ class Kdict
     public:
         Kdict( const int k );
         ~Kdict();
-        void insert( char* kmer, py::handle* obj );
+        void add( char* kmer, py::handle* obj );
         bool contains( char* kmer );
         void clear();
         uint64_t size();

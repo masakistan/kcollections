@@ -17,10 +17,10 @@ void Kset::clear()
     kc = create_kcontainer( m_k );
 }
 
-void Kset::insert( const char* kmer )
+void Kset::add( const char* kmer )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kset" );
-    kcontainer_insert( kc, kmer );
+    kcontainer_add( kc, kmer );
 }
 
 bool Kset::contains( char* kmer )
@@ -42,5 +42,9 @@ void Kset::remove( char* kmer )
 
 void Kset::add_seq(char* seq, uint32_t length)
 {
-   kcontainer_add_seq(kc, seq, length);
+    kcontainer_add_seq(kc, seq, length);
+}
+
+void Kset::parallel_add_seq(char* seq, uint32_t length) {
+    parallel_kcontainer_add_seq(kc, seq, length);
 }
