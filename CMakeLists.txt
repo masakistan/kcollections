@@ -44,8 +44,8 @@ endif()
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
-find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
+#find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
+#find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
 
 message("Using Python version " ${PYTHON_VERSION})
 
