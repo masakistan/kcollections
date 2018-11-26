@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
   if(fh.is_open()) {
     while(getline(fh, line)) {
       //std::cout << "inserting: " << line << std::endl;
-      ks->insert(line.c_str());
+      ks->add(line.c_str());
       c++;
     }
     fh.close();

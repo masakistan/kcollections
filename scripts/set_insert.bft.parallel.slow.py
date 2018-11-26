@@ -28,6 +28,7 @@ for seq in seqs:
     for i in tqdm(xrange(len(seq) - k + 1)):
         kmer = seq[i : i + k]
         ks.parallel_add(kmer)
+sys.stdout.flush()
 ks.parallel_add_join()
 
 print len(ks), 'kmers'

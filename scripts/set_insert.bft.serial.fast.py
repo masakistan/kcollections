@@ -24,4 +24,5 @@ for seq in seqs:
     print '\tadding seq...'
     sys.stdout.flush()
     ks.add_seq(seq, len(seq))
+print len(ks), 'kmers'
 print 'done!'

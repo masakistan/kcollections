@@ -20,16 +20,22 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
     // once to finish any kmers in the pipe
     // and a second time to pass the empty kmer list to
     // the thread to signal work is done
+    //std::cout << "posting to " << i << std::endl;
     sem_post(rsignal[i]);
     sem_post(rsignal[i]);
   }
+  //std::cout << "main thread waiting" << std::endl;
 
   int total_ccs = 0;
   uint16_t total_kmers = 0;
   for(int i = 0; i < nthreads; i++) {
+    //std::cout << "joining thread " << i << std::endl;
     pthread_join(p_threads[i], NULL);
+    //std::cout << "joined " << i << std::endl;
     total_ccs += v[i]->cc_size;
   }
+
+  //std::cout << "done joining threads" << std::endl;
 
   kc->v.cc = (CC*) calloc(total_ccs, sizeof(CC));
   kc->v.cc_size = total_ccs;
@@ -54,6 +60,9 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
   free(v);
   free(p_threads);
   free(bin_ids);
+  free(wbin);
+  free(rbin);
+  free(blocks);
 
   // NOTE: merge all vertices together
 }
@@ -127,8 +136,11 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
           rbin[bin] = 0;
         }
     }
-
+    //std::cout << "bursting " << bin << std::endl;
     burst_uc(v[bin], k, 0);
+    //std::cout << "done bursting " << bin << std::endl;
+
+    return NULL;
 }
 
 void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
@@ -146,7 +158,6 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
   // NOTE: add to queuue
   kmers[bin][cur_wbin].push_back(bseq);
   //std::cout << "added to " << bin << "(" << wkmers[bin]->size() << ") from index:" << idx << std::endl;
-
 
   // NOTE: if there are enough items in the queue, release the mutex
   if(kmers[bin][cur_wbin].size() == 5000) {
@@ -206,20 +217,8 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
         bseq64[i] >>= 2;
     }
 
-    switch( seq[j] )
-    {
-        case 'a': break;
-        case 'A': break;
-        case 'c': bseq8[bk - 1] |= MASK_INSERT[0][last_index]; break;
-        case 'C': bseq8[bk - 1] |= MASK_INSERT[0][last_index]; break;
-        case 'g': bseq8[bk - 1] |= MASK_INSERT[1][last_index]; break;
-        case 'G': bseq8[bk - 1] |= MASK_INSERT[1][last_index]; break;
-        case 't': bseq8[bk - 1] |= MASK_INSERT[2][last_index]; break;
-        case 'T': bseq8[bk - 1] |= MASK_INSERT[2][last_index]; break;
-        default:
-            //std::cout << seq[j] << std::endl;
-            throw std::runtime_error( "Could not serialize kmer." );
-    }
+    serialize_position(j, bk - 1, last_index, bseq8, seq);
+
     bseq64_sub = (uint64_t*) calloc(size64, sizeof(uint64_t));
     bseq8_sub = (uint8_t*) bseq64_sub;
     for(i = 0; i < size64; i++) {

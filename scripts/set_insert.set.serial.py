@@ -24,7 +24,8 @@ ks = set()
 for seq in seqs:
     print '\tadding seq...'
     sys.stdout.flush()
-    for i in tqdm(xrange(len(seq) - k + 1)):
+    #for i in tqdm(xrange(len(seq) - k + 1)):
+    for i in xrange(len(seq) - k + 1):
         kmer = seq[i : i + k]
         ks.add(kmer)
 print len(ks), 'kmers'

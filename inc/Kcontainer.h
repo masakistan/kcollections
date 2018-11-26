@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdlib.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <vector>
@@ -28,6 +29,7 @@ inline void init_kcontainer(Kcontainer* kd, int k)
 
 inline Kcontainer* create_kcontainer(int k)
 {
+    srand(1337);
     Kcontainer* kd = ( Kcontainer* ) malloc( sizeof( Kcontainer ) );
     init_kcontainer(kd, k);
     return kd;
@@ -127,20 +129,7 @@ inline void kcontainer_add_seq(Kcontainer* kd, char* seq, uint32_t length) {
             bseq64[i] >>= 2;
         }
 
-        switch( seq[j] )
-        {
-            case 'a': break;
-            case 'A': break;
-            case 'c': bseq8[bk - 1] |= MASK_INSERT[0][last_index]; break;
-            case 'C': bseq8[bk - 1] |= MASK_INSERT[0][last_index]; break;
-            case 'g': bseq8[bk - 1] |= MASK_INSERT[1][last_index]; break;
-            case 'G': bseq8[bk - 1] |= MASK_INSERT[1][last_index]; break;
-            case 't': bseq8[bk - 1] |= MASK_INSERT[2][last_index]; break;
-            case 'T': bseq8[bk - 1] |= MASK_INSERT[2][last_index]; break;
-            default:
-                //std::cout << seq[j] << std::endl;
-                throw std::runtime_error( "Could not serialize kmer." );
-        }
+        serialize_position(j, bk - 1, last_index, bseq8, seq);
         vertex_insert(&(kd->v), bseq8, kd->k, 0);
     }
 
