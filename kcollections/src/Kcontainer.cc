@@ -11,7 +11,9 @@ pthread_t* p_threads;
 int* bin_ids;
 int* wbin;
 int* rbin;
-int work_queues = 5;
+int work_queues = 10;
+int bits_to_shift;
+int MAX_BIN_SIZE = 500;
 
 void parallel_kcontainer_add_join(Kcontainer* kc) {
   for(int i = 0; i < nthreads; i++) {
@@ -71,6 +73,8 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads) {
     // NOTE: initialize variables
     k = kd->k;
     nthreads = threads;
+    bits_to_shift = 8 - log2((double) threads);
+    std::cout<< "bits to shift:\t" << bits_to_shift << std::endl;
     bk = calc_bk(kd->k);
     v = (Vertex**) calloc(threads, sizeof(Vertex*));
     signal_b = (sem_t*) calloc(threads, sizeof(sem_t));
@@ -148,7 +152,7 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
 
   // NOTE: determine bin
   // hard coded for 4 threads right now
-  uint bin = idx >> 6;
+  uint bin = idx >> bits_to_shift;
   int cur_wbin = wbin[bin];
 
   // NOTE: check if producer has the mutex
@@ -160,7 +164,7 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
   //std::cout << "added to " << bin << "(" << wkmers[bin]->size() << ") from index:" << idx << std::endl;
 
   // NOTE: if there are enough items in the queue, release the mutex
-  if(kmers[bin][cur_wbin].size() == 5000) {
+  if(kmers[bin][cur_wbin].size() == MAX_BIN_SIZE) {
     //std::cout << "bin " << bin << ":" << cur_wbin << " is done" << std::endl;
     // NOTE: move to next thread queue
     wbin[bin]++;

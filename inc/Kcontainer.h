@@ -10,6 +10,7 @@
 #include "Vertex.h"
 #include "helper.h"
 #include <jemalloc/jemalloc.h>
+#include <math.h>
 
 namespace py = pybind11;
 
