@@ -4,6 +4,9 @@
 void init_vertex( Vertex* v )
 {
     v->start = false;
+    v->pref_pres = 0;
+    v->vs_size = 0;
+    v->vs = NULL;
     v->cc = NULL;
     v->cc_size = 0;
     init_uc( &( v->uc ) );
@@ -115,9 +118,13 @@ bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
 
 void burst_uc( Vertex* v, int k, int depth )
 {
+    std::cout << "bursting!" << std::endl;
     CC* cc = ( CC* ) malloc( sizeof( CC ) );
     int suffix_size = calc_bk( k );
     init_cc( cc, suffix_size );
+
+    //Vertex* nv = (Vertex*) malloc(sizeof(Vertex));
+    //init_vertex(nv);
 
     uint8_t* suffixes = v->uc.suffixes;
 #if KDICT
@@ -126,26 +133,59 @@ void burst_uc( Vertex* v, int k, int depth )
     int idx;
     for( int i = 0; i < v->uc.size; i++ )
     {
+        std::cout << "*******************************************" << std::endl;
         idx = i * suffix_size;
+        char* dseq = deserialize_kmer(k, calc_bk(k), &v->uc.suffixes[idx]);
+        std::cout << i << "\t" << dseq << std::endl;
 
         uint8_t* bseq = &suffixes[ idx ];
         uint8_t prefix = bseq[ 0 ];
         uint8_t* suffix = &bseq[ 1 ];
 
-        // check if full TODO finish
-        if( !false )
-        {
-            Vertex* child = cc_insert( cc, k, depth, bseq );
-            //Vertex* child = get_child_of( cc, bseq, index_of( cc, bseq ) );
-#if KDICT
-            vertex_insert( child, suffix, k - 4, depth + 1, &objs[ i ] );
-#elif KSET
-            vertex_insert( child, suffix, k - 4, depth + 1 );
-#endif
+        uint256_t pre_verts = v->pref_pres;
+        pre_verts <<= (256 - (unsigned) prefix);
+        pre_verts >>= (256 - (unsigned) prefix);
+        int vidx = __builtin_popcount(pre_verts);
+
+        std::cout << "vidx: " << vidx << std::endl;
+        std::cout << "prefix: " << (unsigned) prefix << std::endl;
+
+        // check if there is already a vertex that represents this prefix
+        if(!(v->pref_pres >> (unsigned) prefix) & 0x1) {
+            std::cout << "\tvertex does not exist" << std::endl;
+            v->pref_pres |= (0x1 << (unsigned) prefix);
+            std::cout << v->pref_pres << std::endl;
+
+            v->vs = (Vertex*) realloc(v->vs, (v->vs_size + 1) + sizeof(Vertex));
+            // move any previous vertices if necessary
+            if(vidx < v->vs_size) {
+                std::memmove(&v->vs[vidx + 1],
+                             &v->vs[vidx],
+                             (v->vs_size - vidx) * sizeof(Vertex)
+                             );
+            }
+
+            // insert a vertex at vidx
+            init_vertex(&v->vs[vidx]);
+
+            // increment size
+            v->vs_size++;
+        } else {
+            std::cout << "\tusing existing vertex" << std::endl;
         }
+
+        Vertex* child = &v->vs[vidx];
+
+        //Vertex* child = cc_insert( cc, k, depth, bseq );
+        //Vertex* child = get_child_of( cc, bseq, index_of( cc, bseq ) );
+#if KDICT
+        vertex_insert( child, suffix, k - 4, depth + 1, &objs[ i ] );
+#elif KSET
+        vertex_insert( child, suffix, k - 4, depth + 1 );
+#endif
     }
 
-    if( v->cc == NULL )
+    /*if( v->cc == NULL )
     {
         v->cc = cc;
         v->cc_size++;
@@ -156,11 +196,12 @@ void burst_uc( Vertex* v, int k, int depth )
         std::memcpy( &v->cc[ v->cc_size ], cc, sizeof( CC ) );
         v->cc_size++;
         free( cc );
-    }
+    }*/
 
     free_uc( &( v->uc ) );
     init_uc( &( v->uc ) );
     //v->uc.size = 0;
+    std::cout << "done bursting" << std::endl;
 }
 
 #if KDICT
@@ -246,13 +287,18 @@ void free_vertex( Vertex* v )
 uint64_t vertex_size( Vertex* v )
 {
     uint64_t c = v->uc.size;
-    for( int i = 0; i < v->cc_size; i++ )
+    std::cout << "vs size: " << v->vs_size << std::endl;
+    for(int i = 0; i < v->vs_size; i++) {
+        c += vertex_size(&v->vs[i]);
+    }
+
+    /*for( int i = 0; i < v->cc_size; i++ )
     {
         for( int j = 0; j < v->cc[ i ].size; j++ )
         {
             c += vertex_size( &v->cc[ i ].child_suffixes[ j ].v );
         }
-    }
+    }*/
     return c;
 }
 

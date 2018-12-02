@@ -5,17 +5,22 @@
 #include "UContainer.h"
 #include "globals.h"
 #include <jemalloc/jemalloc.h>
+#include "uint256_t.h"
 
 namespace py = pybind11;
 
 #if KDICT
 struct dVertex{
+    dVertex* vs;
 #elif KSET
 struct sVertex{
+    sVertex* vs;
 #endif
+    uint256_t pref_pres;
     CC* cc;
     UC uc;
     uint16_t cc_size;
+    uint16_t vs_size;
     bool start;
 };
 
