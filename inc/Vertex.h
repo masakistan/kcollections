@@ -1,7 +1,6 @@
 #pragma once
 
 #include <pybind11/pybind11.h>
-#include "CContainer.h"
 #include "UContainer.h"
 #include "globals.h"
 #include <jemalloc/jemalloc.h>
@@ -17,9 +16,7 @@ struct sVertex{
     sVertex* vs;
 #endif
     uint256_t pref_pres;
-    CC* cc;
     UC uc;
-    uint16_t cc_size;
     uint16_t vs_size;
     bool start;
 };
@@ -41,7 +38,6 @@ void init_vertex( Vertex* v );
 void free_vertex( Vertex* v );
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth );
 void burst_uc( Vertex* v, int k, int depth );
-CC* get_cc( Vertex* v, int idx );
 
 #if KDICT
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj );

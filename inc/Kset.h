@@ -1,5 +1,6 @@
 #pragma once
 
+#include "uint256_t.h"
 #include <pybind11/pybind11.h>
 #include "Kcontainer.h"
 
@@ -17,7 +18,7 @@ class Kset
         bool contains( const char* kmer );
         void clear();
         uint64_t size();
-        void remove( char* kmer );
+        void remove( const char* kmer );
         int get_k() { return m_k; }
         Kcontainer* get_kc() { return kc; }
 
@@ -35,15 +36,22 @@ class Kset
         }
 
         Vertex* get_root() { return &kc->v; }
-        int get_cc_size( Vertex* v ){ return v->cc_size; }
-        int get_cc_child_size( Vertex* v, int idx ) { return v->cc[ idx ].size; }
-        Vertex* get_cc_child_vertex( Vertex* v, int cc_idx, int child_idx )
+        int get_vs_size( Vertex* v ){ return v->vs_size; }
+        Vertex* get_child_vertex( Vertex* v, int idx )
         {
-            return &v->cc[ cc_idx ].child_suffixes[ child_idx ].v;
+            return &v->vs[idx];
         }
-        char* get_cc_child_suffix( Vertex* v, int cc_idx, int child_idx )
+        char* get_child_suffix( Vertex* v, int idx )
         {
-            return deserialize_kmer( 4, 1, &v->cc[ cc_idx ].child_suffixes[ child_idx ].suffix );
+            uint256_t verts = v->pref_pres;
+            uint8_t i = 0;
+            while(i < idx) {
+                if(verts & 0x1) {
+                    idx++;
+                }
+                verts >>= 1;
+            }
+            return deserialize_kmer(4, 1, &i);
         }
         void add_seq(char* seq, uint32_t length);
 

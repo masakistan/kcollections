@@ -4,17 +4,10 @@
 void init_vertex( Vertex* v )
 {
     v->start = false;
-    v->pref_pres = 0;
+    v->pref_pres = (uint256_t) 0;
     v->vs_size = 0;
     v->vs = NULL;
-    v->cc = NULL;
-    v->cc_size = 0;
     init_uc( &( v->uc ) );
-}
-
-CC* get_cc( Vertex* v, int idx )
-{
-    return &v->cc[ idx ];
 }
 
 #if KDICT
@@ -27,24 +20,16 @@ py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
         return &v->uc.objs[ uc_idx ];
     }
 
+    if(v->vs != NULL) {
+        uint8_t prefix = bseq[0];
+        uint256_t pre_verts = v->pref_pres;
+        pre_verts <<= (256 - (unsigned) prefix);
+        pre_verts >>= (256 - (unsigned) prefix);
 
-    if( v->cc != NULL )
-    {
-        int size = sizeof( *v->cc ) / sizeof( CC );
-        bool res = false;
-        CC* cc;
-        for( int i = 0; i < v->cc_size; i++ )
-        {
-            cc = &v->cc[ i ];
-            if( cc_may_contain( cc, bseq ) )
-            {
-                int idx = cc_contains_prefix( cc, bseq );
-                if ( idx > -1 )
-                {
-                    Vertex* child = get_child_of( cc, bseq, idx );
-                    return vertex_get( child, &bseq[ 1 ], k - 4, depth + 1 );
-                }
-            }
+        if((v->pref_pres >> (unsigned) prefix) & 0x1) {
+            int vidx = __builtin_popcount(pre_verts);
+            Vertex* child = &v->vs[vidx];
+            return vertex_get(child, &bseq[1], k - 4, depth + 1);
         }
     }
 
@@ -54,34 +39,37 @@ py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
 
 void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
 {
+    //std::cout << "removing: " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
+    //std::cout << "\tnum uc items: " << v->uc.size << std::endl;
+    for(int i = 0; i < v->uc.size; i++) {
+        int idx = i * calc_bk(k);
+        //std::cout << "\t\t" << deserialize_kmer(k, calc_bk(k), &v->uc.suffixes[idx]) << std::endl;
+    }
+
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
     int uc_idx = sres.second;
     if( sres.first )
     {
+        //std::cout << "\tfound item in uc!" << std::endl;
         uc_remove( &( v->uc ), calc_bk( k ), uc_idx );
         return;
     }
 
-    if( v->cc != NULL )
-    {
-        int size = sizeof( *v->cc ) / sizeof( CC );
-        bool res = false;
-        CC* cc;
-        for( int i = 0; i < v->cc_size; i++ )
-        {
-            cc = &v->cc[ i ];
-            if( cc_may_contain( cc, bseq ) )
-            {
-                int idx = cc_contains_prefix( cc, bseq );
-                if ( idx > -1 )
-                {
-                    Vertex* child = get_child_of( cc, bseq, idx );
-                    vertex_remove( child, &bseq[ 1 ], k - 4, depth + 1 );
-                }
-            }
+    if(v->vs != NULL) {
+        uint8_t prefix = bseq[0];
+        //std::cout << "\tchecking prefix: " << (unsigned) prefix << std::endl;
+
+        if((v->pref_pres >> (unsigned) prefix) & 0x1) {
+            uint256_t pre_verts = v->pref_pres;
+            pre_verts <<= (256 - (unsigned) prefix);
+            pre_verts >>= (256 - (unsigned) prefix);
+            int vidx = __builtin_popcount(pre_verts);
+            //std::cout << "\t\tfound vertex to traverse " << vidx << std::endl;
+            Vertex* child = &v->vs[vidx];
+            vertex_remove(child, &bseq[1], k - 4, depth + 1);
         }
     }
-    
+
     //throw pybind11::key_error( "Key not found!" );
 }
 
@@ -132,7 +120,7 @@ void burst_uc( Vertex* v, int k, int depth )
     {
         //std::cout << "*******************************************" << std::endl;
         idx = i * suffix_size;
-        char* dseq = deserialize_kmer(k, calc_bk(k), &v->uc.suffixes[idx]);
+        //char* dseq = deserialize_kmer(k, calc_bk(k), &v->uc.suffixes[idx]);
         //std::cout << i << "\t" << dseq << std::endl;
 
         uint8_t* bseq = &suffixes[ idx ];
@@ -150,16 +138,19 @@ void burst_uc( Vertex* v, int k, int depth )
 
         // check if there is already a vertex that represents this prefix
         if(!((v->pref_pres >> (unsigned) bits_to_shift) & 0x1)) {
-            //std::cout << "\tvertex does not exist" << std::endl;
+            //std::cout << "\tvertex does not exist, place at " << vidx << std::endl;
             //std::cout << "\tpref pres: " << v->pref_pres << std::endl;
 
             if(v->vs == NULL) {
+                //std::cout << "\t\tcreating new vertex at position 0" << std::endl;
                 v->vs = (Vertex*) calloc(1, sizeof(Vertex));
             } else {
-                v->vs = (Vertex*) realloc(v->vs, (v->vs_size + 1) + sizeof(Vertex));
+                //std::cout << "\t\tcreating space for a new vertex, new size " << v->vs_size + 1 << std::endl;
+                v->vs = (Vertex*) realloc(v->vs, (v->vs_size + 1) * sizeof(Vertex));
             }
             // move any previous vertices if necessary
             if(vidx < v->vs_size) {
+                //std::cout << "moving vertices" << std::endl;
                 std::memmove(&v->vs[vidx + 1],
                              &v->vs[vidx],
                              (v->vs_size - vidx) * sizeof(Vertex)
@@ -171,10 +162,19 @@ void burst_uc( Vertex* v, int k, int depth )
             //std::cout << "new pref pres: " << v->pref_pres << std::endl;
 
             // insert a vertex at vidx
+            //std::cout << "\t\t init vertex at " << vidx << std::endl;
             init_vertex(&v->vs[vidx]);
+            v->vs_size++;
+    /*for(int i = 0; i < v->vs_size; i++) {
+        std::cout << "vertex " << i << std::endl;
+        for(int j = 0; j < v->vs[i].uc.size; j++) {
+            int idx = j * calc_bk(k - 4);
+            std::cout << "\t" << deserialize_kmer(k - 4, calc_bk(k - 4), &v->vs[i].uc.suffixes[idx]) << std::endl;
+        }
+    }
+    std::cout << "done!" << std::endl;*/
 
             // increment size
-            v->vs_size++;
         } else {
             //std::cout << "\tusing existing vertex" << std::endl;
         }
@@ -189,10 +189,17 @@ void burst_uc( Vertex* v, int k, int depth )
     }
 
     //std::cout << "about to free uc" << std::endl;
-    free_uc( &( v->uc ) );
-    init_uc( &( v->uc ) );
     //v->uc.size = 0;
     //std::cout << "done bursting" << std::endl;
+    /*for(int i = 0; i < v->vs_size; i++) {
+        std::cout << "vertex " << i << std::endl;
+        for(int j = 0; j < v->vs[i].uc.size; j++) {
+            int idx = j * calc_bk(k - 4);
+            std::cout << "\t" << deserialize_kmer(k - 4, calc_bk(k - 4), &v->vs[i].uc.suffixes[idx]) << std::endl;
+        }
+    }*/
+    free_uc( &( v->uc ) );
+    init_uc( &( v->uc ) );
 }
 
 #if KDICT
@@ -201,6 +208,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj 
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 #endif
 {
+    //std::cout << "vertex insertion: " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
     int uc_idx = sres.second;
     if( sres.first )
@@ -217,30 +225,20 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 #endif
         return;
     }
-    
-    for( int i = 0; i < v->cc_size; i++ )
-    {
-        CC* cc = &v->cc[ i ];
-        if( cc_may_contain( cc, bseq ) )
-        {
-            uint8_t* suffix = &bseq[ 1 ];
-            int idx = cc_contains_prefix( cc, bseq );
-            Vertex* child;
-            if( idx > -1 )
-            {
-                child = get_child_of( cc, bseq, idx );
-            }
-            else
-            {
-                child = cc_insert( cc, k, depth, bseq );
-            }
+
+    uint8_t prefix = bseq[ 0 ];
+    uint256_t pre_verts = v->pref_pres;
+    pre_verts <<= (256 - (unsigned) prefix);
+    pre_verts >>= (256 - (unsigned) prefix);
+    if((v->pref_pres >> (unsigned) prefix) & 0x1) {
+        int vidx = __builtin_popcount(pre_verts);
+        Vertex* child = &v->vs[vidx];
 #if KDICT
-            vertex_insert( child, suffix, k - 4, depth + 1, obj );
+        vertex_insert(child, &bseq[1], k - 4, depth + 1, obj);
 #elif KSET
-            vertex_insert( child, suffix, k - 4, depth + 1 );
+        vertex_insert(child, &bseq[1], k - 4, depth + 1);
 #endif
-            return;
-        }
+        return;
     }
 
     if( v->uc.size < CAPACITY - 1 )
@@ -253,6 +251,8 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
         uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
 #endif
         //std::cout << "\tafter uc size: " << v->uc.size << std::endl;
+        //std::cout << "\t\tlast kmer added: ";
+        //std::cout << deserialize_kmer(k, calc_bk(k), &v->uc.suffixes[0]) << std::endl;
     }
     else
     {
@@ -269,9 +269,9 @@ void free_vertex( Vertex* v )
 {
     free_uc( &( v->uc ) );
     for(int i = 0; i < v->vs_size; i++) {
-        //std::cout << "\tremove vertex " << i << std::endl;
         free_vertex(&v->vs[i]);
     }
+    free(v->vs);
 }
 
 uint64_t vertex_size( Vertex* v )

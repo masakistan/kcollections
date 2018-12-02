@@ -60,7 +60,7 @@ inline void kcontainer_add( Kcontainer* kd, const char* kmer )
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
     serialize_kmer( kmer, kd->k, bseq );
-    char* dseq = deserialize_kmer(kd->k, calc_bk(kd->k), bseq);
+    //char* dseq = deserialize_kmer(kd->k, calc_bk(kd->k), bseq);
 #if KDICT
     vertex_insert( &( kd->v ), bseq, kd->k, 0, obj );
 #elif KSET
@@ -88,7 +88,7 @@ inline uint64_t kcontainer_size( Kcontainer* kd )
     return vertex_size( &kd->v );
 }
 
-inline void kcontainer_remove( Kcontainer* kd, char* kmer )
+inline void kcontainer_remove( Kcontainer* kd, const char* kmer )
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
     serialize_kmer( kmer, kd->k, bseq );

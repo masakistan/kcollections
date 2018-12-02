@@ -44,27 +44,17 @@ PYBIND11_MODULE( _Kdict, m )
         .def("get_uc_kmer", &Kdict::get_uc_kmer)
         .def("get_uc_size", &Kdict::get_uc_size)
         .def("get_root", &Kdict::get_root, py::return_value_policy::reference)
-        .def("get_cc_size", &Kdict::get_cc_size )
-        .def("get_cc_child_size", &Kdict::get_cc_child_size )
-        .def("get_cc_child_vertex", &Kdict::get_cc_child_vertex, py::return_value_policy::reference )
-        .def("get_cc_child_suffix", &Kdict::get_cc_child_suffix )
+        .def("get_vs_size", &Kdict::get_vs_size )
+        .def("get_child_vertex", &Kdict::get_child_vertex, py::return_value_policy::reference )
+        .def("get_child_suffix", &Kdict::get_child_suffix )
         .def_property_readonly("k", &Kdict::get_k);
 
     /*py::class_<Kcontainer>(m, "DKcontainer")
         .def_readonly( "root", &Kcontainer::v );*/
     
     py::class_<Vertex>(m, "Vertex")
-        .def_readonly( "cc_size", &Vertex::cc_size)
+        .def_readonly( "vs_size", &Vertex::vs_size)
         .def_readonly( "uc", &Vertex::uc );
-    
-    /*py::class_<UC>(m, "DUC")
-        .def_readonly("size", &UC::size);
-
-    py::class_<CC>(m, "DCC")
-        .def_readonly("size", &CC::size);
-    
-    m.def("get_kmer_from_uc", &get_uc_kmer);
-    m.def("get_cc", &get_cc, py::return_value_policy::reference);*/
 }
 #elif KSET
 #include "Kset.h"
@@ -111,10 +101,9 @@ PYBIND11_MODULE( _Kset, m )
         .def("get_uc_kmer", &Kset::get_uc_kmer)
         .def("get_uc_size", &Kset::get_uc_size)
         .def("get_root", &Kset::get_root, py::return_value_policy::reference)
-        .def("get_cc_size", &Kset::get_cc_size )
-        .def("get_cc_child_size", &Kset::get_cc_child_size )
-        .def("get_cc_child_vertex", &Kset::get_cc_child_vertex, py::return_value_policy::reference )
-        .def("get_cc_child_suffix", &Kset::get_cc_child_suffix )
+        .def("get_vs_size", &Kset::get_vs_size )
+        .def("get_child_vertex", &Kset::get_child_vertex, py::return_value_policy::reference )
+        .def("get_child_suffix", &Kset::get_child_suffix )
         .def("add_seq", &Kset::add_seq)
         .def("parallel_add_init", &Kset::parallel_add_init)
         .def("parallel_add", &Kset::parallel_add)
@@ -123,17 +112,8 @@ PYBIND11_MODULE( _Kset, m )
         .def_property_readonly("k", &Kset::get_k);
 
     py::class_<Vertex>(m, "Vertex")
-        .def_readonly( "cc_size", &Vertex::cc_size)
+        .def_readonly( "vs_size", &Vertex::vs_size)
         .def_readonly( "uc", &Vertex::uc );
-    
-    /*py::class_<UC>(m, "SUC")
-        .def_readonly("size", &UC::size);
-
-    py::class_<CC>(m, "SCC")
-        .def_readonly("size", &CC::size);
-    
-    m.def("get_kmer_from_uc", &get_uc_kmer);
-    m.def("get_cc", &get_cc, py::return_value_policy::reference);*/
 }
 #endif
 

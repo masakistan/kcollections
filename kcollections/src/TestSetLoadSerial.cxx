@@ -25,6 +25,16 @@ int main(int argc, char* argv[]) {
   } else {
     std::cout << "Could not open file: " << file_path << std::endl;
   }
+  std::cout << "Kmer set contains " << ks->size() << " kmers" << std::endl;
+
+  // remove the kmers
+  fh.open(file_path);
+  if(fh.is_open()) {
+    while(getline(fh, line)) {
+      ks->remove(line.c_str());
+      std::cout << "kset size: " << ks->size() << std::endl;
+    }
+  }
 
   std::cout << "Kmer set contains " << ks->size() << " kmers" << std::endl;
   delete ks;

@@ -28,30 +28,29 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
   }
   //std::cout << "main thread waiting" << std::endl;
 
-  int total_ccs = 0;
+  int total_vs = 0;
   uint16_t total_kmers = 0;
   for(int i = 0; i < nthreads; i++) {
     //std::cout << "joining thread " << i << std::endl;
     pthread_join(p_threads[i], NULL);
     //std::cout << "joined " << i << std::endl;
-    total_ccs += v[i]->cc_size;
+    total_vs += v[i]->vs_size;
   }
 
   //std::cout << "done joining threads" << std::endl;
 
-  kc->v.cc = (CC*) calloc(total_ccs, sizeof(CC));
-  kc->v.cc_size = total_ccs;
+  kc->v.vs = (Vertex*) calloc(total_vs, sizeof(Vertex));
+  kc->v.vs_size = total_vs;
 
-  //std::cout << "total compressed containers: " << total_ccs << std::endl;
+  //std::cout << "total compressed containers: " << total_vs << std::endl;
 
   // NOTE: clean up memory
   int idx = 0;
   for(int i = 0; i < nthreads; i++) {
-    //std::cout << "placing CCs at: " << idx << std::endl;
-    std::memmove(&kc->v.cc[idx], v[i]->cc, v[i]->cc_size * sizeof(CC));
-    idx += v[i]->cc_size;
-    free_uc(&v[i]->uc);
-    free(v[i]->cc);
+    //std::cout << "placing vs at: " << idx << std::endl;
+    std::memmove(&kc->v.vs[idx], v[i]->vs, v[i]->vs_size * sizeof(Vertex));
+    idx += v[i]->vs_size;
+    free_vertex(v[i]);
     free(v[i]);
     kmers[i].clear();
   }
