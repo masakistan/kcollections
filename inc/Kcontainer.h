@@ -42,7 +42,7 @@ inline void free_kcontainer( Kcontainer* kd )
     free(kd);
 }
 
-inline bool kcontainer_contains( Kcontainer* kd, char* kmer )
+inline bool kcontainer_contains( Kcontainer* kd, const char* kmer )
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
     serialize_kmer( kmer, kd->k, bseq );

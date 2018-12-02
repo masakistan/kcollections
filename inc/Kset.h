@@ -14,7 +14,7 @@ class Kset
         Kset( const int k );
         ~Kset();
         void add( const char* kmer );
-        bool contains( char* kmer );
+        bool contains( const char* kmer );
         void clear();
         uint64_t size();
         void remove( char* kmer );

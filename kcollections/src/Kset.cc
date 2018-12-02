@@ -23,7 +23,7 @@ void Kset::add( const char* kmer )
     kcontainer_add( kc, kmer );
 }
 
-bool Kset::contains( char* kmer )
+bool Kset::contains( const char* kmer )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kset" );
     return kcontainer_contains( kc, kmer );

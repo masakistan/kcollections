@@ -2,6 +2,7 @@
 
 void init_uc( UC* uc )
 {
+    //std::cout << "initializing uc" << std::endl;
     uc->suffixes = NULL;
 #if KDICT
     uc->objs = NULL;
@@ -83,9 +84,12 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
 
 void free_uc( UC* uc )
 {
+    //std::cout << "Free uc\t" << uc->size << std::endl;
     if( uc->suffixes != NULL )
     {
+        //std::cout << "\tremoving suffixes\t" << uc->size << std::endl;
         free( uc->suffixes );
+        //std::cout << "\tdone removing suffixes" << std::endl;
 #if KDICT
         for( int i = 0; i < uc->size; i++ )
         {
