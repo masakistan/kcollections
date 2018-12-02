@@ -59,9 +59,12 @@ inline int calc_bk( int k )
 
 static const uint8_t MASK_INSERT[ 4 ][ 4 ] = {
         {0, 0, 0, 0, },
-        { 1, 4, 16, 64 },
-        { 2, 8, 32, 128 },
-        { 3, 12, 48, 192 }
+        //{ 1, 4, 16, 64 },
+        {64, 16, 4, 1},
+        //{ 2, 8, 32, 128 },
+        {128, 32, 8, 2},
+        //{ 3, 12, 48, 192 }
+        {192, 48, 12, 3}
     };
 
 static const char COMP_TO_ASCII[4] = {'A', 'C', 'G', 'T'};
@@ -100,19 +103,20 @@ static char* deserialize_kmer( int k, int bk, uint8_t* bseq )
     
     for( int i = 0; i < bk; i ++ )
     {
-        if( bases_to_process > 4 )
+        tbkmer = bseq[ i ];
+        if( bases_to_process >= 4 )
         {
             bases_in_byte = 4;
         }
         else
         {
             bases_in_byte = bases_to_process;
+            tbkmer >>= 8 - (bases_in_byte * 2);
         }
 
-        tbkmer = bseq[ i ];
         for( j = 0; j < bases_in_byte; j++ )
         {
-            pos = ( i * 4 ) + j;
+            pos = ( i * 4 ) + (bases_in_byte - j - 1);
             kmer[ pos ] = COMP_TO_ASCII[ tbkmer & 0x3 ];
             tbkmer >>= 2;
         }
