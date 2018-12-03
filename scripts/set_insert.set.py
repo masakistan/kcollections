@@ -9,4 +9,5 @@ with open(sys.argv[2], 'r') as fh:
     for line in fh:
         line = line.strip()
         ks.add(line)
+print len(ks)
 print 'done!'

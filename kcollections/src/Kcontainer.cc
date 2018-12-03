@@ -50,7 +50,9 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
     //std::cout << "placing vs at: " << idx << std::endl;
     std::memmove(&kc->v.vs[idx], v[i]->vs, v[i]->vs_size * sizeof(Vertex));
     idx += v[i]->vs_size;
-    free_vertex(v[i]);
+    //free_vertex(v[i]);
+    free_uc(&v[i]->uc);
+    free(v[i]->vs);
     free(v[i]);
     kmers[i].clear();
   }

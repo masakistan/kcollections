@@ -127,6 +127,19 @@ static char* deserialize_kmer( int k, int bk, uint8_t* bseq )
     return kmer;
 }
 
+static int compare_seqs(uint8_t* seq1, uint8_t* seq2, int len) {
+    //std::cout << "compare\n" << deserialize_kmer(len * 4, len, seq1) << "\n";
+    //std::cout << deserialize_kmer(len*4, len, seq2) << std::endl;
+    for(int i = 0; i < len; i++) {
+        if((unsigned) seq1[i] < (unsigned) seq2[i]) {
+            return -1;
+        } else if((unsigned) seq1[i] > (unsigned) seq2[i]) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 static std::pair< bool, int > binary_search( uint8_t* suffixes, int max, int len, uint8_t* bseq )
 {
     if( max == 0 )
@@ -140,7 +153,8 @@ static std::pair< bool, int > binary_search( uint8_t* suffixes, int max, int len
         mid = min + ( max - min ) / 2;
         idx = mid * len;
 
-        cmp = std::memcmp( bseq, &suffixes[ idx ], len );
+        //cmp = std::memcmp( bseq, &suffixes[ idx ], len );
+        cmp = compare_seqs(bseq, &suffixes[idx], len);
         if( cmp < 0 )
         {
             max = mid;

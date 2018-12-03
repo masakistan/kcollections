@@ -21,6 +21,9 @@ int main(int argc, char* argv[]) {
       //ks.insert(line.c_str());
       ks->parallel_add(line.c_str());
       c++;
+      if(ks->size() != c) {
+        std::cout << "error at kmer " << c << "\t" << line << std::endl;
+      }
     }
     fh.close();
     ks->parallel_add_join();

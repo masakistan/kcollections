@@ -16,10 +16,14 @@ int main(int argc, char* argv[]) {
   int c = 0;
   if(fh.is_open()) {
     while(getline(fh, line)) {
-      std::cout << "inserting: " << line << std::endl;
+      //std::cout << "inserting: " << line << std::endl;
       ks->add(line.c_str());
-      std::cout << "checking: " << ks->contains(line.c_str()) << std::endl;
+      //std::cout << "checking: " << ks->contains(line.c_str()) << std::endl;
       c++;
+      if(ks->size() != c) {
+        std::cout << "error at kmer " << c << "\t" << line << "\treported size is: " << std::endl;
+        break;
+      }
     }
     fh.close();
   } else {
@@ -28,13 +32,13 @@ int main(int argc, char* argv[]) {
   std::cout << "Kmer set contains " << ks->size() << " kmers" << std::endl;
 
   // remove the kmers
-  fh.open(file_path);
+  /*fh.open(file_path);
   if(fh.is_open()) {
     while(getline(fh, line)) {
       ks->remove(line.c_str());
-      std::cout << "kset size: " << ks->size() << std::endl;
+      //std::cout << "kset size: " << ks->size() << std::endl;
     }
-  }
+  }*/
 
   std::cout << "Kmer set contains " << ks->size() << " kmers" << std::endl;
   delete ks;
