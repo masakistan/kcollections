@@ -70,7 +70,7 @@ static const uint8_t MASK_INSERT[ 4 ][ 4 ] = {
 static const char COMP_TO_ASCII[4] = {'A', 'C', 'G', 'T'};
 
 
-static void serialize_position(int kmerPos, int arrPos, int bitPos, uint8_t* bseq, const char* kmer) {
+static void serialize_position(uint32_t kmerPos, int arrPos, int bitPos, uint8_t* bseq, const char* kmer) {
     switch( kmer[kmerPos] )
     {
         case 'a': break;

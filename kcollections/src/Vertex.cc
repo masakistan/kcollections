@@ -27,7 +27,12 @@ py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
         pre_verts >>= (256 - (unsigned) prefix);
 
         if((v->pref_pres >> (unsigned) prefix) & 0x1) {
-            int vidx = __builtin_popcount(pre_verts);
+            //int vidx = __builtin_popcount(pre_verts);
+            uint32_t* t = (uint32_t*) &pre_verts;
+            int vidx = 0;
+            for(int i = 0; i < 8; i++) {
+                vidx += __builtin_popcount(t[i]);
+            }
             Vertex* child = &v->vs[vidx];
             return vertex_get(child, &bseq[1], k - 4, depth + 1);
         }
@@ -63,7 +68,12 @@ void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
             uint256_t pre_verts = v->pref_pres;
             pre_verts <<= (256 - (unsigned) prefix);
             pre_verts >>= (256 - (unsigned) prefix);
-            int vidx = __builtin_popcount(pre_verts);
+            //int vidx = __builtin_popcount(pre_verts);
+            uint32_t* t = (uint32_t*) &pre_verts;
+            int vidx = 0;
+            for(int i = 0; i < 8; i++) {
+                vidx += __builtin_popcount(t[i]);
+            }
             //std::cout << "\t\tfound vertex to traverse " << vidx << std::endl;
             Vertex* child = &v->vs[vidx];
             vertex_remove(child, &bseq[1], k - 4, depth + 1);
@@ -91,7 +101,13 @@ bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
         if((v->pref_pres >> (unsigned) prefix) & 0x1) {
             // get child
             //std::cout << "found it!" << std::endl;
-            int vidx = __builtin_popcount(exists);
+            int vidx = 0;
+            uint32_t* t = (uint32_t*) &exists;
+
+            for(int i = 0; i < 8; i++) {
+                vidx += __builtin_popcount(t[i]);
+            }
+            //int vidx = __builtin_popcount(exists);
             Vertex* child = &v->vs[vidx];
             return vertex_contains(child, &bseq[1], k - 4, depth + 1);
         } else {
@@ -120,7 +136,7 @@ void burst_uc( Vertex* v, int k, int depth )
     {
         //std::cout << "*******************************************" << std::endl;
         idx = i * suffix_size;
-        char* dseq = deserialize_kmer(k, calc_bk(k), &v->uc.suffixes[idx]);
+        //char* dseq = deserialize_kmer(k, calc_bk(k), &v->uc.suffixes[idx]);
         //std::cout << i << "\t" << dseq << std::endl;
 
         uint8_t* bseq = &suffixes[ idx ];
@@ -133,7 +149,6 @@ void burst_uc( Vertex* v, int k, int depth )
         pre_verts >>= (256 - (unsigned) bits_to_shift);
 
         //std::cout << "prefix: " << (unsigned) prefix << "\t" << (unsigned) bits_to_shift << std::endl;
-        int tvidx = __builtin_popcount(pre_verts);
         uint32_t* t = (uint32_t*) &pre_verts;
         int vidx = 0;
         for(int i = 0; i < 8; i++) {
@@ -155,9 +170,9 @@ void burst_uc( Vertex* v, int k, int depth )
             }
             // move any previous vertices if necessary
             if(vidx < v->vs_size) {
-                std::cout << (unsigned) prefix << std::endl;
-                std::cout << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
-                //std::cout << "moving vertices " << v->vs_size << "\t" << vidx << "\t" << tvidx << "\t" << (v->vs_size - vidx)<< std::endl;
+                //std::cout << (unsigned) prefix << std::endl;
+                //std::cout << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
+                //std::cout << "moving vertices " << v->vs_size << "\t" << vidx << "\t" << "\t" << (v->vs_size - vidx)<< std::endl;
                 std::memmove(&v->vs[vidx + 1],
                              &v->vs[vidx],
                              (v->vs_size - vidx) * sizeof(Vertex)

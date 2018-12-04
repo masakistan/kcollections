@@ -104,7 +104,7 @@ void parallel_kcontainer_add_join(Kcontainer* kc);
 void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length);
 void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq);
 
-inline void kcontainer_add_seq(Kcontainer* kd, char* seq, uint32_t length) {
+inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length) {
     int size64 = kd->k / 32;
     if(kd->k % 32 > 0) {
         size64++;
@@ -120,19 +120,29 @@ inline void kcontainer_add_seq(Kcontainer* kd, char* seq, uint32_t length) {
 
     // serialize the first kmer
     serialize_kmer(seq, kd->k, bseq8);
+    //std::cout << "inserting:\t" << deserialize_kmer(kd->k, calc_bk(kd->k), bseq8) << std::endl;
     vertex_insert(&(kd->v), bseq8, kd->k, 0);
+    //std::cout << "done insert:\t" << deserialize_kmer(kd->k, calc_bk(kd->k), bseq8) << std::endl;
 
-    for(int j = kd->k; j < length; j++) {
+        std::cout << strlen(seq) << std::endl;
+    for(uint32_t j = kd->k; j < length; j++) {
         //std::cout << j << "\t" << seq[j] << std::endl;
         // shift all the bits over
-        bseq64[0] >>= 2;
-        for(int i = 1; i < size64; i++) {
-            bseq64[i - 1] |= bseq64[i] << 62;
-            bseq64[i] >>= 2;
+        bseq8[0] <<= 2;
+        //bseq64[0] = (uint64_t) bseq64[0] << 2;
+        //std::cout << "shifting\t" << deserialize_kmer(kd->k, calc_bk(kd->k), bseq8) << std::endl;
+        for(int i = 1; i < bk; i++) {
+            bseq8[i - 1] |= (bseq8[i] >> 6);
+            bseq8[i] <<= 2;
+            //std::cout << "shifting\t" << deserialize_kmer(kd->k, calc_bk(kd->k), bseq8) << std::endl;
         }
 
+        //std::cout << seq[j] << std::endl;
+
         serialize_position(j, bk - 1, last_index, bseq8, seq);
+        //std::cout << "serialized\t" << deserialize_kmer(kd->k, calc_bk(kd->k), bseq8) << std::endl;
         vertex_insert(&(kd->v), bseq8, kd->k, 0);
+        //std::cout << "*********************" << std::endl;
     }
 
     free(bseq64);

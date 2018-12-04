@@ -28,6 +28,7 @@ for seq in seqs:
     for i in xrange(len(seq) - k + 1):
         kmer = seq[i : i + k]
         ks.add(kmer)
+        assert kmer in ks, "kmer not found: " + kmer
 
 print len(ks), 'kmers'
 print 'done!'
