@@ -57,7 +57,7 @@ include_directories(libs/uint256_t)
 
 # Add src files
 string(APPEND SOURCES "${SOURCE_DIR}/MurmurHash3.cc;")
-string(APPEND SOURCES "${SOURCE_DIR}/CContainer.cc;")
+#string(APPEND SOURCES "${SOURCE_DIR}/CContainer.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/UContainer.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/Vertex.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/Kcollections.cc;")
@@ -67,13 +67,15 @@ string(APPEND SOURCES "libs/uint256_t/uint256_t.cpp;")
 
 string(APPEND DICT_SOURCES "${SOURCE_DIR}/Kdict.cc;")
 string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
-
-#add_executable(settest "${SOURCE_DIR}/TestSetLoad.cxx;" ${SET_SOURCES} ${SOURCES})
-#add_executable(settestserial "${SOURCE_DIR}/TestSetLoadSerial.cxx;" ${SET_SOURCES} ${SOURCES})
-#target_link_libraries(settest ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
-#target_link_libraries(settestserial ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
-#set_target_properties( settestserial PROPERTIES COMPILE_DEFINITIONS "KSET" )
-#set_target_properties( settest PROPERTIES COMPILE_DEFINITIONS "KSET" )
+add_executable(settest "${SOURCE_DIR}/TestSetLoad.cxx;" ${SET_SOURCES} ${SOURCES})
+add_executable(settestserial "${SOURCE_DIR}/TestSetLoadSerial.cxx;" ${SET_SOURCES} ${SOURCES})
+add_executable(settestserialfast "${SOURCE_DIR}/TestSetLoadSerialFast.cxx;" ${SET_SOURCES} ${SOURCES})
+target_link_libraries(settest ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
+target_link_libraries(settestserial ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
+target_link_libraries(settestserialfast ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
+set_target_properties( settestserial PROPERTIES COMPILE_DEFINITIONS "KSET" )
+set_target_properties( settestserialfast PROPERTIES COMPILE_DEFINITIONS "KSET" )
+set_target_properties( settest PROPERTIES COMPILE_DEFINITIONS "KSET" )
 
 
 
@@ -172,10 +174,12 @@ include_directories(_Kset "${install_dir}/include")
 add_dependencies(_Kdict project_jemalloc)
 add_dependencies(_Kset project_jemalloc)
 
-#include_directories(settest "${install_dir}/include")
-#include_directories(settestserial "${install_dir}/include")
-#add_dependencies(settest project_jemalloc)
-#add_dependencies(settestserial project_jemalloc)
+include_directories(settest "${install_dir}/include")
+include_directories(settestserial "${install_dir}/include")
+include_directories(settestserialfast "${install_dir}/include")
+add_dependencies(settest project_jemalloc)
+add_dependencies(settestserial project_jemalloc)
+add_dependencies(settestserialfast project_jemalloc)
 
 #add_dependencies(test_dict_driver project_jemalloc)
 #add_dependencies(test_set_driver project_jemalloc)
