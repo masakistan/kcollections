@@ -214,6 +214,18 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj 
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 #endif
 {
+    uint8_t prefix = bseq[ 0 ];
+    if((v->pref_pres >> (unsigned) prefix) & 0x1) {
+        int vidx = calc_vidx(v->pref_pres, prefix);
+        Vertex* child = &v->vs[vidx];
+#if KDICT
+        vertex_insert(child, &bseq[1], k - 4, depth + 1, obj);
+#elif KSET
+        vertex_insert(child, &bseq[1], k - 4, depth + 1);
+#endif
+        return;
+    }
+
     //std::cout << "vertex insertion: " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
     int uc_idx = sres.second;
@@ -228,18 +240,6 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
                 sizeof( py::handle )
                 );
         v->uc.objs[ uc_idx ].inc_ref();
-#endif
-        return;
-    }
-
-    uint8_t prefix = bseq[ 0 ];
-    if((v->pref_pres >> (unsigned) prefix) & 0x1) {
-        int vidx = calc_vidx(v->pref_pres, prefix);
-        Vertex* child = &v->vs[vidx];
-#if KDICT
-        vertex_insert(child, &bseq[1], k - 4, depth + 1, obj);
-#elif KSET
-        vertex_insert(child, &bseq[1], k - 4, depth + 1);
 #endif
         return;
     }
