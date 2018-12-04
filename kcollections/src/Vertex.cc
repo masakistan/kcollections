@@ -22,17 +22,9 @@ py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
 
     if(v->vs != NULL) {
         uint8_t prefix = bseq[0];
-        uint256_t pre_verts = v->pref_pres;
-        pre_verts <<= (256 - (unsigned) prefix);
-        pre_verts >>= (256 - (unsigned) prefix);
 
         if((v->pref_pres >> (unsigned) prefix) & 0x1) {
-            //int vidx = __builtin_popcount(pre_verts);
-            uint32_t* t = (uint32_t*) &pre_verts;
-            int vidx = 0;
-            for(int i = 0; i < 8; i++) {
-                vidx += __builtin_popcount(t[i]);
-            }
+            int vidx = calc_vidx(v->pref_pres, prefix);
             Vertex* child = &v->vs[vidx];
             return vertex_get(child, &bseq[1], k - 4, depth + 1);
         }
@@ -65,15 +57,7 @@ void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
         //std::cout << "\tchecking prefix: " << (unsigned) prefix << std::endl;
 
         if((v->pref_pres >> (unsigned) prefix) & 0x1) {
-            uint256_t pre_verts = v->pref_pres;
-            pre_verts <<= (256 - (unsigned) prefix);
-            pre_verts >>= (256 - (unsigned) prefix);
-            //int vidx = __builtin_popcount(pre_verts);
-            uint32_t* t = (uint32_t*) &pre_verts;
-            int vidx = 0;
-            for(int i = 0; i < 8; i++) {
-                vidx += __builtin_popcount(t[i]);
-            }
+            int vidx = calc_vidx(v->pref_pres, prefix);
             //std::cout << "\t\tfound vertex to traverse " << vidx << std::endl;
             Vertex* child = &v->vs[vidx];
             vertex_remove(child, &bseq[1], k - 4, depth + 1);
@@ -94,20 +78,11 @@ bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
 
     if(v->vs_size > 0) {
         uint8_t prefix = bseq[0];
-        uint256_t exists = v->pref_pres;
-        exists <<= (256 - (unsigned) prefix);
-        exists >>= (256 - (unsigned) prefix);
         //std::cout << "\tvs exists!\t" << v->vs_size << "\t" << (unsigned) prefix << std::endl;
         if((v->pref_pres >> (unsigned) prefix) & 0x1) {
             // get child
             //std::cout << "found it!" << std::endl;
-            int vidx = 0;
-            uint32_t* t = (uint32_t*) &exists;
-
-            for(int i = 0; i < 8; i++) {
-                vidx += __builtin_popcount(t[i]);
-            }
-            //int vidx = __builtin_popcount(exists);
+            int vidx = calc_vidx(v->pref_pres, prefix);
             Vertex* child = &v->vs[vidx];
             return vertex_contains(child, &bseq[1], k - 4, depth + 1);
         } else {
@@ -117,6 +92,20 @@ bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
     }
 
     return false;
+}
+
+int calc_vidx(uint256_t vertices, uint8_t bts) {
+    vertices <<= (256 - (unsigned) bts);
+    uint32_t* t = (uint32_t*) &vertices;
+    int vidx = __builtin_popcount(t[0]);
+    vidx += __builtin_popcount(t[1]);
+    vidx += __builtin_popcount(t[2]);
+    vidx += __builtin_popcount(t[3]);
+    vidx += __builtin_popcount(t[4]);
+    vidx += __builtin_popcount(t[5]);
+    vidx += __builtin_popcount(t[6]);
+    vidx += __builtin_popcount(t[7]);
+    return vidx;
 }
 
 void burst_uc( Vertex* v, int k, int depth )
@@ -144,16 +133,8 @@ void burst_uc( Vertex* v, int k, int depth )
         uint8_t* suffix = &bseq[ 1 ];
         uint8_t bits_to_shift = (unsigned) prefix;
 
-        uint256_t pre_verts = v->pref_pres;
-        pre_verts <<= (256 - (unsigned) bits_to_shift);
-        pre_verts >>= (256 - (unsigned) bits_to_shift);
-
         //std::cout << "prefix: " << (unsigned) prefix << "\t" << (unsigned) bits_to_shift << std::endl;
-        uint32_t* t = (uint32_t*) &pre_verts;
-        int vidx = 0;
-        for(int i = 0; i < 8; i++) {
-            vidx += __builtin_popcount(t[i]);
-        }
+        int vidx = calc_vidx(v->pref_pres, prefix);
 
         // check if there is already a vertex that represents this prefix
         if(!((v->pref_pres >> (unsigned) bits_to_shift) & 0x1)) {
@@ -252,16 +233,8 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
     }
 
     uint8_t prefix = bseq[ 0 ];
-    uint256_t pre_verts = v->pref_pres;
-    pre_verts <<= (256 - (unsigned) prefix);
-    pre_verts >>= (256 - (unsigned) prefix);
     if((v->pref_pres >> (unsigned) prefix) & 0x1) {
-        //int vidx = __builtin_popcount(pre_verts);
-        uint32_t* t = (uint32_t*) &pre_verts;
-        int vidx = 0;
-        for(int i = 0; i < 8; i++) {
-            vidx += __builtin_popcount(t[i]);
-        }
+        int vidx = calc_vidx(v->pref_pres, prefix);
         Vertex* child = &v->vs[vidx];
 #if KDICT
         vertex_insert(child, &bseq[1], k - 4, depth + 1, obj);

@@ -124,16 +124,17 @@ inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length)
     vertex_insert(&(kd->v), bseq8, kd->k, 0);
     //std::cout << "done insert:\t" << deserialize_kmer(kd->k, calc_bk(kd->k), bseq8) << std::endl;
 
-        std::cout << strlen(seq) << std::endl;
+    std::cout << strlen(seq) << std::endl;
     for(uint32_t j = kd->k; j < length; j++) {
         //std::cout << j << "\t" << seq[j] << std::endl;
         // shift all the bits over
-        bseq8[0] <<= 2;
-        //bseq64[0] = (uint64_t) bseq64[0] << 2;
+        //bseq8[0] <<= 2;
+        bseq64[0] >>= 2;
         //std::cout << "shifting\t" << deserialize_kmer(kd->k, calc_bk(kd->k), bseq8) << std::endl;
-        for(int i = 1; i < bk; i++) {
-            bseq8[i - 1] |= (bseq8[i] >> 6);
-            bseq8[i] <<= 2;
+        //for(int i = 1; i < bk; i++) {
+        for(int i = 1; i < size64; i++) {
+            bseq64[i - 1] |= (bseq64[i] << 62);
+            bseq64[i] >>= 2;
             //std::cout << "shifting\t" << deserialize_kmer(kd->k, calc_bk(kd->k), bseq8) << std::endl;
         }
 

@@ -49,6 +49,7 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
   for(int i = 0; i < nthreads; i++) {
     //std::cout << "placing vs at: " << idx << std::endl;
     std::memmove(&kc->v.vs[idx], v[i]->vs, v[i]->vs_size * sizeof(Vertex));
+    kc->v.pref_pres |= v[i]->pref_pres;
     idx += v[i]->vs_size;
     //free_vertex(v[i]);
     free_uc(&v[i]->uc);
@@ -216,13 +217,13 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
   for(int j = kd->k; j < length; j++) {
     //std::cout << j << "\t" << seq[j] << std::endl;
     // shift all the bits over
-    //bseq64[0] <<= 2;
-    bseq8[0] <<= 2;
+    bseq64[0] >>= 2;
+    //bseq8[0] <<= 2;
     //for(int i = 1; i < size64; i++) {
-    for(int i = 1; i < bk; i++) {
-        bseq8[i - 1] |= (bseq8[i] >> 6);
+    for(int i = 1; i < size64; i++) {
+        bseq64[i - 1] |= (bseq64[i] << 62);
         //bseq64[i - 1] |= (bseq64[i] >> 62);
-        bseq8[i] <<= 2;
+        bseq64[i] >>= 2;
         //bseq64[i] <<= 2;
     }
 

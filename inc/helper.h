@@ -59,12 +59,12 @@ inline int calc_bk( int k )
 
 static const uint8_t MASK_INSERT[ 4 ][ 4 ] = {
         {0, 0, 0, 0, },
-        //{ 1, 4, 16, 64 },
-        {64, 16, 4, 1},
-        //{ 2, 8, 32, 128 },
-        {128, 32, 8, 2},
-        //{ 3, 12, 48, 192 }
-        {192, 48, 12, 3}
+        { 1, 4, 16, 64 },
+        //{64, 16, 4, 1},
+        { 2, 8, 32, 128 },
+        //{128, 32, 8, 2},
+        { 3, 12, 48, 192 }
+        //{192, 48, 12, 3}
     };
 
 static const char COMP_TO_ASCII[4] = {'A', 'C', 'G', 'T'};
@@ -153,8 +153,8 @@ static std::pair< bool, int > binary_search( uint8_t* suffixes, int max, int len
         mid = min + ( max - min ) / 2;
         idx = mid * len;
 
-        //cmp = std::memcmp( bseq, &suffixes[ idx ], len );
-        cmp = compare_seqs(bseq, &suffixes[idx], len);
+        cmp = std::memcmp( bseq, &suffixes[ idx ], len );
+        //cmp = compare_seqs(bseq, &suffixes[idx], len);
         if( cmp < 0 )
         {
             max = mid;
