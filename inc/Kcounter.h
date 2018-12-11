@@ -18,7 +18,7 @@ class Kcounter
         void clear();
         uint64_t size();
         void remove( char* kmer );
-        void add_seq( char* seq );
+        void add_seq( char* seq, uint32_t length );
         int get( char* kmer );
         int get_k() { return m_k; }
         Kcontainer* get_kc() { return kc; }
