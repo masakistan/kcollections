@@ -47,7 +47,7 @@ void Kcounter::remove( char* kmer )
     kcontainer_remove( kc, kmer );
 }
 
-void Kcounter::add_seq( char* seq )
+void Kcounter::add_seq( char* seq, uint32_t length )
 {
-    kcontainer_add_seq( kc, seq );
+    kcontainer_add_seq( kc, seq, length );
 }
