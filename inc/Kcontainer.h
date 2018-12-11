@@ -53,7 +53,7 @@ inline bool kcontainer_contains( Kcontainer* kd, char* kmer )
 }
 
 #if KDICT
-inline void kcontainer_add( Kcontainer* kd, char* kmer, py::handle* obj )
+inline void kcontainer_add( Kcontainer* kd, const char* kmer, py::handle* obj )
 #elif KSET
 inline void kcontainer_add( Kcontainer* kd, const char* kmer )
 #endif
@@ -103,7 +103,7 @@ void parallel_kcontainer_add_join(Kcontainer* kc);
 void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length);
 void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq);
 
-inline void kcontainer_add_seq(Kcontainer* kd, char* seq, uint32_t length) {
+inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length) {
     int size64 = kd->k / 32;
     if(kd->k % 32 > 0) {
         size64++;

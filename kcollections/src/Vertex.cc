@@ -169,23 +169,6 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj 
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 #endif
 {
-    std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
-    int uc_idx = sres.second;
-    if( sres.first )
-    {
-        // set the object here
-#if KDICT
-        v->uc.objs[ uc_idx ].dec_ref();
-        std::memcpy(
-                &v->uc.objs[ uc_idx ],
-                obj,
-                sizeof( py::handle )
-                );
-        v->uc.objs[ uc_idx ].inc_ref();
-#endif
-        return;
-    }
-    
     for( int i = 0; i < v->cc_size; i++ )
     {
         CC* cc = &v->cc[ i ];
@@ -211,6 +194,23 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
         }
     }
 
+    std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
+    int uc_idx = sres.second;
+    if( sres.first )
+    {
+        // set the object here
+#if KDICT
+        v->uc.objs[ uc_idx ].dec_ref();
+        std::memcpy(
+                &v->uc.objs[ uc_idx ],
+                obj,
+                sizeof( py::handle )
+                );
+        v->uc.objs[ uc_idx ].inc_ref();
+#endif
+        return;
+    }
+ 
     if( v->uc.size < CAPACITY - 1 )
     {
 #if KDICT

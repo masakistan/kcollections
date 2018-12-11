@@ -45,7 +45,7 @@ class Kset
         {
             return deserialize_kmer( 4, 1, &v->cc[ cc_idx ].child_suffixes[ child_idx ].suffix );
         }
-        void add_seq(char* seq, uint32_t length);
+        void add_seq(const char* seq, uint32_t length);
 
         void parallel_add_init(int threads) {
             parallel_kcontainer_add_init(kc, threads);
