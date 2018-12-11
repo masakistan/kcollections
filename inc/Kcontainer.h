@@ -118,7 +118,6 @@ inline void kcontainer_add_seq(Kcontainer* kd, char* seq, uint32_t length) {
     uint8_t* bseq8 = (uint8_t*) bseq64;
 
     uint bk = calc_bk(kd->k);
-    int count = 0;
     uint8_t holder;
     uint8_t last_index = (kd->k - 1) % 4;
 
