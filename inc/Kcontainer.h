@@ -161,7 +161,7 @@ inline void kcontainer_add_seq(Kcontainer* kd, char* seq, uint32_t length) {
         vertex_insert(&(kd->v), bseq8, kd->k, 0);
 #elif KCOUNTER
         // get current count of bseq
-        int count = vertex_get_counter(&(kd->v), bseq8, kd->k, 0);
+        count = vertex_get_counter(&(kd->v), bseq8, kd->k, 0);
         vertex_insert(&(kd->v), bseq8, kd->k, 0, ++count);
 #endif
     }
