@@ -124,6 +124,7 @@ inline void kcontainer_add_seq(Kcontainer* kd, char* seq, uint32_t length) {
 
     // serialize the first kmer
     serialize_kmer(seq, kd->k, bseq8);
+
 #if KSET
     vertex_insert(&(kd->v), bseq8, kd->k, 0);
 #elif KCOUNTER
