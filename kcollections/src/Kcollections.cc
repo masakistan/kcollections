@@ -117,6 +117,10 @@ PYBIND11_MODULE( _Kcounter, m )
         .def("get_cc_child_vertex", &Kcounter::get_cc_child_vertex, py::return_value_policy::reference )
         .def("get_cc_child_suffix", &Kcounter::get_cc_child_suffix )
         .def("add_seq", &Kcounter::add_seq)
+        .def("parallel_add_init", &Kcounter::parallel_add_init)
+        .def("parallel_add", &Kcounter::parallel_add)
+        .def("parallel_add_seq", &Kcounter::parallel_add_seq)
+        .def("parallel_add_join", &Kcounter::parallel_add_join)
         .def_property_readonly("k", &Kcounter::get_k);
 
     /*py::class_<Kcontainer>(m, "DKcontainer")
