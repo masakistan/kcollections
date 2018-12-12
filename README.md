@@ -24,7 +24,7 @@ Prerequisites include:
 
   - [jemalloc](http://jemalloc.net/)
   - [pybind11](https://github.com/pybind/pybind11)
-  
+
 These prerequisites are included or retrieved automatically using the `cmake` or `setup.py` build tools.
 
 To build and install the python module from source:
@@ -120,6 +120,40 @@ ks.parallel_add_join()
 # iteration
 for kmer in ks:
     print kmer
+```
+
+### Using Kcounter
+
+`Kcounter` is an implementation of the Python collection's
+[Counter](https://docs.python.org/2/library/collections.html#collections.Counter),
+but the keys must be kmers, of course!
+Like `Kdict`, kmers can be added to `Kcounter` one at a time, but the
+fastest ways to add kmers to a set is to add an DNA sequence using `add_seq` (or
+`parallel_add_seq` for multithreaded inserts).
+
+``` python
+from kcollections import Kcounter
+kc = Kcounter(27)
+
+# add single kmer
+kc['AAACTGTCTTCCTTTATTTGTTCAGGG'] += 1
+
+# sequence insertion
+seq = 'AAACTGTCTTCCTTTATTTGTTCAGGGATCGTGTCAGTA'
+kc.add_seq(seq, len(seq))
+
+assert 'AAACTGTCTTCCTTTATTTGTTCAGGG' in kc
+
+# multithreaded sequence insertion
+# nthreads must be a power of 2.
+# nthreads = 4 or 16 work well
+kc.parallel_add_init(4)
+kc.parallel_add_seq(seq, len(seq))
+kc.parallel_add_join()
+
+# iteration
+for kmer, count in kc.iteritems():
+    print kmer, count
 ```
 
 ### Read Mapper and Assembler
