@@ -63,11 +63,7 @@ string(APPEND SOURCES "${SOURCE_DIR}/Kcontainer.cc;")
 
 string(APPEND DICT_SOURCES "${SOURCE_DIR}/Kdict.cc;")
 string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
-#add_executable(settest "${SOURCE_DIR}/TestSetLoad.cxx;" ${SET_SOURCES} ${SOURCES})
-#add_executable(settestserial "${SOURCE_DIR}/TestSetLoadSerial.cxx;" ${SET_SOURCES} ${SOURCES})
-#target_link_libraries(settest ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
-#target_link_libraries(settestserial ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
-
+string(APPEND COUNTER_SOURCES "${SOURCE_DIR}/Kcounter.cc;")
 
 # Python library
 #find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
@@ -116,6 +112,8 @@ set_target_properties( _Kset PROPERTIES COMPILE_DEFINITIONS "KSET" )
 
 pybind11_add_module( _Kdict ${SOURCES} ${DICT_SOURCES} )
 set_target_properties( _Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
+pybind11_add_module( _Kcounter ${SOURCES} ${COUNTER_SOURCES} )
+set_target_properties( _Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER" )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
@@ -165,14 +163,12 @@ set_property(TARGET jemalloc_shared PROPERTY IMPORTED_LOCATION ${install_dir}/li
 include_directories(test_set_driver "${install_dir}/include")
 include_directories(_Kdict "${install_dir}/include")
 include_directories(_Kset "${install_dir}/include")
-#include_directories(settest "${install_dir}/include")
-#include_directories(settestserial "${install_dir}/include")
+include_directories(_Kcounter "${install_dir}/include")
 #include_directories(test_dict_driver "${install_dir}/include")
 
 add_dependencies(_Kdict project_jemalloc)
 add_dependencies(_Kset project_jemalloc)
-#add_dependencies(settest project_jemalloc)
-#add_dependencies(settestserial project_jemalloc)
+add_dependencies(_Kcounter project_jemalloc)
 
 #add_dependencies(test_dict_driver project_jemalloc)
 #add_dependencies(test_set_driver project_jemalloc)

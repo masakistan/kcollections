@@ -38,7 +38,7 @@ PYBIND11_MODULE( _Kdict, m )
         .def("__delitem__", &Kdict::remove, R"pbdoc(
             Removes a kmer from Kdict
 
-            Takes one argument, the kmer represented as a string and removes it 
+            Takes one argument, the kmer represented as a string and removes it
             from the Kdict
           )pbdoc")
         .def("get_uc_kmer", &Kdict::get_uc_kmer)
@@ -52,17 +52,86 @@ PYBIND11_MODULE( _Kdict, m )
 
     /*py::class_<Kcontainer>(m, "DKcontainer")
         .def_readonly( "root", &Kcontainer::v );*/
-    
+
     py::class_<Vertex>(m, "Vertex")
         .def_readonly( "cc_size", &Vertex::cc_size)
         .def_readonly( "uc", &Vertex::uc );
-    
+
     /*py::class_<UC>(m, "DUC")
         .def_readonly("size", &UC::size);
 
     py::class_<CC>(m, "DCC")
         .def_readonly("size", &CC::size);
-    
+
+    m.def("get_kmer_from_uc", &get_uc_kmer);
+    m.def("get_cc", &get_cc, py::return_value_policy::reference);*/
+}
+#elif KCOUNTER
+#include "Kcounter.h"
+
+PYBIND11_MODULE( _Kcounter, m )
+{
+    m.doc() = R"pbdoc(
+        kcollections python bindings
+        ----------------------------
+
+        .. currentmodule:: Kcollections
+
+        .. autosummary::
+           :toctree: _generate
+
+           Kcounter
+      )pbdoc";
+
+    py::class_<Kcounter>(m, "Kcounter")
+        .def(py::init<const int>())
+        .def("__setitem__", &Kcounter::insert, R"pbdoc(
+            Add a kmer to Kcounter
+
+            Takes two arguments, the kmer represented as a string and an int associated with the kmer.
+          )pbdoc")
+        .def("__getitem__", &Kcounter::get, R"pbdoc()pbdoc")
+        .def("__contains__", &Kcounter::contains, R"pbdoc(
+            Checks if a kmer is in Kcounter
+
+            Takes one argument, the kmer represented as a string and returns
+            True if kmer is present in Kcounter or False if it is not present in Kcounter
+          )pbdoc")
+        .def("clear", &Kcounter::clear, R"pbdoc(
+            Clears the Kcounter
+          )pbdoc")
+        .def("__len__", &Kcounter::size, R"pbdoc(
+            Returns the number of kmers in Kcounter
+          )pbdoc")
+        .def("__delitem__", &Kcounter::remove, R"pbdoc(
+            Removes a kmer from Kcounter
+
+            Takes one argument, the kmer represented as a string and removes it
+            from the Kcounter
+          )pbdoc")
+        .def("get_uc_kmer", &Kcounter::get_uc_kmer)
+        .def("get_uc_size", &Kcounter::get_uc_size)
+        .def("get_root", &Kcounter::get_root, py::return_value_policy::reference)
+        .def("get_cc_size", &Kcounter::get_cc_size )
+        .def("get_cc_child_size", &Kcounter::get_cc_child_size )
+        .def("get_cc_child_vertex", &Kcounter::get_cc_child_vertex, py::return_value_policy::reference )
+        .def("get_cc_child_suffix", &Kcounter::get_cc_child_suffix )
+        .def("add_seq", &Kcounter::add_seq)
+        .def_property_readonly("k", &Kcounter::get_k);
+
+    /*py::class_<Kcontainer>(m, "DKcontainer")
+        .def_readonly( "root", &Kcontainer::v );*/
+
+    py::class_<Vertex>(m, "Vertex")
+        .def_readonly( "cc_size", &Vertex::cc_size)
+        .def_readonly( "uc", &Vertex::uc );
+
+    /*py::class_<UC>(m, "DUC")
+        .def_readonly("size", &UC::size);
+
+    py::class_<CC>(m, "DCC")
+        .def_readonly("size", &CC::size);
+
     m.def("get_kmer_from_uc", &get_uc_kmer);
     m.def("get_cc", &get_cc, py::return_value_policy::reference);*/
 }
@@ -79,7 +148,7 @@ PYBIND11_MODULE( _Kset, m )
 
         .. autosummary::
            :toctree: _generate
-           
+
            Kset
       )pbdoc";
 
@@ -105,7 +174,7 @@ PYBIND11_MODULE( _Kset, m )
         .def("__delitem__", &Kset::remove, R"pbdoc(
             Removes a kmer from Kset
 
-            Takes one argument, the kmer represented as a string and removes it 
+            Takes one argument, the kmer represented as a string and removes it
             from the Kset
           )pbdoc")
         .def("get_uc_kmer", &Kset::get_uc_kmer)
@@ -125,13 +194,13 @@ PYBIND11_MODULE( _Kset, m )
     py::class_<Vertex>(m, "Vertex")
         .def_readonly( "cc_size", &Vertex::cc_size)
         .def_readonly( "uc", &Vertex::uc );
-    
+
     /*py::class_<UC>(m, "SUC")
         .def_readonly("size", &UC::size);
 
     py::class_<CC>(m, "SCC")
         .def_readonly("size", &CC::size);
-    
+
     m.def("get_kmer_from_uc", &get_uc_kmer);
     m.def("get_cc", &get_cc, py::return_value_policy::reference);*/
 }

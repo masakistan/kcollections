@@ -14,14 +14,22 @@ CC* get_cc( Vertex* v, int idx )
     return &v->cc[ idx ];
 }
 
+#if defined KDICT || defined KCOUNTER
 #if KDICT
 py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
+#elif KCOUNTER
+int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth )
+#endif
 {
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
     int uc_idx = sres.second;
     if( sres.first )
     {
+#if KDICT
         return &v->uc.objs[ uc_idx ];
+#elif KCOUNTER
+        return v->uc.counts[ uc_idx ];
+#endif
     }
 
 
@@ -39,11 +47,22 @@ py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
                 if ( idx > -1 )
                 {
                     Vertex* child = get_child_of( cc, bseq, idx );
+#if KDICT
                     return vertex_get( child, &bseq[ 1 ], k - 4, depth + 1 );
+#elif KCOUNTER
+                    return vertex_get_counter( child, &bseq[ 1 ], k - 4, depth + 1 );
+#endif
                 }
             }
         }
     }
+
+#if KCOUNTER
+    // add a vertex to be 0 if key is not found
+    int default_count = 0;
+    vertex_insert(v, bseq, k, depth, default_count);
+    return default_count;
+#endif
 
     throw pybind11::key_error( "Key not in dictionary!" );
 }
@@ -78,8 +97,8 @@ void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
             }
         }
     }
-    
-    //throw pybind11::key_error( "Key not found!" );
+
+    throw pybind11::key_error( "Key not found!" );
 }
 
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
@@ -122,6 +141,8 @@ void burst_uc( Vertex* v, int k, int depth )
     uint8_t* suffixes = v->uc.suffixes;
 #if KDICT
     py::handle* objs = v->uc.objs;
+#elif KCOUNTER
+    int* counts = v->uc.counts;
 #endif
     int idx;
     for( int i = 0; i < v->uc.size; i++ )
@@ -141,6 +162,8 @@ void burst_uc( Vertex* v, int k, int depth )
             vertex_insert( child, suffix, k - 4, depth + 1, &objs[ i ] );
 #elif KSET
             vertex_insert( child, suffix, k - 4, depth + 1 );
+#elif KCOUNTER
+            vertex_insert( child, suffix, k - 4, depth + 1, counts[ i ] );
 #endif
         }
     }
@@ -167,6 +190,8 @@ void burst_uc( Vertex* v, int k, int depth )
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj )
 #elif KSET
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
+#elif KCOUNTER
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
 #endif
 {
     for( int i = 0; i < v->cc_size; i++ )
@@ -189,6 +214,8 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
             vertex_insert( child, suffix, k - 4, depth + 1, obj );
 #elif KSET
             vertex_insert( child, suffix, k - 4, depth + 1 );
+#elif KCOUNTER
+            vertex_insert( child, suffix, k - 4, depth + 1, count );
 #endif
             return;
         }
@@ -207,25 +234,25 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
                 sizeof( py::handle )
                 );
         v->uc.objs[ uc_idx ].inc_ref();
+#elif KCOUNTER
+        std::memcpy(
+                &v->uc.counts[ uc_idx ],
+                &count,
+                sizeof( int )
+                );
 #endif
         return;
     }
- 
-    if( v->uc.size < CAPACITY - 1 )
-    {
 #if KDICT
-        uc_insert( &( v->uc ), bseq, k, depth, uc_idx, obj );
+    uc_insert( &( v->uc ), bseq, k, depth, uc_idx, obj );
 #elif KSET
-        uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
+    uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
+#elif KCOUNTER
+    uc_insert( &( v->uc ), bseq, k, depth, uc_idx, count );
 #endif
-    }
-    else
+
+    if( v->uc.size > CAPACITY - 1 )
     {
-#if KDICT
-        uc_insert( &( v->uc ), bseq, k, depth, uc_idx, obj );
-#elif KSET
-        uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
-#endif
         burst_uc( v, k, depth );
     }
 }
