@@ -21,7 +21,7 @@ void Kcounter::clear()
 void Kcounter::insert( char* kmer, int count )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kcounter" );
-    kcontainer_insert( kc, kmer, count );
+    kcontainer_add( kc, kmer, count );
 }
 
 int Kcounter::get( char* kmer )

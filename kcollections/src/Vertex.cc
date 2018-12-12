@@ -145,7 +145,7 @@ void burst_uc( Vertex* v, int k, int depth )
     int* counts = v->uc.counts;
 #endif
     int idx;
-    for( int i = 0; i < CAPACITY; i++ )
+    for( int i = 0; i < v->uc.size; i++ )
     {
         idx = i * suffix_size;
 
@@ -194,29 +194,6 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
 #endif
 {
-    std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
-    int uc_idx = sres.second;
-    if( sres.first )
-    {
-        // set the object here
-#if KDICT
-        v->uc.objs[ uc_idx ].dec_ref();
-        std::memcpy(
-                &v->uc.objs[ uc_idx ],
-                obj,
-                sizeof( py::handle )
-                );
-        v->uc.objs[ uc_idx ].inc_ref();
-#elif KCOUNTER
-        std::memcpy(
-                &v->uc.counts[ uc_idx ],
-                &count,
-                sizeof( int )
-                );
-#endif
-        return;
-    }
-
     for( int i = 0; i < v->cc_size; i++ )
     {
         CC* cc = &v->cc[ i ];
@@ -244,6 +221,28 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
         }
     }
 
+    std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
+    int uc_idx = sres.second;
+    if( sres.first )
+    {
+        // set the object here
+#if KDICT
+        v->uc.objs[ uc_idx ].dec_ref();
+        std::memcpy(
+                &v->uc.objs[ uc_idx ],
+                obj,
+                sizeof( py::handle )
+                );
+        v->uc.objs[ uc_idx ].inc_ref();
+#elif KCOUNTER
+        std::memcpy(
+                &v->uc.counts[ uc_idx ],
+                &count,
+                sizeof( int )
+                );
+#endif
+        return;
+    }
 #if KDICT
     uc_insert( &( v->uc ), bseq, k, depth, uc_idx, obj );
 #elif KSET

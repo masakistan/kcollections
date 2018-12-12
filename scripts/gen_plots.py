@@ -101,93 +101,52 @@ set_query_time = [
     5583
 ]
 
-ksize = [
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    17,
-    18,
-    19,
-    20,
-    21,
-    22,
-    23,
-    24,
-    25,
-    26,
-    27,
-    28,
-    29,
-    30,
-    31,
-    32,
-    33,
-    34,
-    35,
-    36,
-    37,
-    38,
-    39,
-    40,
-    41,
-    42,
-    43,
-    44,
-    45
-]
+overall_times = [
+        44592,
+        8357,
+        1425,
+        ]
+insert_times = [
+        3387,
+        8346,
+        1414.31841898,
+        ]
 
-set_insert_time_seq = [
+fig, (ax, ax2) = plt.subplots(2, 1, sharex = True)
+index = ['Python Set', 'BFT Serial', 'BFT Parallel',]
+ax.bar([i for i in range(3)], overall_times, 0.5, label = 'Total time', color = 'purple')
+ax2.bar([i for i in range(3)], overall_times, 0.5, label = 'Total time', color = 'purple')
+ax.bar([i for i in range(3)], insert_times, 0.5, label = 'Insert time', color = 'deepskyblue')
+ax2.bar([i for i in range(3)], insert_times, 0.5, label = 'Insert time', color = 'deepskyblue')
+ax2.set(
+        ylim = (0, 10000),
+        )
+ax.set(
+        ylabel = 'Time (seconds)',
+        ylim = (40000, 50000),
+        title = 'Chromosome 1 Insert Times',
+        )
+ax.yaxis.set_label_coords(-0.12, 0)
+ax.spines['bottom'].set_visible(False)
+ax2.spines['top'].set_visible(False)
+ax.xaxis.tick_top()
+ax.tick_params(labeltop='off')  # don't put tick labels at the top
+ax2.xaxis.tick_bottom()
 
-]
+d = .015  # how big to make the diagonal lines in axes coordinates
+# arguments to pass to plot, just so we don't keep repeating them
+kwargs = dict(transform=ax.transAxes, color='k', clip_on=False)
+ax.plot((-d, +d), (-d, +d), **kwargs)        # top-left diagonal
+ax.plot((1 - d, 1 + d), (-d, +d), **kwargs)  # top-right diagonal
 
-kset_insert_time_seq = [
-    5.49,
-    5.86,
-    6.58,
-    7.32,
-    11.49,
-    12.01,
-    13.12,
-    13.28,
-    13.34,
-    13.62,
-    14.31,
-    14.33,
-    14.30,
-    14.46,
-    15.24,
-    15.21,
-    15.02,
-    15.18,
-    15.92,
-    16.00,
-    16.02,
-    15.96,
-    16.52,
-    16.78,
-    16.74,
-    16.79,
-    17.40,
-    17.47,
-    17.66,
-    17.30,
-    17.90,
-    17.92,
-    17.85,
-    17.88,
-    18.68,
-    18.60,
-    19.85,
-    19.81,
-    19.36
-]
+kwargs.update(transform=ax2.transAxes)  # switch to the bottom axes
+ax2.plot((-d, +d), (1 - d, 1 + d), **kwargs)  # bottom-left diagonal
+ax2.plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)  # bottom-right diagonal
+
+ax.set_xticks([i for i in range(3)])
+ax.set_xticklabels(index)
+ax.legend()
+fig.savefig('../insert_time.png')
 
 fig, ax = plt.subplots()
 

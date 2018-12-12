@@ -8,6 +8,16 @@
 #include <iostream>
 #include <cstring>
 
+#define CHECK_KMER_LENGTH(kmer, k, type) ({     \
+    if( strlen(kmer) != k )\
+    {\
+        char buffer[1000];\
+        sprintf( buffer, "kmer %s of length %d does not match the %s length of %d",\
+            kmer, strlen(kmer), type, k );\
+        throw std::length_error(std::string(buffer));\
+    }\
+})
+
 
 static int testbit( uint32_t A[],  unsigned int k )
    {
@@ -47,7 +57,8 @@ inline int calc_bk( int k )
     return bk;
 }
 
-static const uint8_t MASK_INSERT[ 3 ][ 4 ] = {
+static const uint8_t MASK_INSERT[ 4 ][ 4 ] = {
+        {0, 0, 0, 0, },
         { 1, 4, 16, 64 },
         { 2, 8, 32, 128 },
         { 3, 12, 48, 192 }
@@ -55,22 +66,29 @@ static const uint8_t MASK_INSERT[ 3 ][ 4 ] = {
 
 static const char COMP_TO_ASCII[4] = {'A', 'C', 'G', 'T'};
 
-static void serialize_kmer( char* kmer, int k, uint8_t* bseq )
+
+static void serialize_position(int kmerPos, int arrPos, int bitPos, uint8_t* bseq, const char* kmer) {
+    switch( kmer[kmerPos] )
+    {
+        case 'a': break;
+        case 'A': break;
+        case 'c': bseq[ arrPos ] |= MASK_INSERT[ 1 ][ bitPos ]; break;
+        case 'C': bseq[ arrPos ] |= MASK_INSERT[ 1 ][ bitPos ]; break;
+        case 'g': bseq[ arrPos ] |= MASK_INSERT[ 2 ][ bitPos ]; break;
+        case 'G': bseq[ arrPos ] |= MASK_INSERT[ 2 ][ bitPos ]; break;
+        case 't': bseq[ arrPos ] |= MASK_INSERT[ 3 ][ bitPos ]; break;
+        case 'T': bseq[ arrPos ] |= MASK_INSERT[ 3 ][ bitPos ]; break;
+        default:
+            bseq[ arrPos ] |= MASK_INSERT[ rand() % 4 ][ bitPos ]; break;
+            //throw std::runtime_error( "Could not serialize kmer." );
+    }
+}
+
+static void serialize_kmer( const char* kmer, int k, uint8_t* bseq )
 {
     for( int pos = 0; pos < k; pos++ )
     {
-        switch( kmer[ pos ] )
-        {
-            case 'a': break;
-            case 'A': break;
-            case 'c': bseq[ pos / 4 ] |= MASK_INSERT[ 0 ][ pos % 4 ]; break;
-            case 'C': bseq[ pos / 4 ] |= MASK_INSERT[ 0 ][ pos % 4 ]; break;
-            case 'g': bseq[ pos / 4 ] |= MASK_INSERT[ 1 ][ pos % 4 ]; break;
-            case 'G': bseq[ pos / 4 ] |= MASK_INSERT[ 1 ][ pos % 4 ]; break;
-            case 't': bseq[ pos / 4 ] |= MASK_INSERT[ 2 ][ pos % 4 ]; break;
-            case 'T': bseq[ pos / 4 ] |= MASK_INSERT[ 2 ][ pos % 4 ]; break;
-            default: throw std::runtime_error( "Could not serialize kmer." );
-        }
+        serialize_position(pos, pos / 4, pos % 4, bseq, kmer);
     }
 }
 

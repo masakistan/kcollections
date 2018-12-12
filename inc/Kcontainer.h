@@ -1,46 +1,45 @@
 #pragma once
 
 #include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <vector>
+#include <stdlib.h>
 #include <string>
 #include <stdexcept>
 #include "Vertex.h"
 #include "helper.h"
 #include <jemalloc/jemalloc.h>
+#include <math.h>
 
 namespace py = pybind11;
 
-#define CHECK_KMER_LENGTH(kmer, k, type) ({\
-    if( strlen(kmer) != k )\
-    {\
-        char buffer[1000];\
-        sprintf( buffer, "kmer %s of length %d does not match the %s length of %d",\
-            kmer, strlen(kmer), type, k );\
-        throw std::length_error(std::string(buffer));\
-    }\
-})
 
 typedef struct {
     int k;
     Vertex v;
 } Kcontainer;
 
-inline void init_kcontainer( Kcontainer* kd, int k )
+
+
+inline void init_kcontainer(Kcontainer* kd, int k)
 {
     kd->k = k;
-    init_vertex( &( kd->v ) );
+    init_vertex(&(kd->v));
 }
 
-inline Kcontainer* create_kcontainer( int k )
+inline Kcontainer* create_kcontainer(int k)
 {
+    srand(1337);
     Kcontainer* kd = ( Kcontainer* ) malloc( sizeof( Kcontainer ) );
-    init_kcontainer( kd, k );
+    init_kcontainer(kd, k);
     return kd;
 }
 
 inline void free_kcontainer( Kcontainer* kd )
 {
-    free_vertex( &( kd->v ) );
-    free( kd );
+    free_vertex(&(kd->v));
+    free(kd);
 }
 
 inline bool kcontainer_contains( Kcontainer* kd, char* kmer )
@@ -50,14 +49,15 @@ inline bool kcontainer_contains( Kcontainer* kd, char* kmer )
     bool res = vertex_contains( &( kd->v ), bseq, kd->k, 0 );
     free( bseq );
     return res;
+    return false;
 }
 
 #if KDICT
-inline void kcontainer_insert( Kcontainer* kd, char* kmer, py::handle* obj )
+inline void kcontainer_add( Kcontainer* kd, const char* kmer, py::handle* obj )
 #elif KSET
-inline void kcontainer_insert( Kcontainer* kd, char* kmer )
+inline void kcontainer_add( Kcontainer* kd, const char* kmer )
 #elif KCOUNTER
-inline void kcontainer_insert( Kcontainer* kd, char* kmer, int count )
+inline void kcontainer_add( Kcontainer* kd, const char* kmer, int count )
 #endif
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
@@ -108,7 +108,14 @@ inline void kcontainer_remove( Kcontainer* kd, char* kmer )
 }
 
 #if defined KSET || defined KCOUNTER
-inline void kcontainer_add_seq(Kcontainer* kd, char* seq, uint32_t length) {
+void parallel_kcontainer_add_init(Kcontainer* kd, int threads);
+void parallel_kcontainer_add(Kcontainer* kd, const char* kmer);
+void* parallel_kcontainer_add_consumer(void* bin_ptr);
+void parallel_kcontainer_add_join(Kcontainer* kc);
+void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length);
+void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq);
+
+inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length) {
     int size64 = kd->k / 32;
     if(kd->k % 32 > 0) {
         size64++;
@@ -140,22 +147,8 @@ inline void kcontainer_add_seq(Kcontainer* kd, char* seq, uint32_t length) {
             bseq64[i - 1] |= bseq64[i] << 62;
             bseq64[i] >>= 2;
         }
-
-        switch( seq[j] )
-        {
-            case 'a': break;
-            case 'A': break;
-            case 'c': bseq8[bk - 1] |= MASK_INSERT[0][last_index]; break;
-            case 'C': bseq8[bk - 1] |= MASK_INSERT[0][last_index]; break;
-            case 'g': bseq8[bk - 1] |= MASK_INSERT[1][last_index]; break;
-            case 'G': bseq8[bk - 1] |= MASK_INSERT[1][last_index]; break;
-            case 't': bseq8[bk - 1] |= MASK_INSERT[2][last_index]; break;
-            case 'T': bseq8[bk - 1] |= MASK_INSERT[2][last_index]; break;
-            default:
-                //std::cout << seq[j] << std::endl;
-                throw std::runtime_error( "Could not serialize kmer." );
-        }
-
+      
+        serialize_position(j, bk - 1, last_index, bseq8, seq);
 #if KSET
         vertex_insert(&(kd->v), bseq8, kd->k, 0);
 #elif KCOUNTER

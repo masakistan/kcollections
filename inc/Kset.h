@@ -13,7 +13,7 @@ class Kset
     public:
         Kset( const int k );
         ~Kset();
-        void insert( char* kmer );
+        void add( const char* kmer );
         bool contains( char* kmer );
         void clear();
         uint64_t size();
@@ -45,6 +45,17 @@ class Kset
         {
             return deserialize_kmer( 4, 1, &v->cc[ cc_idx ].child_suffixes[ child_idx ].suffix );
         }
-        void add_seq(char*seq, uint32_t length);
+        void add_seq(const char* seq, uint32_t length);
 
+        void parallel_add_init(int threads) {
+            parallel_kcontainer_add_init(kc, threads);
+        };
+        void parallel_add(const char* kmer) {
+            parallel_kcontainer_add(kc, kmer);
+        }
+        void parallel_add_join() {
+            parallel_kcontainer_add_join(kc);
+        }
+
+        void parallel_add_seq(char* seq, uint32_t length);
 };

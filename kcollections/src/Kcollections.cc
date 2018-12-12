@@ -17,7 +17,7 @@ PYBIND11_MODULE( _Kdict, m )
 
     py::class_<Kdict>(m, "Kdict")
         .def(py::init<const int>())
-        .def("__setitem__", &Kdict::insert, R"pbdoc(
+        .def("__setitem__", &Kdict::add, R"pbdoc(
             Add a kmer to Kdict
 
             Takes two arguments, the kmer represented as a string and the object to set it to.
@@ -154,7 +154,7 @@ PYBIND11_MODULE( _Kset, m )
 
     py::class_<Kset>(m, "Kset")
         .def(py::init<const int>())
-        .def("add", &Kset::insert, R"pbdoc(
+        .def("add", &Kset::add, R"pbdoc(
             Add a kmer to Kset
 
             Takes one argument, the kmer represented as a string
@@ -185,6 +185,10 @@ PYBIND11_MODULE( _Kset, m )
         .def("get_cc_child_vertex", &Kset::get_cc_child_vertex, py::return_value_policy::reference )
         .def("get_cc_child_suffix", &Kset::get_cc_child_suffix )
         .def("add_seq", &Kset::add_seq)
+        .def("parallel_add_init", &Kset::parallel_add_init)
+        .def("parallel_add", &Kset::parallel_add)
+        .def("parallel_add_seq", &Kset::parallel_add_seq)
+        .def("parallel_add_join", &Kset::parallel_add_join)
         .def_property_readonly("k", &Kset::get_k);
 
     py::class_<Vertex>(m, "Vertex")

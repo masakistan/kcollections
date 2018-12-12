@@ -64,36 +64,10 @@ Xeon(R) E5-2650v4 @2.20GHz` with 256 GB RAM using `Clang`.
 ![Figure of memory usage](./memory_fig.png)
 
 ### Insertion Time
-Times are `h:mm:ss`.
+Insertion time comparisons using built-in Python set, `kcollections` serial and parallel insert.
 
-|# kmers|`kset`|`set`|
-|-------|------|-----|
-|1 million|0:00:03|0:00:01|
-|10 million|0:00:36|0:00:13|
-|100 million|0:07:45|0:02:20|
-|500 million|0:41:13|0:13:10|
-|1 billion|1:27:07|0:33:01|
-|1.5 billion|2:11:11|0:57:42|
-|2 billion|2:52:22|1:13:36|
-|2.4 billion|3:24:58|1:30:26|
+![Figure of insertion time](./insert_time.png)
 
-![Figure of insertion time](./insert_fig.png)
-
-### Querying Time
-Times are `h:mm:ss`.
-
-|# kmers|`kset`|`set`|
-|-------|------|-----|
-|1 million|0:00:03|0:00:01|
-|10 million|0:00:33|0:00:11|
-|100 million|0:06:17|0:02:02|
-|500 million|0:36:33|0:12:26|
-|1 billion|1:18:40|0:30:24|
-|1.5 billion|2:02:06|0:55:00|
-|2 billion|2:44:30|1:15:59|
-|2.4 billion|3:16:52|1:33:03|
-
-![Figure of query time](./query_fig.png)
 
 ## Example Usage
 
@@ -121,6 +95,7 @@ del kd['AAACTGTCTTCCTTTATTTGTTCAGGT']
 
 Kmers can be added one at a time with `add`, but the fastest way to add kmers to a set is
 to add an DNA sequence using `add_seq`.
+Faster still, use `parallel_add_seq` for multithreaded inserts.
 
 ```python
 import kcollections
@@ -134,6 +109,13 @@ seq = 'AAACTGTCTTCCTTTATTTGTTCAGGGATCGTGTCAGTA'
 ks.add_seq(seq, len(seq))
 
 assert 'AAACTGTCTTCCTTTATTTGTTCAGGG' in ks
+
+# multithreaded sequence insertion
+# nthreads must be a power of 2.
+# nthreads = 4 or 16 work well
+ks.parallel_add_init(16)
+ks.parallel_add_seq(seq, len(seq))
+ks.parallel_add_join()
 
 # iteration
 for kmer in ks:
