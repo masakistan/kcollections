@@ -100,6 +100,11 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads) {
 void* parallel_kcontainer_add_consumer(void* bin_ptr) {
     int bin = *((int*) bin_ptr);
     int cur_rbin;
+
+#if KCOUNTER
+    int count;
+#endif
+
     while(true) {
         sem_wait(rsignal[bin]);
         cur_rbin = rbin[bin];
@@ -115,7 +120,12 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
 
         // NOTE: insert all kmers
         for(auto i : kmers[bin][cur_rbin]) {
+#if KSET
             vertex_insert(v[bin], i, k, 0);
+#elif KCOUNTER
+            count = vertex_get_counter(v[bin], i, k, 0);
+            vertex_insert(v[bin], i, k, 0, ++count);
+#endif
             free(i);
         }
 
@@ -192,7 +202,6 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
     bseq64_sub[i] = bseq64[i];
   }
   parallel_kcontainer_add_bseq(kd, bseq8_sub);
-  //vertex_insert(&(kd->v), bseq8, kd->k, 0);
 
   for(int j = kd->k; j < length; j++) {
     // shift all the bits over
@@ -211,7 +220,6 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
     }
 
     parallel_kcontainer_add_bseq(kd, bseq8_sub);
-        //vertex_insert(&(kd->v), bseq8, kd->k, 0);
   }
 }
 
