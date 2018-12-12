@@ -142,7 +142,7 @@ kc['AAACTGTCTTCCTTTATTTGTTCAGGG'] += 1
 seq = 'AAACTGTCTTCCTTTATTTGTTCAGGGATCGTGTCAGTA'
 kc.add_seq(seq, len(seq))
 
-assert 'AAACTGTCTTCCTTTATTTGTTCAGGG' in kc
+assert kc['AAACTGTCTTCCTTTATTTGTTCAGGG'] == 2
 
 # multithreaded sequence insertion
 # nthreads must be a power of 2.
