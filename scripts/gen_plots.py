@@ -113,7 +113,7 @@ insert_times = [
         ]
 
 fig, (ax, ax2) = plt.subplots(2, 1, sharex = True)
-index = ['Python Set', 'BFT Serial', 'BFT Parallel',]
+index = ['Python Set', 'kset serial', 'kset parallel',]
 ax.bar([i for i in range(3)], overall_times, 0.5, label = 'Total time', color = 'purple')
 ax2.bar([i for i in range(3)], overall_times, 0.5, label = 'Total time', color = 'purple')
 ax.bar([i for i in range(3)], insert_times, 0.5, label = 'Insert time', color = 'deepskyblue')
@@ -124,7 +124,7 @@ ax2.set(
 ax.set(
         ylabel = 'Time (seconds)',
         ylim = (40000, 50000),
-        title = 'Chromosome 1 Insert Times',
+        title = 'Human Genome Insert Time',
         )
 ax.yaxis.set_label_coords(-0.12, 0)
 ax.spines['bottom'].set_visible(False)
@@ -159,7 +159,7 @@ ax.bar(index + (bar_width * 2), set_mem, bar_width, label='Python set')
 ax.set(
     xlabel='Number of Kmers (Billions)',
     ylabel='Memory Used (GB)',
-    title='Memory Usage of kset'
+    title='Memory Usage for 27-mers'
 )
 ax.set_xticks(index + bar_width)
 ax.set_xticklabels(xticklabels)
