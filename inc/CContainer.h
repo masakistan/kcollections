@@ -18,6 +18,9 @@ using Vertex = dVertex;
 #elif KSET
 struct __attribute__ ((__packed__)) sVertex;
 using Vertex = sVertex;
+#elif KCOUNTER
+struct __attribute__ ((__packed__)) cVertex;
+using Vertex = cVertex;
 #endif
 
 

@@ -53,10 +53,10 @@ script:
     if [ $TOXENV == "py27" ];
     then
       echo "testing python 2";
-      (cd "$HOME"; python2 -c 'from kcollections import Kset, Kdict');
+      (cd "$HOME"; python2 -c 'from kcollections import Kset, Kdict, Kcounter');
     else
       echo "testing python 3";
-      (cd "$HOME"; python3 -c 'from kcollections import Kset, Kdict');
+      (cd "$HOME"; python3 -c 'from kcollections import Kset, Kdict, Kcounter');
     fi
   fi
 deploy:
