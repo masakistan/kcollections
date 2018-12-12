@@ -1,6 +1,6 @@
 #include "Kcontainer.h"
 
-#if KSET
+#if defined(KSET) || defined(KCOUNTER)
 std::vector<std::vector<std::vector<uint8_t*>>> kmers;
 Vertex** v;
 sem_t* signal_b;

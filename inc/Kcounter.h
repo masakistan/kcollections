@@ -22,6 +22,17 @@ class Kcounter
         int get( char* kmer );
         int get_k() { return m_k; }
         Kcontainer* get_kc() { return kc; }
+        void parallel_add_init(int threads) {
+            parallel_kcontainer_add_init(kc, threads);
+        };
+        void parallel_add(const char* kmer) {
+            parallel_kcontainer_add(kc, kmer);
+        }
+        void parallel_add_join() {
+            parallel_kcontainer_add_join(kc);
+        }
+
+        void parallel_add_seq(char* seq, uint32_t length);
 
         char* get_uc_kmer( Vertex* v, int k, int idx )
         {
