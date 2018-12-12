@@ -17,37 +17,28 @@ int MAX_BIN_SIZE = 500;
 
 void parallel_kcontainer_add_join(Kcontainer* kc) {
   for(int i = 0; i < nthreads; i++) {
-    //std::cout << "last post for bin " << i << std::endl;
     // NOTE: we post twice to finish working.
     // once to finish any kmers in the pipe
     // and a second time to pass the empty kmer list to
     // the thread to signal work is done
-    //std::cout << "posting to " << i << std::endl;
     sem_post(rsignal[i]);
     sem_post(rsignal[i]);
   }
-  //std::cout << "main thread waiting" << std::endl;
 
   int total_ccs = 0;
   uint16_t total_kmers = 0;
   for(int i = 0; i < nthreads; i++) {
-    //std::cout << "joining thread " << i << std::endl;
     pthread_join(p_threads[i], NULL);
-    //std::cout << "joined " << i << std::endl;
     total_ccs += v[i]->cc_size;
   }
 
-  //std::cout << "done joining threads" << std::endl;
 
   kc->v.cc = (CC*) calloc(total_ccs, sizeof(CC));
   kc->v.cc_size = total_ccs;
 
-  //std::cout << "total compressed containers: " << total_ccs << std::endl;
-
   // NOTE: clean up memory
   int idx = 0;
   for(int i = 0; i < nthreads; i++) {
-    //std::cout << "placing CCs at: " << idx << std::endl;
     std::memmove(&kc->v.cc[idx], v[i]->cc, v[i]->cc_size * sizeof(CC));
     idx += v[i]->cc_size;
     free_uc(&v[i]->uc);
@@ -74,7 +65,6 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads) {
     k = kd->k;
     nthreads = threads;
     bits_to_shift = 8 - log2((double) threads);
-    std::cout<< "bits to shift:\t" << bits_to_shift << std::endl;
     bk = calc_bk(kd->k);
     v = (Vertex**) calloc(threads, sizeof(Vertex*));
     signal_b = (sem_t*) calloc(threads, sizeof(sem_t));
@@ -110,18 +100,15 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads) {
 void* parallel_kcontainer_add_consumer(void* bin_ptr) {
     int bin = *((int*) bin_ptr);
     int cur_rbin;
-    std::cout << "spinning up thread:\t" << bin << std::endl;
     while(true) {
         sem_wait(rsignal[bin]);
         cur_rbin = rbin[bin];
         pthread_mutex_lock(&blocks[bin][cur_rbin]);
-        //std::cout << "\tworking on " << bin << ":" << cur_rbin << "\t" << kmers[bin][cur_rbin].size() << std::endl;
 
         // NOTE: release mutex
 
         // NOTE: if the list is empty we're done
         if(kmers[bin][cur_rbin].size() == 0) {
-          //std::cout << "thread " << bin << " is done!" << std::endl;
           pthread_mutex_unlock(&blocks[bin][cur_rbin]);
           break;
         }
@@ -140,9 +127,7 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
           rbin[bin] = 0;
         }
     }
-    //std::cout << "bursting " << bin << std::endl;
     burst_uc(v[bin], k, 0);
-    //std::cout << "done bursting " << bin << std::endl;
 
     return NULL;
 }
@@ -156,16 +141,13 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
   int cur_wbin = wbin[bin];
 
   // NOTE: check if producer has the mutex
-  //std::cout << "trying to lock:\t" << bin << std::endl;
   pthread_mutex_lock(&blocks[bin][cur_wbin]);
 
   // NOTE: add to queuue
   kmers[bin][cur_wbin].push_back(bseq);
-  //std::cout << "added to " << bin << "(" << wkmers[bin]->size() << ") from index:" << idx << std::endl;
 
   // NOTE: if there are enough items in the queue, release the mutex
   if(kmers[bin][cur_wbin].size() == MAX_BIN_SIZE) {
-    //std::cout << "bin " << bin << ":" << cur_wbin << " is done" << std::endl;
     // NOTE: move to next thread queue
     wbin[bin]++;
     if(wbin[bin] == work_queues) {
@@ -213,7 +195,6 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
   //vertex_insert(&(kd->v), bseq8, kd->k, 0);
 
   for(int j = kd->k; j < length; j++) {
-    //std::cout << j << "\t" << seq[j] << std::endl;
     // shift all the bits over
     bseq64[0] >>= 2;
     for(int i = 1; i < size64; i++) {
