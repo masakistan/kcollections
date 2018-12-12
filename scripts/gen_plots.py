@@ -113,7 +113,7 @@ insert_times = [
         ]
 
 fig, (ax, ax2) = plt.subplots(2, 1, sharex = True)
-index = ['Python Set', 'kset serial', 'kset Parallel',]
+index = ['Python Set', 'kset serial', 'kset parallel',]
 ax.bar([i for i in range(3)], overall_times, 0.5, label = 'Total time', color = 'purple')
 ax2.bar([i for i in range(3)], overall_times, 0.5, label = 'Total time', color = 'purple')
 ax.bar([i for i in range(3)], insert_times, 0.5, label = 'Insert time', color = 'deepskyblue')
