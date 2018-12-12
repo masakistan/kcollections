@@ -149,6 +149,7 @@ inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length)
         }
       
         serialize_position(j, bk - 1, last_index, bseq8, seq);
+#if KSET
         vertex_insert(&(kd->v), bseq8, kd->k, 0);
 #elif KCOUNTER
         // get current count of bseq
