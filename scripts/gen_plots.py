@@ -159,7 +159,7 @@ ax.bar(index + (bar_width * 2), set_mem, bar_width, label='Python set')
 ax.set(
     xlabel='Number of Kmers (Billions)',
     ylabel='Memory Used (GB)',
-    title='Memory Usage for Various k'
+    title='Memory Usage for 27-mers'
 )
 ax.set_xticks(index + bar_width)
 ax.set_xticklabels(xticklabels)
