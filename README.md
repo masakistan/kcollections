@@ -42,36 +42,10 @@ python2 setup.py bdist_wheel
 pip2 install dist/*.whl
 ```
 
-## Performance
-`kcollections` is quite a bit slower than the `dict` or `set` but is much more memory-efficient.
-We measured memory usage and running time using `/usr/bin/time -v` on a`Intel(R)
-Xeon(R) E5-2650v4 @2.20GHz` with 256 GB RAM using `Clang`.
-27mers used for testing were taken from the human genome, no repetitive kmers appear in our dataset providing a worst case scenario where no insertions or queries are pruned before traversing the entire data structure.
-
-### Memory Usage
-
-|# kmers|`kset`|`set`|
-|-------|------|-----|
-|1 million|25.32 MB|105.82 MB|
-|10 million|63.74 MB|906.96 MB|
-|100 million|0.56 GB|11.98 GB|
-|500 million|2.42 GB|48.54 GB|
-|1 billion|4.43 GB|97.07 GB|
-|1.5 billion|6.44 GB|191.61 GB|
-|2 billion|8.44 GB|194.14 GB|
-|2.4 billion|10.08 GB|220.06 GB|
-
-![Figure of memory usage](./memory_fig.png)
-
-### Insertion Time
-Insertion time comparisons using built-in Python set, `kcollections` serial and parallel insert.
-
-![Figure of insertion time](./insert_time.png)
-
-
 ## Example Usage
 
 ### Using Kdict
+Currently, parallel methods are not implemented for `Kdict`.
 
 ```python
 import kcollections
@@ -93,9 +67,9 @@ del kd['AAACTGTCTTCCTTTATTTGTTCAGGT']
 
 ### Using Kset
 
+#### Serial Insertion
 Kmers can be added one at a time with `add`, but the fastest way to add kmers to a set is
 to add an DNA sequence using `add_seq`.
-Faster still, use `parallel_add_seq` for multithreaded inserts.
 
 ```python
 import kcollections
@@ -109,17 +83,44 @@ seq = 'AAACTGTCTTCCTTTATTTGTTCAGGGATCGTGTCAGTA'
 ks.add_seq(seq, len(seq))
 
 assert 'AAACTGTCTTCCTTTATTTGTTCAGGG' in ks
+# iteration
+for kmer in ks:
+    print kmer
+```
+
+#### Parallel Insertion
+The fastest way to use `Kset` is to use multithreaded insertion.
+Multithreaded approach is best used when all kmers are loaded upfront.
+Kmers not accessible until the threads have been joined using
+`parallel_add_join`.
+See the example below on how parallel and serial insertions can be used.
+
+```python
+import kcollections
+ks = kcollections.Kset(27)
 
 # multithreaded sequence insertion
 # nthreads must be a power of 2.
 # nthreads = 4 or 16 work well
 ks.parallel_add_init(16)
+
+# insert a sequence of kmers
 ks.parallel_add_seq(seq, len(seq))
+
+# insert a single kmer
+ks.parallel_add('AAACTGTCTTCCTTTATTTGTTCACAG')
+
+# merge threads together
+# no parallel add methods can be used after joining
 ks.parallel_add_join()
+
+# serial add is permissible after threads have joined
+ks.add('AAACTGTCTTCCTTTATTTGTTCACAG')
 
 # iteration
 for kmer in ks:
     print kmer
+print len(ks)
 ```
 
 ### Using Kcounter
@@ -131,6 +132,7 @@ Like `Kdict`, kmers can be added to `Kcounter` one at a time, but the
 fastest ways to add kmers to a set is to add an DNA sequence using `add_seq` (or
 `parallel_add_seq` for multithreaded inserts).
 
+#### Serial Insertion
 ``` python
 from kcollections import Kcounter
 kc = Kcounter(27)
@@ -144,17 +146,65 @@ kc.add_seq(seq, len(seq))
 
 assert kc['AAACTGTCTTCCTTTATTTGTTCAGGG'] == 2
 
+# iteration
+for kmer, count in kc.iteritems():
+    print kmer, count
+```
+
+#### Parallel Insertion
+
+``` python
+from kcollections import Kcounter
+kc = Kcounter(27)
+
 # multithreaded sequence insertion
 # nthreads must be a power of 2.
 # nthreads = 4 or 16 work well
-kc.parallel_add_init(4)
+kc.parallel_add_init(16)
+
+# insert a sequence of kmers
 kc.parallel_add_seq(seq, len(seq))
+
+# insert a single kmer
+kc.parallel_add('AAACTGTCTTCCTTTATTTGTTCACAG')
+
+# merge threads together
+# no parallel add methods can be used after joining
 kc.parallel_add_join()
+
+# updates can be made after the join
+kc['AAACTGTCTTCCTTTATTTGTTCAGGG'] += 1
 
 # iteration
 for kmer, count in kc.iteritems():
     print kmer, count
 ```
+
+## Performance
+`kcollections` is quite a bit slower than the `dict` or `set` but is much more memory-efficient.
+We measured memory usage and running time using `/usr/bin/time -v` on a`Intel(R)
+Xeon(R) E5-2650v4 @2.20GHz` with 256 GB RAM.
+27mers used for testing were taken from the human genome, no repetitive kmers appear in our dataset providing a worst case scenario where no insertions or queries are pruned before traversing the entire data structure.
+
+### Memory Usage
+
+|# kmers|`kset`|`set`|
+|-------|------|-----|
+|1 million|25.32 MB|105.82 MB|
+|10 million|63.74 MB|906.96 MB|
+|100 million|0.56 GB|11.98 GB|
+|500 million|2.42 GB|48.54 GB|
+|1 billion|4.43 GB|97.07 GB|
+|1.5 billion|6.44 GB|191.61 GB|
+|2 billion|8.44 GB|194.14 GB|
+|2.4 billion|10.08 GB|220.06 GB|
+
+![Figure of memory usage](./memory_fig.png)
+
+### Insertion Time
+Insertion time comparisons using built-in Python set, `kcollections` serial and parallel insert.
+
+![Figure of insertion time](./insert_time.png)
 
 ### Read Mapper and Assembler
 An example read mapping algorithm and assembler are provided using `kcollections` in the `applications` directory.
