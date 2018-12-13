@@ -24,7 +24,7 @@ Prerequisites include:
 
   - [jemalloc](http://jemalloc.net/)
   - [pybind11](https://github.com/pybind/pybind11)
-  
+
 These prerequisites are included or retrieved automatically using the `cmake` or `setup.py` build tools.
 
 To build and install the python module from source:
@@ -123,6 +123,63 @@ for kmer in ks:
 print len(ks)
 ```
 
+### Using Kcounter
+
+`Kcounter` is an implementation of the Python collection's
+[Counter](https://docs.python.org/2/library/collections.html#collections.Counter),
+but the keys must be kmers, of course!
+Like `Kdict`, kmers can be added to `Kcounter` one at a time, but the
+fastest ways to add kmers to a set is to add an DNA sequence using `add_seq` (or
+`parallel_add_seq` for multithreaded inserts).
+
+#### Serial Insertion
+``` python
+from kcollections import Kcounter
+kc = Kcounter(27)
+
+# add single kmer
+kc['AAACTGTCTTCCTTTATTTGTTCAGGG'] += 1
+
+# sequence insertion
+seq = 'AAACTGTCTTCCTTTATTTGTTCAGGGATCGTGTCAGTA'
+kc.add_seq(seq, len(seq))
+
+assert kc['AAACTGTCTTCCTTTATTTGTTCAGGG'] == 2
+
+# iteration
+for kmer, count in kc.iteritems():
+    print kmer, count
+```
+
+#### Parallel Insertion
+
+``` python
+from kcollections import Kcounter
+kc = Kcounter(27)
+
+# multithreaded sequence insertion
+# nthreads must be a power of 2.
+# nthreads = 4 or 16 work well
+kc.parallel_add_init(16)
+
+# insert a sequence of kmers
+kc.parallel_add_seq(seq, len(seq))
+
+# insert a single kmer
+kc.parallel_add('AAACTGTCTTCCTTTATTTGTTCACAG')
+
+# merge threads together
+# no parallel add methods can be used after joining
+kc.parallel_add_join()
+
+# updates can be made after the join
+kc['AAACTGTCTTCCTTTATTTGTTCAGGG'] += 1
+
+# iteration
+for kmer, count in kc.iteritems():
+    print kmer, count
+```
+
 ## Performance
 `kcollections` is quite a bit slower than the `dict` or `set` but is much more memory-efficient.
 We measured memory usage and running time using `/usr/bin/time -v` on a`Intel(R)
@@ -148,7 +205,6 @@ Xeon(R) E5-2650v4 @2.20GHz` with 256 GB RAM.
 Insertion time comparisons using built-in Python set, `kcollections` serial and parallel insert.
 
 ![Figure of insertion time](./insert_time.png)
-
 
 ### Read Mapper and Assembler
 An example read mapping algorithm and assembler are provided using `kcollections` in the `applications` directory.
