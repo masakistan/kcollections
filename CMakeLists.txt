@@ -52,7 +52,6 @@ message("Using Python version " ${PYTHON_VERSION})
 # Add inc directory
 include_directories(inc)
 include_directories(libs/pybind11-2.2.4/include)
-include_directories(libs/uint256_t)
 
 # Add src files
 string(APPEND SOURCES "${SOURCE_DIR}/MurmurHash3.cc;")
@@ -61,8 +60,6 @@ string(APPEND SOURCES "${SOURCE_DIR}/UContainer.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/Vertex.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/Kcollections.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/Kcontainer.cc;")
-string(APPEND SOURCES "libs/uint256_t/uint128_t.cpp;")
-string(APPEND SOURCES "libs/uint256_t/uint256_t.cpp;")
 
 string(APPEND DICT_SOURCES "${SOURCE_DIR}/Kdict.cc;")
 string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
@@ -172,7 +169,6 @@ include_directories(_Kcounter "${install_dir}/include")
 add_dependencies(_Kdict project_jemalloc)
 add_dependencies(_Kset project_jemalloc)
 add_dependencies(_Kcounter project_jemalloc)
-
 #add_dependencies(test_dict_driver project_jemalloc)
 #add_dependencies(test_set_driver project_jemalloc)
 #target_link_libraries(test_dict_driver m jemalloc)

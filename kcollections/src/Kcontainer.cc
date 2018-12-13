@@ -29,7 +29,9 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
   uint16_t total_kmers = 0;
   for(int i = 0; i < nthreads; i++) {
     pthread_join(p_threads[i], NULL);
+
     total_ccs += v[i]->cc_size;
+    sem_close(rsignal[i]);
   }
 
 
@@ -75,6 +77,7 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads) {
     rbin = (int*) calloc(threads, sizeof(int));
 
     blocks = (pthread_mutex_t**) calloc(threads, sizeof(pthread_mutex_t*));
+    std::string appName = "kcollections";
 
     // NOTE: initialize per thread variables
     // NOTE: initialize mutexes
@@ -88,13 +91,14 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads) {
         v[i] = (Vertex*) calloc(1, sizeof(Vertex));
         init_vertex(v[i]);
 
-        sem_init(&signal_b[i], 0, 0);
-        rsignal[i] = &signal_b[i];
+        //sem_init(&signal_b[i], 0, 0);
+        //ids.push_back(std::to_string(i).c_str());
+        rsignal[i] = sem_open((appName + std::to_string(getpid()) + std::to_string(i)).c_str(), O_CREAT, 0600, 0);
+        //rsignal[i] = &signal_b[i];
         bin_ids[i] = i;
         // NOTE: spin up worker threads
         pthread_create(&p_threads[i], NULL, parallel_kcontainer_add_consumer, &bin_ids[i]);
     }
-    //sleep(1);
 }
 
 void* parallel_kcontainer_add_consumer(void* bin_ptr) {
@@ -166,7 +170,6 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
 
     // NOTE: signal to thread to work
     sem_post(rsignal[bin]);
-    //sleep(1);
   }
   pthread_mutex_unlock(&blocks[bin][cur_wbin]);
 }
@@ -185,7 +188,6 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
   }
 
   int i;
-
   uint64_t* bseq64 = (uint64_t*) calloc(size64, sizeof(uint64_t));
   uint8_t* bseq8 = (uint8_t*) bseq64;
   uint64_t* bseq64_sub = (uint64_t*) calloc(size64, sizeof(uint64_t));

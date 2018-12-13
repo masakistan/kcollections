@@ -1,8 +1,12 @@
 #pragma once
 
-#include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdio.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #include <vector>
 #include <stdlib.h>
 #include <string>
