@@ -13,7 +13,6 @@
 #include "helper.h"
 #include <jemalloc/jemalloc.h>
 #include <math.h>
-#include <uuid/uuid.h>
 
 namespace py = pybind11;
 
