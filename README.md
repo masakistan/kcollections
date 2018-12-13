@@ -42,6 +42,85 @@ python2 setup.py bdist_wheel
 pip2 install dist/*.whl
 ```
 
+## Example Usage
+
+### Using Kdict
+Currently, parallel methods are not implemented for `Kdict`.
+
+```python
+import kcollections
+kd = kcollections.Kdict(27)
+
+# insertion and value assignment
+kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] = 'banana'
+kd['AAACTGTCTTCCTTTATTTGTTCAGGT'] = 'phone'
+assert kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] == 'banana'
+assert kd['AAACTGTCTTCCTTTATTTGTTCAGGT'] == 'phone'
+
+# iteration
+for kmer, val in kd.iteritems():
+    print kmer, val
+
+# removal
+del kd['AAACTGTCTTCCTTTATTTGTTCAGGT']
+```
+
+### Using Kset
+Kmers can be added one at a time with `add`, but the fastest way to add kmers to a set is
+to add an DNA sequence using `add_seq`.
+
+```python
+import kcollections
+ks = kcollections.Kset(27)
+
+# add single kmer
+ks.add('AAACTGTCTTCCTTTATTTGTTCAGGG')
+
+# sequence insertion
+seq = 'AAACTGTCTTCCTTTATTTGTTCAGGGATCGTGTCAGTA'
+ks.add_seq(seq, len(seq))
+
+assert 'AAACTGTCTTCCTTTATTTGTTCAGGG' in ks
+# iteration
+for kmer in ks:
+    print kmer
+```
+
+#### Parallel Insertion
+The fastest way to use `Kset` is to use multithreaded insertion.
+Multithreaded approach is best used when all kmers are loaded upfront.
+Kmers not accessible until the threads have been joined using
+`parallel_add_join()`.
+See the example below on how parallel and serial insertions can be used.
+
+```python
+import kcollections
+ks = kcollections.Kset(27)
+
+# multithreaded sequence insertion
+# nthreads must be a power of 2.
+# nthreads = 4 or 16 work well
+ks.parallel_add_init(16)
+
+# insert a sequence of kmers
+ks.parallel_add_seq(seq, len(seq))
+
+# insert a single kmer
+ks.parallel_add('AAACTGTCTTCCTTTATTTGTTCACAG')
+
+# merge threads together
+# no parallel add methods can be used after joining
+ks.parallel_add_join()
+
+# serial add is permissible after threads have joined
+ks.add('AAACTGTCTTCCTTTATTTGTTCACAG')
+
+# iteration
+for kmer in ks:
+    print kmer
+print len(ks)
+```
+
 ## Performance
 `kcollections` is quite a bit slower than the `dict` or `set` but is much more memory-efficient.
 We measured memory usage and running time using `/usr/bin/time -v` on a`Intel(R)
@@ -68,59 +147,6 @@ Insertion time comparisons using built-in Python set, `kcollections` serial and 
 
 ![Figure of insertion time](./insert_time.png)
 
-
-## Example Usage
-
-### Using Kdict
-
-```python
-import kcollections
-kd = kcollections.Kdict(27)
-
-# insertion and value assignment
-kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] = 'banana'
-kd['AAACTGTCTTCCTTTATTTGTTCAGGT'] = 'phone'
-assert kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] == 'banana'
-assert kd['AAACTGTCTTCCTTTATTTGTTCAGGT'] == 'phone'
-
-# iteration
-for kmer, val in kd.iteritems():
-    print kmer, val
-
-# removal
-del kd['AAACTGTCTTCCTTTATTTGTTCAGGT']
-```
-
-### Using Kset
-
-Kmers can be added one at a time with `add`, but the fastest way to add kmers to a set is
-to add an DNA sequence using `add_seq`.
-Faster still, use `parallel_add_seq` for multithreaded inserts.
-
-```python
-import kcollections
-ks = kcollections.Kset(27)
-
-# add single kmer
-ks.add('AAACTGTCTTCCTTTATTTGTTCAGGG')
-
-# sequence insertion
-seq = 'AAACTGTCTTCCTTTATTTGTTCAGGGATCGTGTCAGTA'
-ks.add_seq(seq, len(seq))
-
-assert 'AAACTGTCTTCCTTTATTTGTTCAGGG' in ks
-
-# multithreaded sequence insertion
-# nthreads must be a power of 2.
-# nthreads = 4 or 16 work well
-ks.parallel_add_init(16)
-ks.parallel_add_seq(seq, len(seq))
-ks.parallel_add_join()
-
-# iteration
-for kmer in ks:
-    print kmer
-```
 
 ### Read Mapper and Assembler
 An example read mapping algorithm and assembler are provided using `kcollections` in the `applications` directory.
