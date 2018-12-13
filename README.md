@@ -66,6 +66,8 @@ del kd['AAACTGTCTTCCTTTATTTGTTCAGGT']
 ```
 
 ### Using Kset
+
+#### Serial Insertion
 Kmers can be added one at a time with `add`, but the fastest way to add kmers to a set is
 to add an DNA sequence using `add_seq`.
 
@@ -90,7 +92,7 @@ for kmer in ks:
 The fastest way to use `Kset` is to use multithreaded insertion.
 Multithreaded approach is best used when all kmers are loaded upfront.
 Kmers not accessible until the threads have been joined using
-`parallel_add_join()`.
+`parallel_add_join`.
 See the example below on how parallel and serial insertions can be used.
 
 ```python
@@ -124,7 +126,7 @@ print len(ks)
 ## Performance
 `kcollections` is quite a bit slower than the `dict` or `set` but is much more memory-efficient.
 We measured memory usage and running time using `/usr/bin/time -v` on a`Intel(R)
-Xeon(R) E5-2650v4 @2.20GHz` with 256 GB RAM using `Clang`.
+Xeon(R) E5-2650v4 @2.20GHz` with 256 GB RAM.
 27mers used for testing were taken from the human genome, no repetitive kmers appear in our dataset providing a worst case scenario where no insertions or queries are pruned before traversing the entire data structure.
 
 ### Memory Usage
