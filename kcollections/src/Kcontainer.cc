@@ -14,7 +14,6 @@ int* rbin;
 int work_queues = 10;
 int bits_to_shift;
 int MAX_BIN_SIZE = 500;
-std::vector<const char*> ids;
 
 void parallel_kcontainer_add_join(Kcontainer* kc) {
   for(int i = 0; i < nthreads; i++) {
@@ -24,8 +23,7 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
     // the thread to signal work is done
     sem_post(rsignal[i]);
     sem_post(rsignal[i]);
-    }
-
+  }
 
   int total_ccs = 0;
   uint16_t total_kmers = 0;
@@ -33,6 +31,7 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
     pthread_join(p_threads[i], NULL);
 
     total_ccs += v[i]->cc_size;
+    sem_close(rsignal[i]);
   }
 
 
@@ -94,7 +93,7 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads) {
 
         //sem_init(&signal_b[i], 0, 0);
         //ids.push_back(std::to_string(i).c_str());
-        rsignal[i] = sem_open((appName + std::to_string(i)).c_str(), O_CREAT, 0644, 0);
+        rsignal[i] = sem_open((appName + std::to_string(getpid()) + std::to_string(i)).c_str(), O_CREAT, 0600, 0);
         //rsignal[i] = &signal_b[i];
         bin_ids[i] = i;
         // NOTE: spin up worker threads
@@ -189,8 +188,6 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
   }
 
   int i;
-
-
   uint64_t* bseq64 = (uint64_t*) calloc(size64, sizeof(uint64_t));
   uint8_t* bseq8 = (uint8_t*) bseq64;
   uint64_t* bseq64_sub = (uint64_t*) calloc(size64, sizeof(uint64_t));
