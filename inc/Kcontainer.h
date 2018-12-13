@@ -1,8 +1,10 @@
 #pragma once
 
-#include <stdlib.h>
+#include <stdio.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #include <vector>
 #include <stdlib.h>
 #include <string>
@@ -11,6 +13,7 @@
 #include "helper.h"
 #include <jemalloc/jemalloc.h>
 #include <math.h>
+#include <uuid/uuid.h>
 
 namespace py = pybind11;
 
