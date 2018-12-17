@@ -1,23 +1,25 @@
 #pragma once
 
 #include <pybind11/pybind11.h>
-#include "CContainer.h"
 #include "UContainer.h"
 #include "globals.h"
 #include <jemalloc/jemalloc.h>
+#include "uint256_t.h"
 
 namespace py = pybind11;
 
 #if KDICT
 struct dVertex{
+    dVertex* vs;
 #elif KSET
 struct sVertex{
 #elif KCOUNTER
 struct cVertex{
+    sVertex* vs;
 #endif
-    CC* cc;
+    uint256_t pref_pres;
     UC uc;
-    uint16_t cc_size;
+    uint16_t vs_size;
     bool start;
 };
 
@@ -40,7 +42,7 @@ void init_vertex( Vertex* v );
 void free_vertex( Vertex* v );
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth );
 void burst_uc( Vertex* v, int k, int depth );
-CC* get_cc( Vertex* v, int idx );
+int calc_vidx(uint256_t vertices, uint8_t bts);
 
 #if KDICT
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj );

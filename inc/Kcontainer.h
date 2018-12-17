@@ -46,7 +46,7 @@ inline void free_kcontainer( Kcontainer* kd )
     free(kd);
 }
 
-inline bool kcontainer_contains( Kcontainer* kd, char* kmer )
+inline bool kcontainer_contains( Kcontainer* kd, const char* kmer )
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
     serialize_kmer( kmer, kd->k, bseq );
@@ -66,6 +66,7 @@ inline void kcontainer_add( Kcontainer* kd, const char* kmer, int count )
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
     serialize_kmer( kmer, kd->k, bseq );
+    //char* dseq = deserialize_kmer(kd->k, calc_bk(kd->k), bseq);
 #if KDICT
     vertex_insert( &( kd->v ), bseq, kd->k, 0, obj );
 #elif KSET
@@ -103,7 +104,7 @@ inline uint64_t kcontainer_size( Kcontainer* kd )
     return vertex_size( &kd->v );
 }
 
-inline void kcontainer_remove( Kcontainer* kd, char* kmer )
+inline void kcontainer_remove( Kcontainer* kd, const char* kmer )
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
     serialize_kmer( kmer, kd->k, bseq );
@@ -143,13 +144,18 @@ inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length)
     vertex_insert(&(kd->v), bseq8, kd->k, 0, ++count);
 #endif
 
-    for(int j = kd->k; j < length; j++) {
+    std::cout << strlen(seq) << std::endl;
+    for(uint32_t j = kd->k; j < length; j++) {
         //std::cout << j << "\t" << seq[j] << std::endl;
         // shift all the bits over
+        //bseq8[0] <<= 2;
         bseq64[0] >>= 2;
+        //std::cout << "shifting\t" << deserialize_kmer(kd->k, calc_bk(kd->k), bseq8) << std::endl;
+        //for(int i = 1; i < bk; i++) {
         for(int i = 1; i < size64; i++) {
-            bseq64[i - 1] |= bseq64[i] << 62;
+            bseq64[i - 1] |= (bseq64[i] << 62);
             bseq64[i] >>= 2;
+            //std::cout << "shifting\t" << deserialize_kmer(kd->k, calc_bk(kd->k), bseq8) << std::endl;
         }
       
         serialize_position(j, bk - 1, last_index, bseq8, seq);

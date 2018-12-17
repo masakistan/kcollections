@@ -25,26 +25,28 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
     sem_post(rsignal[i]);
   }
 
-  int total_ccs = 0;
+  int total_vs = 0;
   uint16_t total_kmers = 0;
   for(int i = 0; i < nthreads; i++) {
     pthread_join(p_threads[i], NULL);
-
-    total_ccs += v[i]->cc_size;
+    //std::cout << "joined " << i << std::endl;
+    total_vs += v[i]->vs_size;
     sem_close(rsignal[i]);
   }
 
 
-  kc->v.cc = (CC*) calloc(total_ccs, sizeof(CC));
-  kc->v.cc_size = total_ccs;
+  kc->v.vs = (Vertex*) calloc(total_vs, sizeof(Vertex));
+  kc->v.vs_size = total_vs;
 
   // NOTE: clean up memory
   int idx = 0;
   for(int i = 0; i < nthreads; i++) {
-    std::memmove(&kc->v.cc[idx], v[i]->cc, v[i]->cc_size * sizeof(CC));
-    idx += v[i]->cc_size;
+    //std::cout << "placing vs at: " << idx << std::endl;
+    std::memmove(&kc->v.vs[idx], v[i]->vs, v[i]->vs_size * sizeof(Vertex));
+    kc->v.pref_pres |= v[i]->pref_pres;
+    idx += v[i]->vs_size;
     free_uc(&v[i]->uc);
-    free(v[i]->cc);
+    free(v[i]->vs);
     free(v[i]);
     kmers[i].clear();
   }
@@ -208,12 +210,17 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
   for(int j = kd->k; j < length; j++) {
     // shift all the bits over
     bseq64[0] >>= 2;
+    //bseq8[0] <<= 2;
+    //for(int i = 1; i < size64; i++) {
     for(int i = 1; i < size64; i++) {
-        bseq64[i - 1] |= bseq64[i] << 62;
+        bseq64[i - 1] |= (bseq64[i] << 62);
+        //bseq64[i - 1] |= (bseq64[i] >> 62);
         bseq64[i] >>= 2;
+        //bseq64[i] <<= 2;
     }
 
     serialize_position(j, bk - 1, last_index, bseq8, seq);
+    //std::cout << "inserting: " << deserialize_kmer(k, calc_bk(k), bseq8) << std::endl;
 
     bseq64_sub = (uint64_t*) calloc(size64, sizeof(uint64_t));
     bseq8_sub = (uint8_t*) bseq64_sub;

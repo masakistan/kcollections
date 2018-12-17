@@ -60,14 +60,17 @@ inline int calc_bk( int k )
 static const uint8_t MASK_INSERT[ 4 ][ 4 ] = {
         {0, 0, 0, 0, },
         { 1, 4, 16, 64 },
+        //{64, 16, 4, 1},
         { 2, 8, 32, 128 },
+        //{128, 32, 8, 2},
         { 3, 12, 48, 192 }
+        //{192, 48, 12, 3}
     };
 
 static const char COMP_TO_ASCII[4] = {'A', 'C', 'G', 'T'};
 
 
-static void serialize_position(int kmerPos, int arrPos, int bitPos, uint8_t* bseq, const char* kmer) {
+static void serialize_position(uint32_t kmerPos, int arrPos, int bitPos, uint8_t* bseq, const char* kmer) {
     switch( kmer[kmerPos] )
     {
         case 'a': break;
@@ -100,19 +103,20 @@ static char* deserialize_kmer( int k, int bk, uint8_t* bseq )
     
     for( int i = 0; i < bk; i ++ )
     {
-        if( bases_to_process > 4 )
+        tbkmer = bseq[ i ];
+        if( bases_to_process >= 4 )
         {
             bases_in_byte = 4;
         }
         else
         {
             bases_in_byte = bases_to_process;
+            tbkmer >>= 8 - (bases_in_byte * 2);
         }
 
-        tbkmer = bseq[ i ];
         for( j = 0; j < bases_in_byte; j++ )
         {
-            pos = ( i * 4 ) + j;
+            pos = ( i * 4 ) + (bases_in_byte - j - 1);
             kmer[ pos ] = COMP_TO_ASCII[ tbkmer & 0x3 ];
             tbkmer >>= 2;
         }
@@ -121,6 +125,19 @@ static char* deserialize_kmer( int k, int bk, uint8_t* bseq )
     kmer[ k ] = '\0';
 
     return kmer;
+}
+
+static int compare_seqs(uint8_t* seq1, uint8_t* seq2, int len) {
+    //std::cout << "compare\n" << deserialize_kmer(len * 4, len, seq1) << "\n";
+    //std::cout << deserialize_kmer(len*4, len, seq2) << std::endl;
+    for(int i = 0; i < len; i++) {
+        if((unsigned) seq1[i] < (unsigned) seq2[i]) {
+            return -1;
+        } else if((unsigned) seq1[i] > (unsigned) seq2[i]) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 static std::pair< bool, int > binary_search( uint8_t* suffixes, int max, int len, uint8_t* bseq )
@@ -137,6 +154,7 @@ static std::pair< bool, int > binary_search( uint8_t* suffixes, int max, int len
         idx = mid * len;
 
         cmp = std::memcmp( bseq, &suffixes[ idx ], len );
+        //cmp = compare_seqs(bseq, &suffixes[idx], len);
         if( cmp < 0 )
         {
             max = mid;

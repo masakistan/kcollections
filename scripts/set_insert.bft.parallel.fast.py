@@ -58,14 +58,14 @@ if len(sys.argv) > 4:
                 if len(seq) > 0:
                     for i in range(len(seq) - k + 1):
                         kmer = seq[i : i + k]
-                        assert kmer in ks
+                        assert kmer in ks, "not find: " + kmer
                         c += 1
                 seq = ''
             else:
                 seq += line.strip()
     for i in range(len(seq) - k + 1):
         kmer = seq[i : i + k]
-        assert kmer in ks
+        assert kmer in ks, "not find: " + kmer
         c += 1
 print 'checked', c, 'kmers'
 

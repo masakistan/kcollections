@@ -13,6 +13,7 @@ with(open(sys.argv[2], 'r')) as fh:
     for line in fh:
         if line[0] == '>':
             if len(seq) > 0:
+                print 'adding seq of', len(seq)
                 #seqs.append(seq)
                 tstart_time = time.time()
                 for i in xrange(len(seq) - k + 1):
@@ -25,6 +26,7 @@ with(open(sys.argv[2], 'r')) as fh:
         else:
             seq += line.strip()
     if len(seq) > 0:
+        print 'adding seq of', len(seq)
         #seqs.append(seq)
         tstart_time = time.time()
         for i in xrange(len(seq) - k + 1):
