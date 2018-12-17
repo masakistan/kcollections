@@ -49,21 +49,9 @@ PYBIND11_MODULE( _Kdict, m )
         .def("get_child_suffix", &Kdict::get_child_suffix )
         .def_property_readonly("k", &Kdict::get_k);
 
-    /*py::class_<Kcontainer>(m, "DKcontainer")
-        .def_readonly( "root", &Kcontainer::v );*/
-
     py::class_<Vertex>(m, "Vertex")
-        .def_readonly( "cc_size", &Vertex::cc_size)
         .def_readonly( "uc", &Vertex::uc );
 
-    /*py::class_<UC>(m, "DUC")
-        .def_readonly("size", &UC::size);
-
-    py::class_<CC>(m, "DCC")
-        .def_readonly("size", &CC::size);
-
-    m.def("get_kmer_from_uc", &get_uc_kmer);
-    m.def("get_cc", &get_cc, py::return_value_policy::reference);*/
 }
 #elif KCOUNTER
 #include "Kcounter.h"
@@ -111,19 +99,15 @@ PYBIND11_MODULE( _Kcounter, m )
         .def("get_uc_kmer", &Kcounter::get_uc_kmer)
         .def("get_uc_size", &Kcounter::get_uc_size)
         .def("get_root", &Kcounter::get_root, py::return_value_policy::reference)
-        .def("get_cc_size", &Kcounter::get_cc_size )
-        .def("get_cc_child_size", &Kcounter::get_cc_child_size )
-        .def("get_cc_child_vertex", &Kcounter::get_cc_child_vertex, py::return_value_policy::reference )
-        .def("get_cc_child_suffix", &Kcounter::get_cc_child_suffix )
+        .def("get_vs_size", &Kcounter::get_vs_size )
+        .def("get_child_vertex", &Kcounter::get_child_vertex, py::return_value_policy::reference )
+        .def("get_child_suffix", &Kcounter::get_child_suffix )
         .def("add_seq", &Kcounter::add_seq)
         .def("parallel_add_init", &Kcounter::parallel_add_init)
         .def("parallel_add", &Kcounter::parallel_add)
         .def("parallel_add_seq", &Kcounter::parallel_add_seq)
         .def("parallel_add_join", &Kcounter::parallel_add_join)
         .def_property_readonly("k", &Kcounter::get_k);
-
-    /*py::class_<Kcontainer>(m, "DKcontainer")
-        .def_readonly( "root", &Kcontainer::v );*/
 
     py::class_<Vertex>(m, "Vertex")
         .def_readonly( "vs_size", &Vertex::vs_size)

@@ -10,11 +10,6 @@ void init_vertex( Vertex* v )
     init_uc( &( v->uc ) );
 }
 
-CC* get_cc( Vertex* v, int idx )
-{
-    return &v->cc[ idx ];
-}
-
 #if defined KDICT || defined KCOUNTER
 #if KDICT
 py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
@@ -209,11 +204,11 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
         int vidx = calc_vidx(v->pref_pres, prefix);
         Vertex* child = &v->vs[vidx];
 #if KDICT
-        vertex_insert( child, suffix, k - 4, depth + 1, obj );
+        vertex_insert( child, &bseq[1], k - 4, depth + 1, obj );
 #elif KSET
-        vertex_insert( child, suffix, k - 4, depth + 1 );
+        vertex_insert( child, &bseq[1], k - 4, depth + 1 );
 #elif KCOUNTER
-        vertex_insert( child, suffix, k - 4, depth + 1, count );
+        vertex_insert( child, &bseq[1], k - 4, depth + 1, count );
 #endif
         return;
     }

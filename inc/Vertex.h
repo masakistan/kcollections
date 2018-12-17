@@ -13,9 +13,10 @@ struct dVertex{
     dVertex* vs;
 #elif KSET
 struct sVertex{
+    sVertex* vs;
 #elif KCOUNTER
 struct cVertex{
-    sVertex* vs;
+    cVertex* vs;
 #endif
     uint256_t pref_pres;
     UC uc;
