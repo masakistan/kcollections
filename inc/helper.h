@@ -111,12 +111,13 @@ static char* deserialize_kmer( int k, int bk, uint8_t* bseq )
         else
         {
             bases_in_byte = bases_to_process;
-            tbkmer >>= 8 - (bases_in_byte * 2);
+            //tbkmer >>= 8 - (bases_in_byte * 2);
         }
 
+        tbkmer = bseq[ i ];
         for( j = 0; j < bases_in_byte; j++ )
         {
-            pos = ( i * 4 ) + (bases_in_byte - j - 1);
+            pos = ( i * 4 ) + j;
             kmer[ pos ] = COMP_TO_ASCII[ tbkmer & 0x3 ];
             tbkmer >>= 2;
         }

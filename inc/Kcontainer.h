@@ -46,6 +46,21 @@ inline void free_kcontainer( Kcontainer* kd )
     free(kd);
 }
 
+inline char* kcontainer_get_child_suffix(Vertex* v, int idx) {
+    uint256_t verts = v->pref_pres;
+    uint8_t j = 0, i = 0;
+    for(i = 0; i < 256; i++) {
+        if(verts & 0x1) {
+            //i++;
+            j++;
+        }
+        if(j > idx)
+            break;
+        verts >>= 1;
+    }
+    return deserialize_kmer(4, 1, &i);
+}
+
 inline bool kcontainer_contains( Kcontainer* kd, const char* kmer )
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
@@ -66,7 +81,7 @@ inline void kcontainer_add( Kcontainer* kd, const char* kmer, int count )
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
     serialize_kmer( kmer, kd->k, bseq );
-    //char* dseq = deserialize_kmer(kd->k, calc_bk(kd->k), bseq);
+    //std::cout << deserialize_kmer(kd->k, calc_bk(kd->k), bseq) << std::endl;
 #if KDICT
     vertex_insert( &( kd->v ), bseq, kd->k, 0, obj );
 #elif KSET

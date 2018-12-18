@@ -15,11 +15,10 @@ class Kdict( KdictParent ):
         for i in range( self.get_uc_size( v ) ):
             yield prefix + self.get_uc_kmer( v, k, i )
 
-        for i in range( self.get_cc_size( v ) ):
-            for j in range( self.get_cc_child_size( v, i ) ):
-                child_prefix = prefix + self.get_cc_child_suffix( v, i, j )
-                for kmer in self._get_kmers( self.get_cc_child_vertex( v, i, j ), k - 4, child_prefix ):
-                    yield kmer
+        for i in range( self.get_vs_size( v ) ):
+            child_prefix = prefix + self.get_child_suffix( v, i )
+            for kmer in self._get_kmers( self.get_child_vertex( v, i ), k - 4, child_prefix ):
+                yield kmer
 
     def __str__( self ):
         res = []
@@ -105,11 +104,10 @@ class Kset( KsetParent ):
         for i in range( self.get_uc_size( v ) ):
             yield prefix + self.get_uc_kmer( v, k, i )
 
-        for i in range( self.get_cc_size( v ) ):
-            for j in range( self.get_cc_child_size( v, i ) ):
-                child_prefix = prefix + self.get_cc_child_suffix( v, i, j )
-                for kmer in self._get_kmers( self.get_cc_child_vertex( v, i, j ), k - 4, child_prefix ):
-                    yield kmer
+        for i in range( self.get_vs_size( v ) ):
+            child_prefix = prefix + self.get_child_suffix( v, i )
+            for kmer in self._get_kmers( self.get_child_vertex( v, i ), k - 4, child_prefix ):
+                yield kmer
 
     def __str__( self ):
         return '{' + ','.join( self ) + '}'
@@ -239,11 +237,10 @@ class Kcounter( KcounterParent ):
         for i in range( self.get_uc_size( v ) ):
             yield prefix + self.get_uc_kmer( v, k, i )
 
-        for i in range( self.get_cc_size( v ) ):
-            for j in range( self.get_cc_child_size( v, i ) ):
-                child_prefix = prefix + self.get_cc_child_suffix( v, i, j )
-                for kmer in self._get_kmers( self.get_cc_child_vertex( v, i, j ), k - 4, child_prefix ):
-                    yield kmer
+        for i in range( self.get_vs_size( v ) ):
+            child_prefix = prefix + self.get_child_suffix( v, i )
+            for kmer in self._get_kmers( self.get_child_vertex( v, i ), k - 4, child_prefix ):
+                yield kmer
 
     def __str__( self ):
         res = []

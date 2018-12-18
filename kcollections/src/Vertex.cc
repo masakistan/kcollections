@@ -151,6 +151,7 @@ void burst_uc( Vertex* v, int k, int depth )
         uint8_t* suffix = &bseq[ 1 ];
         uint8_t bits_to_shift = (unsigned) prefix;
         int vidx = calc_vidx(v->pref_pres, prefix);
+        //std::cout << "burst: " << deserialize_kmer(k, calc_bk(k), bseq) << "\t" << (unsigned) bseq[0] << std::endl;
 
         // check if there is already a vertex that represents this prefix
         if(!((v->pref_pres >> (unsigned) bits_to_shift) & 0x1)) {
@@ -245,8 +246,9 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
     uc_insert( &( v->uc ), bseq, k, depth, uc_idx, count );
 #endif
 
-    if( v->uc.size > CAPACITY - 1 )
+    if(v->uc.size == CAPACITY)
     {
+        //std::cout << "bursting" << std::endl;
         burst_uc( v, k, depth );
     }
 }

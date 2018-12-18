@@ -41,15 +41,7 @@ class Kdict
         }
         char* get_child_suffix( Vertex* v, int idx )
         {
-            uint256_t verts = v->pref_pres;
-            uint8_t i = 0;
-            while(i < idx) {
-                if(verts & 0x1) {
-                    idx++;
-                }
-                verts >>= 1;
-            }
-            return deserialize_kmer(4, 1, &i);
+            return kcontainer_get_child_suffix(v, idx);
         }
         Vertex* get_root() { return &kc->v; }
 };

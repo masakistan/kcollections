@@ -39,6 +39,10 @@ class Kcounter
             UC* uc = &v->uc;
             int bk = calc_bk( k );
             int suffix_idx = bk * idx;
+            //std::cout << bk << "\t" << suffix_idx << "\t" << idx << std::endl;
+            //for(int i = 0; i < bk; i++) {
+            //    std::cout << (unsigned) uc->suffixes[0] << std::endl;
+            //}
             return deserialize_kmer( k, bk, &uc->suffixes[ suffix_idx ] );
         }
 
@@ -55,14 +59,6 @@ class Kcounter
         }
         char* get_child_suffix( Vertex* v, int idx )
         {
-            uint256_t verts = v->pref_pres;
-            uint8_t i = 0;
-            while(i < idx) {
-                if(verts & 0x1) {
-                    idx++;
-                }
-                verts >>= 1;
-            }
-            return deserialize_kmer(4, 1, &i);
+            return kcontainer_get_child_suffix(v, idx);
         }
 };
