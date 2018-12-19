@@ -3,7 +3,7 @@
 
 void init_vertex( Vertex* v )
 {
-    v->start = false;
+    //v->start = false;
     v->pref_pres = (uint256_t) 0;
     v->vs_size = 0;
     v->vs = NULL;
@@ -15,6 +15,8 @@ void init_vertex( Vertex* v )
 py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
 #elif KCOUNTER
 int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth )
+#elif KCOLOR
+uint32_t* vertex_get_colors(Vertex* v, uint8_t* vseq, intk, int depth)
 #endif
 {
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
@@ -25,6 +27,11 @@ int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth )
         return &v->uc.objs[ uc_idx ];
 #elif KCOUNTER
         return v->uc.counts[ uc_idx ];
+#elif KCOLOR
+        uint64_t card = roaring_bitmap_get_cardinality(v->uc.colors[uc_idx]);
+        uint32_t* colors = (uint32_t*) malloc(card, * sizeof(uint32_t));
+        roaring_bitmap_to_uint32_arrray(v->uc.colors[uc_idx], colors);
+        return colors;
 #endif
     }
 
@@ -38,6 +45,8 @@ int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth )
             return vertex_get(child, &bseq[1], k - 4, depth + 1);
 #elif KCOUNTER
             return vertex_get_counter( child, &bseq[ 1 ], k - 4, depth + 1 );
+#elif KCOLOR
+            return vertex_get_colors(child, &bseq[1], k - 4, depth + 1);
 #endif
         }
     }
@@ -140,6 +149,8 @@ void burst_uc( Vertex* v, int k, int depth )
     py::handle* objs = v->uc.objs;
 #elif KCOUNTER
     int* counts = v->uc.counts;
+#elif KCOLOR
+    roaring_bitmap_t** colors = v->uc.colors;
 #endif
     int idx;
     for( int i = 0; i < v->uc.size; i++ )
@@ -185,6 +196,8 @@ void burst_uc( Vertex* v, int k, int depth )
         vertex_insert( child, suffix, k - 4, depth + 1 );
 #elif KCOUNTER
         vertex_insert( child, suffix, k - 4, depth + 1, counts[ i ] );
+#elif KCOLOR
+        vertex_insert(child, suffix, k - 4, depth + 1, colors[i]);
 #endif
     }
 
@@ -198,6 +211,8 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj 
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 #elif KCOUNTER
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
+#elif KCOLOR
+void vertex_insert(Vertex* v, uint8_t* bseq, int k, int depth, roaring_bitmap_t* colors)
 #endif
 {
     uint8_t prefix = bseq[ 0 ];
@@ -210,6 +225,8 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
         vertex_insert( child, &bseq[1], k - 4, depth + 1 );
 #elif KCOUNTER
         vertex_insert( child, &bseq[1], k - 4, depth + 1, count );
+#elif KCOLOR
+        vertex_insert(child, &bseq[1], k - 4, depth + 1, colors);
 #endif
         return;
     }
@@ -234,6 +251,9 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
                 &count,
                 sizeof( int )
                 );
+#elif KCOLOR
+        roaring_bitmap_or_inplace(v->uc.colors[uc_idx], colors);
+        roaring_bitmap_free(colors);
 #endif
         return;
     }
@@ -244,6 +264,8 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
     uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
 #elif KCOUNTER
     uc_insert( &( v->uc ), bseq, k, depth, uc_idx, count );
+#elif KCOLOR
+    uc_insert(&(v->uc), bseq, k, depth, uc_idx, colors);
 #endif
 
     if(v->uc.size == CAPACITY)

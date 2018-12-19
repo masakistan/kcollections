@@ -6,6 +6,10 @@
 #include <jemalloc/jemalloc.h>
 #include "uint256_t.h"
 
+#if KCOLOR
+#include <roaring/roaring.h>
+#endif
+
 namespace py = pybind11;
 
 #if KDICT
@@ -17,11 +21,14 @@ struct sVertex{
 #elif KCOUNTER
 struct cVertex{
     cVertex* vs;
+#elif KCOLOR
+struct cgVertex{
+    cgVertex* vs;
 #endif
     uint256_t pref_pres;
     UC uc;
     uint16_t vs_size;
-    bool start;
+    //bool start;
 };
 
 #if KDICT
@@ -30,6 +37,8 @@ using Vertex = dVertex;
 using Vertex = sVertex;
 #elif KCOUNTER
 using Vertex = cVertex;
+#elif KCOLOR
+using Vertex = cgVertex;
 #endif
 
 struct CS {
@@ -51,10 +60,14 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj 
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth );
 #elif KCOUNTER
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count );
+#elif KCOLOR
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, roaring_bitmap_t* colors );
 #endif
 
 #if KDICT
 py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth );
 #elif KCOUNTER
 int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth );
+#elif KCOLOR
+uint32_t* vertex_get_colors( Vertex* v, uint8_t* bseq, int k, int depth );
 #endif

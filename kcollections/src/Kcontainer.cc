@@ -1,7 +1,12 @@
 #include "Kcontainer.h"
 
-#if defined(KSET) || defined(KCOUNTER)
+#if defined(KSET) || defined(KCOUNTER) || defined(KCOLOR)
+#if defined(KCOLOR)
+std::vector<std::vector<std::vector<std::pair<uint8_t*, uint32_t>>>> kmers;
+#else
 std::vector<std::vector<std::vector<uint8_t*>>> kmers;
+#endif
+
 Vertex** v;
 sem_t* signal_b;
 pthread_mutex_t** blocks;
@@ -84,11 +89,19 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads) {
     // NOTE: initialize per thread variables
     // NOTE: initialize mutexes
     for(int i = 0; i < threads; i++) {
+#if KCOLOR
+      kmers.push_back(std::vector<std::vector<std::pair<uint8_t*, uint32_t>>>());
+#else
       kmers.push_back(std::vector<std::vector<uint8_t*>>());
+#endif
       blocks[i] = (pthread_mutex_t*) calloc(work_queues, sizeof(pthread_mutex_t));
       for(int j = 0; j < work_queues; j++) {
         pthread_mutex_init(&blocks[i][j], NULL);
+#if KCOLOR
+        kmers[i].push_back(std::vector<std::pair<uint8_t*, uint32_t>>());
+#else
         kmers[i].push_back(std::vector<uint8_t*>());
+#endif
       }
         v[i] = (Vertex*) calloc(1, sizeof(Vertex));
         init_vertex(v[i]);
@@ -128,11 +141,16 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
         for(auto i : kmers[bin][cur_rbin]) {
 #if KSET
             vertex_insert(v[bin], i, k, 0);
+            free(i);
+#elif KCOLOR
+            roaring_bitmap_t* r = roaring_bitmap_of(i.second);
+            vertex_insert(v[bin], i.first, k, 0, r);
+            free(i.first);
 #elif KCOUNTER
             count = vertex_get_counter(v[bin], i, k, 0);
             vertex_insert(v[bin], i, k, 0, ++count);
-#endif
             free(i);
+#endif
         }
 
         // NOTE: clear the vector
@@ -148,7 +166,12 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
     return NULL;
 }
 
-void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
+#if defined(KCOLOR)
+void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, uint32_t color)
+#else
+void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq)
+#endif
+{
    uint idx = (unsigned) bseq[0];
 
   // NOTE: determine bin
@@ -160,7 +183,11 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
   pthread_mutex_lock(&blocks[bin][cur_wbin]);
 
   // NOTE: add to queuue
+#if defined(KCOLOR)
+  kmers[bin][cur_wbin].push_back(std::make_pair(bseq, color));
+#else
   kmers[bin][cur_wbin].push_back(bseq);
+#endif
 
   // NOTE: if there are enough items in the queue, release the mutex
   if(kmers[bin][cur_wbin].size() == MAX_BIN_SIZE) {
@@ -176,14 +203,28 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
   pthread_mutex_unlock(&blocks[bin][cur_wbin]);
 }
 
-void parallel_kcontainer_add(Kcontainer* kd, const char* kmer) {
+#if defined(KCOLOR)
+void parallel_kcontainer_add(Kcontainer* kd, const char* kmer, uint32_t color)
+#else
+void parallel_kcontainer_add(Kcontainer* kd, const char* kmer)
+#endif
+{
     // NOTE: start adding
   uint8_t* pbseq = ( uint8_t* ) calloc( bk, sizeof( uint8_t ) );
   serialize_kmer(kmer, kd->k, pbseq);
+#if defined(KCOLOR)
+  parallel_kcontainer_add_bseq(kd, pbseq, color);
+#else
   parallel_kcontainer_add_bseq(kd, pbseq);
+#endif
 }
 
-void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length) {
+#if defined(KCOLOR)
+void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length, uint32_t color)
+#else
+void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length)
+#endif
+{
   int size64 = kd->k / 32;
   if(kd->k % 32 > 0) {
       size64++;
@@ -205,7 +246,11 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
   for(i = 0; i < size64; i++) {
     bseq64_sub[i] = bseq64[i];
   }
+#if defined(KCOLOR)
+  parallel_kcontainer_add_bseq(kd, bseq8_sub, color);
+#else
   parallel_kcontainer_add_bseq(kd, bseq8_sub);
+#endif
 
   for(int j = kd->k; j < length; j++) {
     // shift all the bits over
@@ -228,8 +273,76 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
       bseq64_sub[i] = bseq64[i];
     }
 
+#if defined(KCOLOR)
+    parallel_kcontainer_add_bseq(kd, bseq8_sub, color);
+#else
     parallel_kcontainer_add_bseq(kd, bseq8_sub);
+#endif
   }
+
+  free(bseq64);
 }
 
+#if defined(KCOLOR)
+void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length, uint32_t color)
+#else
+void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length)
+#endif
+{
+    int size64 = kd->k / 32;
+    if(kd->k % 32 > 0) {
+        size64++;
+    }
+
+    uint64_t* bseq64 = (uint64_t*) calloc(size64, sizeof(uint64_t));
+    uint8_t* bseq8 = (uint8_t*) bseq64;
+
+    uint bk = calc_bk(kd->k);
+    uint8_t holder;
+    uint8_t last_index = (kd->k - 1) % 4;
+
+    // serialize the first kmer
+    serialize_kmer(seq, kd->k, bseq8);
+
+#if KSET
+    vertex_insert(&(kd->v), bseq8, kd->k, 0);
+#elif KCOLOR
+    roaring_bitmap_t* r = roaring_bitmap_of(color);
+    vertex_insert(&(kd->v), bseq8, kd->k, 0, r);
+#elif KCOUNTER
+    // get current count of bseq
+    int count = vertex_get_counter(&(kd->v), bseq8, kd->k, 0);
+    vertex_insert(&(kd->v), bseq8, kd->k, 0, ++count);
+#endif
+
+    std::cout << strlen(seq) << std::endl;
+    for(uint32_t j = kd->k; j < length; j++) {
+        //std::cout << j << "\t" << seq[j] << std::endl;
+        // shift all the bits over
+        //bseq8[0] <<= 2;
+        bseq64[0] >>= 2;
+        //std::cout << "shifting\t" << deserialize_kmer(kd->k, calc_bk(kd->k), bseq8) << std::endl;
+        //for(int i = 1; i < bk; i++) {
+        for(int i = 1; i < size64; i++) {
+            bseq64[i - 1] |= (bseq64[i] << 62);
+            bseq64[i] >>= 2;
+            //std::cout << "shifting\t" << deserialize_kmer(kd->k, calc_bk(kd->k), bseq8) << std::endl;
+        }
+
+        serialize_position(j, bk - 1, last_index, bseq8, seq);
+#if KSET
+        vertex_insert(&(kd->v), bseq8, kd->k, 0);
+#elif KCOLOR
+        roaring_bitmap_t* r = roaring_bitmap_of(color);
+        vertex_insert(&(kd->v), bseq8, kd->k, 0, r);
+#elif KCOUNTER
+        // get current count of bseq
+        count = vertex_get_counter(&(kd->v), bseq8, kd->k, 0);
+        vertex_insert(&(kd->v), bseq8, kd->k, 0, ++count);
+#endif
+    }
+
+    free(bseq64);
+
+}
 #endif

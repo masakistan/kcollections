@@ -8,6 +8,10 @@
 #include <pybind11/pybind11.h>
 #include <jemalloc/jemalloc.h>
 
+#if KCOLOR
+#include <roaring/roaring.h>
+#endif
+
 namespace py = pybind11;
 
 typedef struct {
@@ -16,6 +20,8 @@ typedef struct {
     py::handle* objs;
 #elif KCOUNTER
     int* counts;
+#elif KCOLOR
+    roaring_bitmap_t** colors;
 #endif
     uint16_t size;
 } UC;
@@ -28,6 +34,8 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::handle* ob
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx );
 #elif KCOUNTER
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count );
+#elif KCOLOR
+void uc_insert(UC* uc, uint8_t* bseq, int k, int depth, int idx, roaring_bitmap_t* colors);
 #endif
 
 void free_uc( UC* uc );

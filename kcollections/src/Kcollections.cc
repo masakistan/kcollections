@@ -53,6 +53,68 @@ PYBIND11_MODULE( _Kdict, m )
         .def_readonly( "uc", &Vertex::uc );
 
 }
+
+#elif KCOLOR
+#include "Kcolor.h"
+
+PYBIND11_MODULE( _Kcolor, m )
+{
+    m.doc() = R"pbdoc(
+        kcollections python bindings
+        ----------------------------
+
+        .. currentmodule:: Kcollections
+
+        .. autosummary::
+           :toctree: _generate
+
+           Kcolor
+      )pbdoc";
+
+    py::class_<Kcolor>(m, "Kcolor")
+        .def(py::init<const int>())
+        .def("__setitem__", &Kcolor::insert, R"pbdoc(
+            Add a kmer to Kcolor
+
+            Takes two arguments, the kmer represented as a string and an int associated with the kmer.
+          )pbdoc")
+        .def("__getitem__", &Kcolor::get, R"pbdoc()pbdoc")
+        .def("__contains__", &Kcolor::contains, R"pbdoc(
+            Checks if a kmer is in Kcolor
+
+            Takes one argument, the kmer represented as a string and returns
+            True if kmer is present in Kcolor or False if it is not present in Kcolor
+          )pbdoc")
+        .def("clear", &Kcolor::clear, R"pbdoc(
+            Clears the Kcolor
+          )pbdoc")
+        .def("__len__", &Kcolor::size, R"pbdoc(
+            Returns the number of kmers in Kcolor
+          )pbdoc")
+        .def("__delitem__", &Kcolor::remove, R"pbdoc(
+            Removes a kmer from Kcolor
+
+            Takes one argument, the kmer represented as a string and removes it
+            from the Kcolor
+          )pbdoc")
+        .def("get_uc_kmer", &Kcolor::get_uc_kmer)
+        .def("get_uc_size", &Kcolor::get_uc_size)
+        .def("get_root", &Kcolor::get_root, py::return_value_policy::reference)
+        .def("get_vs_size", &Kcolor::get_vs_size )
+        .def("get_child_vertex", &Kcolor::get_child_vertex, py::return_value_policy::reference )
+        .def("get_child_suffix", &Kcolor::get_child_suffix )
+        .def("add_seq", &Kcolor::add_seq)
+        .def("parallel_add_init", &Kcolor::parallel_add_init)
+        .def("parallel_add", &Kcolor::parallel_add)
+        .def("parallel_add_seq", &Kcolor::parallel_add_seq)
+        .def("parallel_add_join", &Kcolor::parallel_add_join)
+        .def_property_readonly("k", &Kcolor::get_k);
+
+    py::class_<Vertex>(m, "Vertex")
+        .def_readonly( "vs_size", &Vertex::vs_size)
+        .def_readonly( "uc", &Vertex::uc );
+}
+
 #elif KCOUNTER
 #include "Kcounter.h"
 

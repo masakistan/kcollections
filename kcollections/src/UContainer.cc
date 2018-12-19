@@ -6,6 +6,10 @@ void init_uc( UC* uc )
     uc->suffixes = NULL;
 #if KDICT
     uc->objs = NULL;
+#elif KCOUNTER
+    uc->counts = NULL;
+#elif KCOLOR
+    uc->colors = NULL;
 #endif
     uc->size = 0;
 }
@@ -29,6 +33,8 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::handle* ob
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
 #elif KCOUNTER
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count )
+#elif KCOLOR
+void uc_insert(UC* uc, uint8_t* bseq, int k, int depth, int idx, roaring_bitmap_t* colors)
 #endif
 {
     int len = calc_bk( k );
@@ -36,9 +42,11 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count )
     {
         uc->suffixes = ( uint8_t* ) calloc( len , sizeof( uint8_t ) );
 #if KDICT
-        uc->objs = ( py::handle* ) calloc( len , sizeof( py::handle ) );
+        uc->objs = ( py::handle* ) calloc( 1 , sizeof( py::handle ) );
 #elif KCOUNTER
-        uc->counts = ( int* ) calloc( len, sizeof( int ) );
+        uc->counts = ( int* ) calloc( 1, sizeof( int ) );
+#elif KCOLOR
+        uc->colors = (roaring_bitmap_t**) calloc(1, sizeof(roaring_bitmap_t*));
 #endif
     }
     else
@@ -57,6 +65,8 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count )
                 uc->counts,
                 ( uc->size + 1 ) * sizeof( int )
                 );
+#elif KCOLOR
+        uc->colors = (roaring_bitmap_t**) realloc(uc->colors, (uc->size + 1) * sizeof(roaring_bitmap_t*));
 #endif
     }
 
@@ -86,6 +96,9 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count )
                     &uc->counts[ idx ],
                     bytes_to_move
                     );
+#elif KCOLOR
+            bytes_to_move = (uc->size - idx) * sizeof(roaring_bitmap_t*);
+            std::memmove(&uc->colors[idx + 1], &uc->colors[idx], bytes_to_move);
 #endif
         }
 
@@ -94,6 +107,8 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count )
         uc->objs[ idx ].inc_ref();
 #elif KCOUNTER
         std::memcpy( &uc->counts[ idx ], &count, sizeof( int ) );
+#elif KCOLOR
+        uc->colors[idx] = colors;
 #endif
         std::memcpy( &uc->suffixes[ suffix_idx ], bseq, len );
         uc->size++;
@@ -108,12 +123,20 @@ void free_uc( UC* uc )
         //std::cout << "\tremoving suffixes\t" << uc->size << std::endl;
         free( uc->suffixes );
         //std::cout << "\tdone removing suffixes" << std::endl;
-#if KDICT
+#if KDICT || KCOLOR
         for( int i = 0; i < uc->size; i++ )
         {
+#if KDICT
             uc->objs[ i ].dec_ref();
+#elif KCOLOR
+            roaring_bitmap_free(uc->colors[i]);
+#endif
         }
+#endif
+#if KDICT
         free( uc->objs );
+#elif KCOLOR
+        free(uc->colors);
 #elif KCOUNTER
         free( uc->counts );
 #endif
@@ -144,6 +167,10 @@ void uc_remove( UC* uc, int bk, int idx )
             &uc->counts[ idx + 1 ],
             bytes_to_move
             );
+#elif KCOLOR
+    bytes_to_move = (uc->size - (idx + 1)) * sizeof(roaring_bitmap_t*);
+    roaring_bitmap_free(uc->colors[idx]);
+    std::memmove(&uc->colors[idx], &uc->colors[idx + 1], bytes_to_move);
 #endif
 
     uc->size--;

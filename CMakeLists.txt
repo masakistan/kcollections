@@ -50,10 +50,12 @@ find_package(Threads REQUIRED)
 message("Using Python version " ${PYTHON_VERSION})
 
 # Add inc directory
-include_directories(inc)
-include_directories(libs/pybind11-2.2.4/include)
+include_directories(${PROJECT_SOURCE_DIR}/inc)
+include_directories(${PROJECT_SOURCE_DIR}/libs/pybind11-2.2.4/include)
+include_directories(${PROJECT_SOURCE_DIR}/libs/CRoaring/cpp)
+include_directories(${PROJECT_SOURCE_DIR}/libs/CRoaring/include)
 
-include_directories(libs/uint256_t)
+include_directories(${PROJECT_SOURCE_DIR}/libs/uint256_t)
 
 # Add src files
 string(APPEND SOURCES "${SOURCE_DIR}/MurmurHash3.cc;")
@@ -68,6 +70,7 @@ string(APPEND SOURCES "libs/uint256_t/uint256_t.cpp;")
 string(APPEND DICT_SOURCES "${SOURCE_DIR}/Kdict.cc;")
 string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
 string(APPEND COUNTER_SOURCES "${SOURCE_DIR}/Kcounter.cc;")
+string(APPEND COLOR_SOURCES "${SOURCE_DIR}/Kcolor.cc;")
 #add_executable(settest "${SOURCE_DIR}/TestSetLoad.cxx;" ${SET_SOURCES} ${SOURCES})
 #add_executable(settestserial "${SOURCE_DIR}/TestSetLoadSerial.cxx;" ${SET_SOURCES} ${SOURCES})
 #add_executable(settestserialfast "${SOURCE_DIR}/TestSetLoadSerialFast.cxx;" ${SET_SOURCES} ${SOURCES})
@@ -88,6 +91,7 @@ include_directories(${PYTHON_INCLUDE_DIR})
 # pybind11 library
 add_subdirectory(libs/pybind11-2.2.4)
 
+add_subdirectory(libs/CRoaring)
 
 # set c++14
 set (CMAKE_CXX_STANDARD 14)
@@ -122,6 +126,8 @@ pybind11_add_module( _Kdict ${SOURCES} ${DICT_SOURCES} )
 set_target_properties( _Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
 pybind11_add_module( _Kcounter ${SOURCES} ${COUNTER_SOURCES} )
 set_target_properties( _Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER" )
+pybind11_add_module( _Kcolor ${SOURCES} ${COLOR_SOURCES} )
+set_target_properties( _Kcolor PROPERTIES COMPILE_DEFINITIONS "KCOLOR" )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
@@ -172,11 +178,13 @@ include_directories(test_set_driver "${install_dir}/include")
 include_directories(_Kdict "${install_dir}/include")
 include_directories(_Kset "${install_dir}/include")
 #include_directories(_Kcounter "${install_dir}/include")
+#include_directories(_Kcolor "${install_dir}/include")
 #include_directories(test_dict_driver "${install_dir}/include")
 
 add_dependencies(_Kdict project_jemalloc)
 add_dependencies(_Kset project_jemalloc)
 add_dependencies(_Kcounter project_jemalloc)
+add_dependencies(_Kcolor project_jemalloc)
 
 #include_directories(settest "${install_dir}/include")
 #include_directories(settestserial "${install_dir}/include")
