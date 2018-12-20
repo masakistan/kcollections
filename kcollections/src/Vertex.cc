@@ -28,9 +28,15 @@ uint32_t* vertex_get_colors(Vertex* v, uint8_t* bseq, int k, int depth)
 #elif KCOUNTER
         return v->uc.counts[ uc_idx ];
 #elif KCOLOR
-        uint64_t card = roaring_bitmap_get_cardinality(v->uc.colors[uc_idx]);
+        uint64_t card = roaring_bitmap_get_cardinality(v->uc.colors[uc_idx]) + 1;
         uint32_t* colors = (uint32_t*) malloc(card * sizeof(uint32_t));
-        roaring_bitmap_to_uint32_array(v->uc.colors[uc_idx], colors);
+        colors[0] = card;
+        roaring_bitmap_to_uint32_array(v->uc.colors[uc_idx], &colors[1]);
+        /*std::cout << "card: " << card << std::endl;
+        for(int i = 0; i < card; i++) {
+            std::cout << colors[i] << std::endl;
+        }
+        std::cout << "*****" << std::endl;*/
         return colors;
 #endif
     }

@@ -2,6 +2,7 @@
 
 #include <pybind11/pybind11.h>
 #include "Kcontainer.h"
+#include <pybind11/stl.h>
 
 namespace py = pybind11;
 
@@ -19,7 +20,7 @@ class Kcolor
         uint64_t size();
         void remove( const char* kmer );
         void add_seq( const char* seq, uint32_t length, uint32_t color);
-        uint32_t* get( const char* kmer );
+        std::vector<uint32_t>* get( const char* kmer );
         int get_k() { return m_k; }
         Kcontainer* get_kc() { return kc; }
         void parallel_add_init(int threads) {

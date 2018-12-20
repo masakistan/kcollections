@@ -93,8 +93,17 @@ inline void kcontainer_add( Kcontainer* kd, const char* kmer, uint32_t color )
 #elif KCOUNTER
     vertex_insert( &( kd->v ), bseq, kd->k, 0, count );
 #elif KCOLOR
-    //roaring_bitmap_t* r = roaring_bitmap_of(color);
-    vertex_insert( &( kd->v ), bseq, kd->k, 0, NULL);
+    roaring_bitmap_t* r = roaring_bitmap_of(1, color);
+    /*uint64_t c = roaring_bitmap_get_cardinality(r);
+    uint32_t* a = (uint32_t*) malloc(c * sizeof(uint32_t));
+    roaring_bitmap_to_uint32_array(r, a);
+    std::cout << "insert color:\t" << color << std::endl;
+    std::cout << "before insert" << std::endl;
+    for(int i = 0; i < c; i++) {
+        std::cout << a[i] << std::endl;
+    }
+    std::cout << "done" << std::endl;*/
+    vertex_insert( &( kd->v ), bseq, kd->k, 0, r);
 #endif
     free( bseq );
 }

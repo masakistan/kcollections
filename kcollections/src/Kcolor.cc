@@ -24,10 +24,14 @@ void Kcolor::insert(const char* kmer, uint32_t color)
     kcontainer_add( kc, kmer, color );
 }
 
-uint32_t* Kcolor::get( const char* kmer )
+std::vector<uint32_t>* Kcolor::get( const char* kmer )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kcolor" );
-    return kcontainer_get( kc, kmer );
+    uint32_t* arr = kcontainer_get( kc, kmer );
+    std::vector<uint32_t>* res = new std::vector<uint32_t>();
+    res->assign(&arr[1], &arr[arr[0]]);
+    free(arr);
+    return res;
 }
 
 bool Kcolor::contains( const char* kmer )

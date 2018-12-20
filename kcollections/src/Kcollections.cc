@@ -73,7 +73,7 @@ PYBIND11_MODULE( _Kcolor, m )
 
     py::class_<Kcolor>(m, "Kcolor")
         .def(py::init<const int>())
-        .def("__setitem__", &Kcolor::insert, R"pbdoc(
+        .def("add", &Kcolor::insert, R"pbdoc(
             Add a kmer to Kcolor
 
             Takes two arguments, the kmer represented as a string and an int associated with the kmer.

@@ -177,7 +177,7 @@ void uc_remove( UC* uc, int bk, int idx )
             );
 #elif KCOLOR
     bytes_to_move = (uc->size - (idx + 1)) * sizeof(roaring_bitmap_t*);
-    //roaring_bitmap_free(uc->colors[idx]);
+    roaring_bitmap_free(uc->colors[idx]);
     std::memmove(&uc->colors[idx], &uc->colors[idx + 1], bytes_to_move);
 #endif
 

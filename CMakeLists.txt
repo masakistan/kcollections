@@ -44,6 +44,11 @@ if(Python3)
   set(PYTHON_VERSION 3.4)
 endif()
 
+# Python library
+find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
+find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
+include_directories(${PYTHON_INCLUDE_DIR})
+
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 message("Using Python version " ${PYTHON_VERSION})
@@ -82,10 +87,6 @@ set_target_properties( settestserialfast PROPERTIES COMPILE_DEFINITIONS "KSET" )
 set_target_properties( settest PROPERTIES COMPILE_DEFINITIONS "KSET" )
 
 
-# Python library
-find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
-find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
-include_directories(${PYTHON_INCLUDE_DIR})
 
 
 # pybind11 library
