@@ -70,16 +70,16 @@ string(APPEND DICT_SOURCES "${SOURCE_DIR}/Kdict.cc;")
 string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
 string(APPEND COUNTER_SOURCES "${SOURCE_DIR}/Kcounter.cc;")
 string(APPEND COLOR_SOURCES "${SOURCE_DIR}/Kcolor.cc;")
-#add_executable(settest "${SOURCE_DIR}/TestSetLoad.cxx;" ${SET_SOURCES} ${SOURCES})
+add_executable(settest "${SOURCE_DIR}/TestSetLoad.cxx;" ${SET_SOURCES} ${SOURCES})
 
 #add_executable(settestserial "${SOURCE_DIR}/TestSetLoadSerial.cxx;" ${SET_SOURCES} ${SOURCES})
-#add_executable(settestserialfast "${SOURCE_DIR}/TestSetLoadSerialFast.cxx;" ${SET_SOURCES} ${SOURCES})
-#target_link_libraries(settest ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
+add_executable(settestserialfast "${SOURCE_DIR}/TestSetLoadSerialFast.cxx;" ${SET_SOURCES} ${SOURCES})
+target_link_libraries(settest ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
 #target_link_libraries(settestserial ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
-#target_link_libraries(settestserialfast ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
+target_link_libraries(settestserialfast ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
 #set_target_properties( settestserial PROPERTIES COMPILE_DEFINITIONS "KSET" )
-#set_target_properties( settestserialfast PROPERTIES COMPILE_DEFINITIONS "KSET" )
-#set_target_properties( settest PROPERTIES COMPILE_DEFINITIONS "KSET" )
+set_target_properties( settestserialfast PROPERTIES COMPILE_DEFINITIONS "KSET" )
+set_target_properties( settest PROPERTIES COMPILE_DEFINITIONS "KSET" )
 
 
 # Python library
@@ -183,7 +183,6 @@ target_link_libraries(color_parallel_test ${PYTHON_LIBRARIES} roaring Threads::T
 #include_directories(settest "${install_dir}/include")
 #include_directories(settestserial "${install_dir}/include")
 #include_directories(settestserialfast "${install_dir}/include")
-#add_dependencies(settest project_jemalloc)
+add_dependencies(settest project_jemalloc)
 #add_dependencies(settestserial project_jemalloc)
-#add_dependencies(settestserialfast project_jemalloc)
-
+add_dependencies(settestserialfast project_jemalloc)

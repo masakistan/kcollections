@@ -38,7 +38,12 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count );
 void uc_insert(UC* uc, uint8_t* bseq, int k, int depth, int idx, roaring_bitmap_t* colors);
 #endif
 
-void free_uc( UC* uc );
+#if KCOLOR
+void free_uc(UC* uc, bool keep);
+#else
+void free_uc(UC* uc);
+#endif
+
 int uc_contains( UC* uc, int k, int depth, uint8_t* bseq );
 std::pair< bool, int > uc_find( UC* uc, int k, int depth, uint8_t* bseq );
 void init_uc( UC* uc );

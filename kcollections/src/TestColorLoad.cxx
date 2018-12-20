@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
   string line, seq;
   ifstream fh(file_path);
   Kcolor* kc = new Kcolor(k);
-  kc->parallel_add_init(4);
+  //kc->parallel_add_init(4);
 
   int c = 0;
   if(fh.is_open()) {
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     fh.close();
     std::cout << "seq size: " << seq.size() << std::endl;
     kc->add_seq(seq.c_str(), seq.size(), 1);
-    kc->parallel_add_join();
+    //kc->parallel_add_join();
 
   } else {
     std::cout << "Could not open file: " << file_path << std::endl;

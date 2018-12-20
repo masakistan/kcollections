@@ -201,7 +201,11 @@ void burst_uc( Vertex* v, int k, int depth )
 #endif
     }
 
-    free_uc( &( v->uc ) );
+#if KCOLOR
+    free_uc(&v->uc, true);
+#else
+    free_uc(&v->uc);
+#endif
     init_uc( &( v->uc ) );
 }
 
@@ -277,7 +281,11 @@ void vertex_insert(Vertex* v, uint8_t* bseq, int k, int depth, roaring_bitmap_t*
 
 void free_vertex( Vertex* v )
 {
-    free_uc( &( v->uc ) );
+#if KCOLOR
+    free_uc(&v->uc, false);
+#else
+    free_uc(&v->uc);
+#endif
     for(int i = 0; i < v->vs_size; i++) {
         free_vertex(&v->vs[i]);
     }

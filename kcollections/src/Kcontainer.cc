@@ -8,7 +8,6 @@ std::vector<std::vector<std::vector<uint8_t*>>> kmers;
 #endif
 
 Vertex** v;
-sem_t* signal_b;
 pthread_mutex_t** blocks;
 sem_t** rsignal;
 int bk, k, nthreads;
@@ -39,7 +38,6 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
     sem_close(rsignal[i]);
   }
 
-
   kc->v.vs = (Vertex*) calloc(total_vs, sizeof(Vertex));
   kc->v.vs_size = total_vs;
 
@@ -50,14 +48,18 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
     std::memmove(&kc->v.vs[idx], v[i]->vs, v[i]->vs_size * sizeof(Vertex));
     kc->v.pref_pres |= v[i]->pref_pres;
     idx += v[i]->vs_size;
+#if KCOLOR
+    free_uc(&v[i]->uc, true);
+#else
     free_uc(&v[i]->uc);
+#endif
     free(v[i]->vs);
     free(v[i]);
     kmers[i].clear();
+    free(blocks[i]);
   }
 
   kmers.clear();
-  free(signal_b);
   free(rsignal);
   free(v);
   free(p_threads);
@@ -76,7 +78,6 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads) {
     bits_to_shift = 8 - log2((double) threads);
     bk = calc_bk(kd->k);
     v = (Vertex**) calloc(threads, sizeof(Vertex*));
-    signal_b = (sem_t*) calloc(threads, sizeof(sem_t));
     rsignal = (sem_t**) calloc(threads, sizeof(sem_t*));
     p_threads = (pthread_t*) calloc(threads, sizeof(pthread_t));
     bin_ids = (int*) calloc(threads, sizeof(int));
@@ -106,10 +107,8 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads) {
         v[i] = (Vertex*) calloc(1, sizeof(Vertex));
         init_vertex(v[i]);
 
-        //sem_init(&signal_b[i], 0, 0);
         //ids.push_back(std::to_string(i).c_str());
         rsignal[i] = sem_open((appName + std::to_string(getpid()) + std::to_string(i)).c_str(), O_CREAT, 0600, 0);
-        //rsignal[i] = &signal_b[i];
         bin_ids[i] = i;
         // NOTE: spin up worker threads
         pthread_create(&p_threads[i], NULL, parallel_kcontainer_add_consumer, &bin_ids[i]);

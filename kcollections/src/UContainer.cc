@@ -66,7 +66,10 @@ void uc_insert(UC* uc, uint8_t* bseq, int k, int depth, int idx, roaring_bitmap_
                 ( uc->size + 1 ) * sizeof( int )
                 );
 #elif KCOLOR
-        uc->colors = (roaring_bitmap_t**) realloc(uc->colors, (uc->size + 1) * sizeof(roaring_bitmap_t*));
+        uc->colors = (roaring_bitmap_t**) realloc(
+                uc->colors,
+                (uc->size + 1) * sizeof(roaring_bitmap_t*)
+                );
 #endif
     }
 
@@ -115,7 +118,11 @@ void uc_insert(UC* uc, uint8_t* bseq, int k, int depth, int idx, roaring_bitmap_
     }
 }
 
-void free_uc( UC* uc )
+#if KCOLOR
+void free_uc(UC* uc, bool keep)
+#else
+void free_uc(UC* uc)
+#endif
 {
     //std::cout << "Free uc\t" << uc->size << std::endl;
     if( uc->suffixes != NULL )
@@ -123,20 +130,21 @@ void free_uc( UC* uc )
         //std::cout << "\tremoving suffixes\t" << uc->size << std::endl;
         free( uc->suffixes );
         //std::cout << "\tdone removing suffixes" << std::endl;
-#if KDICT || KCOLOR
+#if KCOLOR
+        if(!keep) {
+            for(int i = 0; i < uc->size; i++) {
+                roaring_bitmap_free(uc->colors[i]);
+            }
+        }
+        free(uc->colors);
+#endif
+
+#if KDICT
         for( int i = 0; i < uc->size; i++ )
         {
-#if KDICT
             uc->objs[ i ].dec_ref();
-#elif KCOLOR
-            roaring_bitmap_free(uc->colors[i]);
-#endif
         }
-#endif
-#if KDICT
         free( uc->objs );
-#elif KCOLOR
-        free(uc->colors);
 #elif KCOUNTER
         free( uc->counts );
 #endif
@@ -169,7 +177,7 @@ void uc_remove( UC* uc, int bk, int idx )
             );
 #elif KCOLOR
     bytes_to_move = (uc->size - (idx + 1)) * sizeof(roaring_bitmap_t*);
-    roaring_bitmap_free(uc->colors[idx]);
+    //roaring_bitmap_free(uc->colors[idx]);
     std::memmove(&uc->colors[idx], &uc->colors[idx + 1], bytes_to_move);
 #endif
 
