@@ -45,7 +45,7 @@ class Kset
         {
             return kcontainer_get_child_suffix(v, idx);
         }
-        void add_seq(const char* seq, uint32_t length);
+        void add_seq( const char* seq, uint32_t length);
 
         void parallel_add_init(int threads) {
             parallel_kcontainer_add_init(kc, threads);
@@ -57,5 +57,5 @@ class Kset
             parallel_kcontainer_add_join(kc);
         }
 
-        void parallel_add_seq(char* seq, uint32_t length);
+        void parallel_add_seq(const char* seq, uint32_t length);
 };

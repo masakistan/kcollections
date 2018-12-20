@@ -10,13 +10,13 @@ void init_vertex( Vertex* v )
     init_uc( &( v->uc ) );
 }
 
-#if defined KDICT || defined KCOUNTER
+#if defined KDICT || defined KCOUNTER || KCOLOR
 #if KDICT
 py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
 #elif KCOUNTER
 int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth )
 #elif KCOLOR
-uint32_t* vertex_get_colors(Vertex* v, uint8_t* vseq, intk, int depth)
+uint32_t* vertex_get_colors(Vertex* v, uint8_t* bseq, int k, int depth)
 #endif
 {
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
@@ -29,8 +29,8 @@ uint32_t* vertex_get_colors(Vertex* v, uint8_t* vseq, intk, int depth)
         return v->uc.counts[ uc_idx ];
 #elif KCOLOR
         uint64_t card = roaring_bitmap_get_cardinality(v->uc.colors[uc_idx]);
-        uint32_t* colors = (uint32_t*) malloc(card, * sizeof(uint32_t));
-        roaring_bitmap_to_uint32_arrray(v->uc.colors[uc_idx], colors);
+        uint32_t* colors = (uint32_t*) malloc(card * sizeof(uint32_t));
+        roaring_bitmap_to_uint32_array(v->uc.colors[uc_idx], colors);
         return colors;
 #endif
     }

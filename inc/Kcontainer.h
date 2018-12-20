@@ -101,11 +101,11 @@ inline void kcontainer_add( Kcontainer* kd, const char* kmer, uint32_t color )
 
 #if defined KDICT || defined KCOUNTER || defined KCOLOR
 #if KDICT
-inline py::handle* kcontainer_get( Kcontainer* kd, char* kmer )
+inline py::handle* kcontainer_get( Kcontainer* kd, const char* kmer )
 #elif KCOUNTER
-inline int kcontainer_get( Kcontainer* kd, char* kmer )
+inline int kcontainer_get( Kcontainer* kd, const char* kmer )
 #elif KCOLOR
-inline uint32_t* kcontainer_get(Kcontainer* kd, char* kmer)
+inline uint32_t* kcontainer_get(Kcontainer* kd, const char* kmer)
 #endif
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );

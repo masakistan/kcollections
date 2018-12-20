@@ -27,6 +27,8 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(SOURCE_DIR "kcollections/src")
+#set(ROARING_BUILD_STATIC ON)
+set(ENABLE_ROARING_TESTS OFF)
 
 message( "looking in ${CMAKE_MODULE_PATH}" )
 
@@ -44,9 +46,6 @@ endif()
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-#find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
-#find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
-
 message("Using Python version " ${PYTHON_VERSION})
 
 # Add inc directory
@@ -72,6 +71,7 @@ string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
 string(APPEND COUNTER_SOURCES "${SOURCE_DIR}/Kcounter.cc;")
 string(APPEND COLOR_SOURCES "${SOURCE_DIR}/Kcolor.cc;")
 #add_executable(settest "${SOURCE_DIR}/TestSetLoad.cxx;" ${SET_SOURCES} ${SOURCES})
+
 #add_executable(settestserial "${SOURCE_DIR}/TestSetLoadSerial.cxx;" ${SET_SOURCES} ${SOURCES})
 #add_executable(settestserialfast "${SOURCE_DIR}/TestSetLoadSerialFast.cxx;" ${SET_SOURCES} ${SOURCES})
 #target_link_libraries(settest ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
@@ -83,8 +83,8 @@ string(APPEND COLOR_SOURCES "${SOURCE_DIR}/Kcolor.cc;")
 
 
 # Python library
-#find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
-#find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
+find_package(PythonLibs ${PYTHON_VERSION} REQUIRED)
+find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIR})
 
 
@@ -96,38 +96,27 @@ add_subdirectory(libs/CRoaring)
 # set c++14
 set (CMAKE_CXX_STANDARD 14)
 
-
-#add_executable(check "src/TestDriver.cc;" ${SOURCES})
-#target_link_libraries(check
-#    ${PYTHON_LIBRARIES}
-#    #${Boost_LIBRARIES}
-#    )
-
-#add_executable(test_driver "src/TestExternalFile.cc;" ${SOURCES})
-#target_link_libraries(test_driver
-#    ${PYTHON_LIBRARIES}
-#    #${Boost_LIBRARIES}
-#    )
-
 #add_executable( test_set_driver "${SOURCE_DIR}/TestLosePoint.cc;" ${SOURCES} ${SET_SOURCES} )
 #target_link_libraries( test_set_driver ${PYTHON_LIBRARIES} )
-
 
 #add_executable( test_dict_driver "${SOURCE_DIR}/TestLosePoint.cc;" ${SOURCES} ${DICT_SOURCES} )
 #target_link_libraries( test_dict_driver ${PYTHON_LIBRARIES} )
 
-
 set(PYBIND11_PYTHON_VERSION ${PYTHON_VERSION})
 #set(bindings_python_version 2.7)
+
 pybind11_add_module( _Kset ${SOURCES} ${SET_SOURCES} )
 set_target_properties( _Kset PROPERTIES COMPILE_DEFINITIONS "KSET" )
 
 pybind11_add_module( _Kdict ${SOURCES} ${DICT_SOURCES} )
 set_target_properties( _Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
+
 pybind11_add_module( _Kcounter ${SOURCES} ${COUNTER_SOURCES} )
 set_target_properties( _Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER" )
+
 pybind11_add_module( _Kcolor ${SOURCES} ${COLOR_SOURCES} )
 set_target_properties( _Kcolor PROPERTIES COMPILE_DEFINITIONS "KCOLOR" )
+target_link_libraries( _Kcolor PRIVATE roaring )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
@@ -186,16 +175,15 @@ add_dependencies(_Kset project_jemalloc)
 add_dependencies(_Kcounter project_jemalloc)
 add_dependencies(_Kcolor project_jemalloc)
 
+add_executable(color_parallel_test "${SOURCE_DIR}/TestColorLoad.cxx;" ${COLOR_SOURCES} ${SOURCES})
+set_target_properties(color_parallel_test PROPERTIES COMPILE_DEFINITIONS "KCOLOR")
+add_dependencies(color_parallel_test project_jemalloc)
+target_link_libraries(color_parallel_test ${PYTHON_LIBRARIES} roaring Threads::Threads pybind11)
+
 #include_directories(settest "${install_dir}/include")
 #include_directories(settestserial "${install_dir}/include")
 #include_directories(settestserialfast "${install_dir}/include")
 #add_dependencies(settest project_jemalloc)
 #add_dependencies(settestserial project_jemalloc)
 #add_dependencies(settestserialfast project_jemalloc)
-
-#add_dependencies(test_dict_driver project_jemalloc)
-#add_dependencies(test_set_driver project_jemalloc)
-#target_link_libraries(test_dict_driver m jemalloc)
-#target_link_libraries(test_set_driver m jemalloc)
-
 

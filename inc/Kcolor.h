@@ -13,13 +13,13 @@ class Kcolor
     public:
         Kcolor( const int k );
         ~Kcolor();
-        void insert( char* kmer, uint32_t color );
-        bool contains( char* kmer );
+        void insert( const char* kmer, uint32_t color );
+        bool contains( const char* kmer );
         void clear();
         uint64_t size();
-        void remove( char* kmer );
-        void add_seq( char* seq, uint32_t length, uint32_t color);
-        uint32_t* get( char* kmer );
+        void remove( const char* kmer );
+        void add_seq( const char* seq, uint32_t length, uint32_t color);
+        uint32_t* get( const char* kmer );
         int get_k() { return m_k; }
         Kcontainer* get_kc() { return kc; }
         void parallel_add_init(int threads) {
@@ -32,7 +32,7 @@ class Kcolor
             parallel_kcontainer_add_join(kc);
         }
 
-        void parallel_add_seq(char* seq, uint32_t length, uint32_t color);
+        void parallel_add_seq(const char* seq, uint32_t length, uint32_t color);
 
         char* get_uc_kmer( Vertex* v, int k, int idx )
         {

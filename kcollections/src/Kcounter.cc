@@ -18,19 +18,19 @@ void Kcounter::clear()
     kc = create_kcontainer( m_k );
 }
 
-void Kcounter::insert( char* kmer, int count )
+void Kcounter::insert( const char* kmer, int count )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kcounter" );
     kcontainer_add( kc, kmer, count );
 }
 
-int Kcounter::get( char* kmer )
+int Kcounter::get( const char* kmer )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kcounter" );
     return kcontainer_get( kc, kmer );
 }
 
-bool Kcounter::contains( char* kmer )
+bool Kcounter::contains( const char* kmer )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kcounter" );
     return kcontainer_contains( kc, kmer );
@@ -41,17 +41,17 @@ uint64_t Kcounter::size()
     return kcontainer_size( kc );
 }
 
-void Kcounter::remove( char* kmer )
+void Kcounter::remove( const char* kmer )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kcounter" );
     kcontainer_remove( kc, kmer );
 }
 
-void Kcounter::add_seq( char* seq, uint32_t length )
+void Kcounter::add_seq( const char* seq, uint32_t length )
 {
     kcontainer_add_seq( kc, seq, length );
 }
 
-void Kcounter::parallel_add_seq(char* seq, uint32_t length) {
+void Kcounter::parallel_add_seq(const char* seq, uint32_t length) {
     parallel_kcontainer_add_seq(kc, seq, length);
 }
