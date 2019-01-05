@@ -18,13 +18,13 @@ void Kcounter::clear()
     kc = create_kcontainer( m_k );
 }
 
-void Kcounter::insert( char* kmer, int count )
+void Kcounter::insert( char* kmer, count_dtype count )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kcounter" );
     kcontainer_add( kc, kmer, count );
 }
 
-int Kcounter::get( char* kmer )
+count_dtype Kcounter::get( char* kmer )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kcounter" );
     return kcontainer_get( kc, kmer );

@@ -13,13 +13,13 @@ class Kcounter
     public:
         Kcounter( const int k );
         ~Kcounter();
-        void insert( char* kmer, int count );
+        void insert( char* kmer, count_dtype count );
         bool contains( char* kmer );
         void clear();
         uint64_t size();
         void remove( char* kmer );
         void add_seq( char* seq, uint32_t length );
-        int get( char* kmer );
+        count_dtype get( char* kmer );
         int get_k() { return m_k; }
         Kcontainer* get_kc() { return kc; }
         void parallel_add_init(int threads) {

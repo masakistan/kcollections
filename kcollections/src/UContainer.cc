@@ -38,7 +38,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count )
 #if KDICT
         uc->objs = ( py::handle* ) calloc( len , sizeof( py::handle ) );
 #elif KCOUNTER
-        uc->counts = ( int* ) calloc( len, sizeof( int ) );
+        uc->counts = ( count_dtype* ) calloc( len, sizeof(count_dtype) );
 #endif
     }
     else
@@ -53,9 +53,9 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count )
                 ( uc->size + 1 ) * sizeof( py::handle )
                 );
 #elif KCOUNTER
-        uc->counts = ( int* ) realloc(
+        uc->counts = ( count_dtype* ) realloc(
                 uc->counts,
-                ( uc->size + 1 ) * sizeof( int )
+                ( uc->size + 1 ) * sizeof(count_dtype)
                 );
 #endif
     }
@@ -80,7 +80,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count )
                     bytes_to_move
                     );
 #elif KCOUNTER
-            bytes_to_move = ( uc->size - idx ) * sizeof( int );
+            bytes_to_move = ( uc->size - idx ) * sizeof(count_dtype);
             std::memmove(
                     &uc->counts[ idx + 1 ],
                     &uc->counts[ idx ],
@@ -90,10 +90,12 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count )
         }
 
 #if KDICT
-        std::memcpy( &uc->objs[ idx ], obj, sizeof( py::handle ) );
-        uc->objs[ idx ].inc_ref();
+        std::memcpy(&uc->objs[idx], obj, sizeof(py::handle));
+        uc->objs[idx].inc_ref();
 #elif KCOUNTER
-        std::memcpy( &uc->counts[ idx ], &count, sizeof( int ) );
+        if(uc->counts[idx] < MAXCOUNT) {
+            std::memcpy(&uc->counts[idx], &count, sizeof(count_dtype));
+        }
 #endif
         std::memcpy( &uc->suffixes[ suffix_idx ], bseq, len );
         uc->size++;
@@ -138,7 +140,7 @@ void uc_remove( UC* uc, int bk, int idx )
             bytes_to_move
             );
 #elif KCOUNTER
-    bytes_to_move = ( uc->size - ( idx + 1 ) ) * sizeof( int );
+    bytes_to_move = ( uc->size - ( idx + 1 ) ) * sizeof( count_dtype );
     std::memmove(
             &uc->counts[ idx ],
             &uc->counts[ idx + 1 ],
