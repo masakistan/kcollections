@@ -11,14 +11,16 @@ class Kset
     private:
         Kcontainer* kc;
         int m_k;
+        std::vector<std::vector<uint32_t>> chromoBoundaries;
     public:
         Kset( const int k );
         ~Kset();
-        void add( const char* kmer );
+        //void add( const char* kmer );
         bool contains( const char* kmer );
         void clear();
         uint64_t size();
         void remove( const char* kmer );
+        PgData* get(const char* kmer);
         int get_k() { return m_k; }
         Kcontainer* get_kc() { return kc; }
 
@@ -45,17 +47,17 @@ class Kset
         {
             return kcontainer_get_child_suffix(v, idx);
         }
-        void add_seq(const char* seq, uint32_t length);
+        //void add_seq(const char* seq, uint32_t length);
 
         void parallel_add_init(int threads) {
             parallel_kcontainer_add_init(kc, threads);
         };
-        void parallel_add(const char* kmer) {
-            parallel_kcontainer_add(kc, kmer);
+        void parallel_add(const char* kmer, uint16_t gidx, uint32_t pos) {
+            parallel_kcontainer_add(kc, kmer, gidx, pos);
         }
         void parallel_add_join() {
             parallel_kcontainer_add_join(kc);
         }
 
-        void parallel_add_seq(char* seq, uint32_t length);
+        void parallel_add_seq(char* seq, uint32_t length, uint16_t gidx);
 };

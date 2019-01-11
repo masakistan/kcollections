@@ -7,11 +7,13 @@
 #include "helper.h"
 #include <pybind11/pybind11.h>
 #include <jemalloc/jemalloc.h>
+#include "PgData.h"
 
 namespace py = pybind11;
 
 typedef struct {
     uint8_t* suffixes;
+    PgData* data;
 #if KDICT
     py::handle* objs;
 #elif KCOUNTER
@@ -25,7 +27,7 @@ void print( UC* uc, int k, int depth );
 #if KDICT
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::handle* obj );
 #elif KSET
-void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx );
+void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, void* data, bool burst );
 #elif KCOUNTER
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype count );
 #endif

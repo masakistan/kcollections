@@ -8,6 +8,7 @@ void init_uc( UC* uc )
     uc->objs = NULL;
 #endif
     uc->size = 0;
+    uc->data = NULL;
 }
 
 void print( UC* uc, int k, int depth )
@@ -26,7 +27,7 @@ void print( UC* uc, int k, int depth )
 #if KDICT
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::handle* obj )
 #elif KSET
-void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
+void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, void* data, bool burst )
 #elif KCOUNTER
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype count )
 #endif
@@ -35,6 +36,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
     if( uc->suffixes == NULL )
     {
         uc->suffixes = ( uint8_t* ) calloc( len , sizeof( uint8_t ) );
+        uc->data = (PgData*) calloc(len, sizeof(PgData));
 #if KDICT
         uc->objs = ( py::handle* ) calloc( len , sizeof( py::handle ) );
 #elif KCOUNTER
@@ -46,6 +48,10 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
         uc->suffixes = ( uint8_t* ) realloc(
                 uc->suffixes,
                 len * ( uc->size + 1 ) * sizeof( uint8_t )
+                );
+        uc->data = (PgData*) realloc(
+                uc->data,
+                (uc->size + 1) * sizeof(PgData)
                 );
 #if KDICT
         uc->objs = ( py::handle* ) realloc(
@@ -72,6 +78,12 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
                     &uc->suffixes[ suffix_idx ],
                     bytes_to_move
                     );
+            bytes_to_move = (uc->size - idx) * sizeof(PgData);
+            std::memmove(
+                   &uc->data[idx + 1],
+                   &uc->data[idx],
+                   bytes_to_move
+                   );
 
 #if KDICT
             bytes_to_move = ( uc->size - idx ) * sizeof( py::handle );
@@ -88,6 +100,28 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
                     bytes_to_move
                     );
 #endif
+        }
+
+        if(burst) {
+            // data is a PgData type
+            std::memmove(&uc->data[idx], (PgData*) data, sizeof(PgData));
+        } else {
+            // data is a tuple
+            std::memset(&uc->data[idx], 0, sizeof(PgData));
+            std::tuple<uint16_t, uint32_t, uint8_t*>* cdata = (std::tuple<uint16_t, uint32_t, uint8_t*>*) data;
+            uint16_t gidx = std::get<0>(*cdata);
+            uint32_t pos = std::get<1>(*cdata);
+            uc->data[idx].genomes |= 1 << gidx;
+
+            //uc->data[idx].counts = (uint8_t*) calloc(1, sizeof(uint8_t));
+            uc->data[idx].counts = new std::vector<uint8_t>();
+            uc->data[idx].counts->push_back(1);
+
+            //uc->data[idx].coords = (uint32_t*) calloc(1, sizeof(uint32_t));
+            uc->data[idx].coords = new std::vector<uint32_t>();
+            uc->data[idx].coords->push_back(pos);
+
+            uc->data[idx].size = 1;
         }
 
 #if KDICT

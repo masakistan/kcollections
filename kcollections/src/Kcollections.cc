@@ -129,14 +129,21 @@ PYBIND11_MODULE( _Kset, m )
 
            Kset
       )pbdoc";
+    
+    py::class_<PgData>(m, "PgData")
+            .def_readwrite("coords", &PgData::coords)
+            .def_readwrite("genomes", &PgData::genomes)
+            .def_readwrite("counts", &PgData::counts)
+            .def_readwrite("size", &PgData::size);
 
     py::class_<Kset>(m, "Kset")
         .def(py::init<const int>())
-        .def("add", &Kset::add, R"pbdoc(
+        /*.def("add", &Kset::add, R"pbdoc(
             Add a kmer to Kset
 
             Takes one argument, the kmer represented as a string
-          )pbdoc")
+          )pbdoc")*/
+        .def("__getitem__", &Kset::get, R"pbdoc()pbdoc")
         .def("__contains__", &Kset::contains, R"pbdoc(
             Checks if a kmer is in Kset
 
@@ -161,7 +168,7 @@ PYBIND11_MODULE( _Kset, m )
         .def("get_vs_size", &Kset::get_vs_size )
         .def("get_child_vertex", &Kset::get_child_vertex, py::return_value_policy::reference )
         .def("get_child_suffix", &Kset::get_child_suffix )
-        .def("add_seq", &Kset::add_seq)
+        //.def("add_seq", &Kset::add_seq)
         .def("parallel_add_init", &Kset::parallel_add_init)
         .def("parallel_add", &Kset::parallel_add)
         .def("parallel_add_seq", &Kset::parallel_add_seq)
