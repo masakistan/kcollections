@@ -27,7 +27,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::handle* ob
 #elif KSET
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx );
 #elif KCOUNTER
-void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count );
+void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype count );
 #endif
 
 void free_uc( UC* uc );

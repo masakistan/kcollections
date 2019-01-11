@@ -50,7 +50,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj 
 #elif KSET
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth );
 #elif KCOUNTER
-void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count );
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype count );
 #endif
 
 #if KDICT

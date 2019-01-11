@@ -28,7 +28,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::handle* ob
 #elif KSET
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
 #elif KCOUNTER
-void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count )
+void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype count )
 #endif
 {
     int len = calc_bk( k );
@@ -57,6 +57,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count )
                 uc->counts,
                 ( uc->size + 1 ) * sizeof(count_dtype)
                 );
+        assert(uc->counts != NULL);
 #endif
     }
 
@@ -93,12 +94,14 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, int count )
         std::memcpy(&uc->objs[idx], obj, sizeof(py::handle));
         uc->objs[idx].inc_ref();
 #elif KCOUNTER
-        if(uc->counts[idx] < MAXCOUNT) {
+        if(count < MAXCOUNT - 1) {
             std::memcpy(&uc->counts[idx], &count, sizeof(count_dtype));
         }
 #endif
         std::memcpy( &uc->suffixes[ suffix_idx ], bseq, len );
         uc->size++;
+    } else {
+        //std::cout << "this is a mistake!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
     }
 }
 

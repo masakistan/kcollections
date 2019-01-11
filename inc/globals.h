@@ -7,5 +7,5 @@
 #define HASHSIZE    512     // HASHSIZE % 32 must be 0
 
 
-typedef uint16_t count_dtype;
+typedef int count_dtype;
 #define MAXCOUNT    UINT16_MAX
