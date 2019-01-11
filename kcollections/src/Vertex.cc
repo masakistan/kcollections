@@ -12,21 +12,27 @@ void init_vertex( Vertex* v )
 
 PgData* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
 {
-    std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
-    int uc_idx = sres.second;
-    if( sres.first )
-    {
-        return &v->uc.data[ uc_idx ];
+    uint8_t prefix = bseq[0];
+    //std::cout << "prefix: " << (unsigned) prefix << std::endl;
+
+    if((v->pref_pres >> (unsigned) prefix) & 0x1) {
+        int vidx = calc_vidx(v->pref_pres, prefix);
+        Vertex* child = &v->vs[vidx];
+        return vertex_get(child, &bseq[1], k - 4, depth + 1);
     }
 
-    if(v->vs != NULL) {
-        uint8_t prefix = bseq[0];
+    //std::cout << "trying to find: " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
+    for(int i = 0; i < v->uc.size; i++) {
+        int idx = calc_bk(k) * i;
+        //std::cout << deserialize_kmer(k, calc_bk(k), &v->uc.suffixes[idx]) << std::endl;
+    }
 
-        if((v->pref_pres >> (unsigned) prefix) & 0x1) {
-            int vidx = calc_vidx(v->pref_pres, prefix);
-            Vertex* child = &v->vs[vidx];
-            return vertex_get(child, &bseq[1], k - 4, depth + 1);
-        }
+    std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
+    //std::cout << "found: " << sres.first << std::endl;
+    if( sres.first )
+    {
+        int uc_idx = sres.second;
+        return &v->uc.data[ uc_idx ];
     }
 
     throw pybind11::key_error( "Key not in dictionary!" );
@@ -211,16 +217,6 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype coun
                 kvals->counts->at(gidx) = 2;
             }
         } else {
-            /*kvals->counts = (uint8_t*) realloc(
-                                    kvals->counts,
-                                    (kvals->size + 1) * sizeof(uint8_t)
-                                    );
-            kvals->coords = (uint32_t*) realloc(
-                                    kvals->coords,
-                                    (kvals->size + 1) * sizeof(uint32_t)
-                                    );
-            kvals->counts[kvals->size] = 1;
-            kvals->coords[kvals->size] = pos;*/
             kvals->counts->push_back(1);
             uint32_t pos = std::get<1>(*cdata);
             kvals->coords->push_back(pos);

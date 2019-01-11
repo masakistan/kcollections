@@ -115,6 +115,7 @@ PYBIND11_MODULE( _Kcounter, m )
 }
 #elif KSET
 #include "Kset.h"
+#include <pybind11/stl.h>
 
 PYBIND11_MODULE( _Kset, m )
 {
@@ -131,10 +132,10 @@ PYBIND11_MODULE( _Kset, m )
       )pbdoc";
     
     py::class_<PgData>(m, "PgData")
-            .def_readwrite("coords", &PgData::coords)
-            .def_readwrite("genomes", &PgData::genomes)
-            .def_readwrite("counts", &PgData::counts)
-            .def_readwrite("size", &PgData::size);
+            .def_readwrite("coords", &PgData::coords, py::return_value_policy::reference)
+            .def_readwrite("genomes", &PgData::genomes, py::return_value_policy::reference)
+            .def_readwrite("counts", &PgData::counts, py::return_value_policy::reference)
+            .def_readwrite("size", &PgData::size, py::return_value_policy::reference);
 
     py::class_<Kset>(m, "Kset")
         .def(py::init<const int>())
@@ -143,7 +144,7 @@ PYBIND11_MODULE( _Kset, m )
 
             Takes one argument, the kmer represented as a string
           )pbdoc")*/
-        .def("__getitem__", &Kset::get, R"pbdoc()pbdoc")
+        .def("__getitem__", &Kset::get, R"pbdoc()pbdoc", py::return_value_policy::reference)
         .def("__contains__", &Kset::contains, R"pbdoc(
             Checks if a kmer is in Kset
 

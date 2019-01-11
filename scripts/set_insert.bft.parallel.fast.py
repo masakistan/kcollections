@@ -45,6 +45,11 @@ print 'elapsed time:', elapsed_time
 #    sys.stdout.flush()
 #    ks.parallel_add_seq(seq, len(seq))
 
+#sys.exit()
+
+for kmer, val in ks.iteritems():
+    print kmer, val.genomes, val.coords
+
 print len(ks), 'kmers'
 print 'done!'
 print 'checking correctness'

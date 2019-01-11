@@ -195,7 +195,7 @@ std::pair< bool, int > uc_find( UC* uc, int k, int depth, uint8_t* bseq )
         return std::make_pair( false, uc->size );
     }
 
-    return binary_search( uc->suffixes, uc->size, calc_bk( k ), bseq );
+    return binary_search( uc->suffixes, uc->size, k, bseq );
 }
 
 

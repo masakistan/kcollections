@@ -231,7 +231,11 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
 
     // shift all the bits over
     fbseq64[0] >>= 2;
+
+    rbseq8[bk - 1] &= ~(3 << last_index);
     rbseq64[size64 - 1] <<= 2;
+
+
     for(int i = 1; i < size64; i++) {
         fbseq64[i - 1] |= (fbseq64[i] << 62);
         fbseq64[i] >>= 2;
@@ -243,6 +247,8 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
     serialize_position(j, bk - 1, last_index, fbseq8, seq);
     serialize_position_comp(j, 0, 0, rbseq8, seq);
     //std::cout << "inserting: " << deserialize_kmer(k, calc_bk(k), bseq8) << std::endl;
+    //std::cout << "for: " << deserialize_kmer(bk * 4, bk, fbseq8) << std::endl;
+    //std::cout << "rev: " << deserialize_kmer(bk * 4, bk, rbseq8) << std::endl;
 
     //std::cout << "******************" << std::endl;
     //std::cout << "for: " << deserialize_kmer(kd->k, bk, fbseq8) << std::endl;

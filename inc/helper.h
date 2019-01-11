@@ -165,8 +165,9 @@ static int compare_seqs(uint8_t* seq1, uint8_t* seq2, int len) {
     return 0;
 }
 
-static std::pair< bool, int > binary_search( uint8_t* suffixes, int max, int len, uint8_t* bseq )
+static std::pair< bool, int > binary_search( uint8_t* suffixes, int max, int k, uint8_t* bseq )
 {
+    int len = calc_bk(k);
     if( max == 0 )
     {
         return std::make_pair( false, 0 );
@@ -179,6 +180,8 @@ static std::pair< bool, int > binary_search( uint8_t* suffixes, int max, int len
         idx = mid * len;
 
         cmp = std::memcmp( bseq, &suffixes[ idx ], len );
+        //std::cout << "comparing to: " << deserialize_kmer(len * 4, len, &suffixes[idx]) << "\t" << cmp << std::endl;
+
         //cmp = compare_seqs(bseq, &suffixes[idx], len);
         if( cmp < 0 )
         {
