@@ -1,7 +1,7 @@
 #include "Kcontainer.h"
 
 #if defined(KSET) || defined(KCOUNTER)
-std::vector<std::vector<std::vector<uint8_t*>>> kmers;
+std::vector<std::vector<std::vector<std::tuple<uint16_t, uint32_t, uint8_t*>>>> kmers;
 Vertex** v;
 sem_t* signal_b;
 pthread_mutex_t** blocks;
@@ -84,11 +84,11 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads) {
     // NOTE: initialize per thread variables
     // NOTE: initialize mutexes
     for(int i = 0; i < threads; i++) {
-      kmers.push_back(std::vector<std::vector<uint8_t*>>());
+      kmers.push_back(std::vector<std::vector<std::tuple<uint16_t, uint32_t, uint8_t*>>>());
       blocks[i] = (pthread_mutex_t*) calloc(work_queues, sizeof(pthread_mutex_t));
       for(int j = 0; j < work_queues; j++) {
         pthread_mutex_init(&blocks[i][j], NULL);
-        kmers[i].push_back(std::vector<uint8_t*>());
+        kmers[i].push_back(std::vector<std::tuple<uint16_t, uint32_t, uint8_t*>>());
       }
         v[i] = (Vertex*) calloc(1, sizeof(Vertex));
         init_vertex(v[i]);
@@ -106,6 +106,7 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads) {
 void* parallel_kcontainer_add_consumer(void* bin_ptr) {
     int bin = *((int*) bin_ptr);
     int cur_rbin;
+    uint8_t* bseq;
 
 #if KCOUNTER
     int count;
@@ -127,12 +128,14 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
         // NOTE: insert all kmers
         for(auto i : kmers[bin][cur_rbin]) {
 #if KSET
-            vertex_insert(v[bin], i, k, 0);
+            bseq = std::get<2>(i);
+            vertex_insert(v[bin], bseq, k, 0, &i, false);
+            free(bseq);
 #elif KCOUNTER
             count = vertex_get_counter(v[bin], i, k, 0);
             vertex_insert(v[bin], i, k, 0, ++count);
-#endif
             free(i);
+#endif
         }
 
         // NOTE: clear the vector
@@ -148,7 +151,7 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
     return NULL;
 }
 
-void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
+void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, uint16_t gidx, uint32_t pos) {
    uint idx = (unsigned) bseq[0];
 
   // NOTE: determine bin
@@ -160,7 +163,7 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
   pthread_mutex_lock(&blocks[bin][cur_wbin]);
 
   // NOTE: add to queuue
-  kmers[bin][cur_wbin].push_back(bseq);
+  kmers[bin][cur_wbin].push_back(std::make_tuple(gidx, pos, bseq));
 
   // NOTE: if there are enough items in the queue, release the mutex
   if(kmers[bin][cur_wbin].size() == MAX_BIN_SIZE) {
@@ -176,22 +179,28 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
   pthread_mutex_unlock(&blocks[bin][cur_wbin]);
 }
 
-void parallel_kcontainer_add(Kcontainer* kd, const char* kmer) {
+void parallel_kcontainer_add(Kcontainer* kd, const char* kmer, uint16_t gidx, uint32_t pos) {
     // NOTE: start adding
   uint8_t* pbseq = ( uint8_t* ) calloc( bk, sizeof( uint8_t ) );
   serialize_kmer(kmer, kd->k, pbseq);
-  parallel_kcontainer_add_bseq(kd, pbseq);
+  parallel_kcontainer_add_bseq(kd, pbseq, gidx, pos);
 }
 
-void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length) {
+void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length, uint16_t gidx, uint32_t offset) {
   int size64 = kd->k / 32;
   if(kd->k % 32 > 0) {
       size64++;
   }
 
   int i;
-  uint64_t* bseq64 = (uint64_t*) calloc(size64, sizeof(uint64_t));
-  uint8_t* bseq8 = (uint8_t*) bseq64;
+  uint64_t* cbseq64;
+
+  uint64_t* fbseq64 = (uint64_t*) calloc(size64, sizeof(uint64_t));
+  uint8_t* fbseq8 = (uint8_t*) fbseq64;
+
+  uint64_t* rbseq64 = (uint64_t*) calloc(size64, sizeof(uint64_t));
+  uint8_t* rbseq8 = (uint8_t*) rbseq64;
+
   uint64_t* bseq64_sub = (uint64_t*) calloc(size64, sizeof(uint64_t));
   uint8_t* bseq8_sub = (uint8_t*) bseq64_sub;
 
@@ -201,34 +210,56 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
   uint8_t last_index = (kd->k - 1) % 4;
 
   // serialize the first kmer
-  serialize_kmer(seq, kd->k, bseq8);
-  for(i = 0; i < size64; i++) {
-    bseq64_sub[i] = bseq64[i];
+  serialize_kmer(seq, kd->k, fbseq8);
+  serialize_kmer_rev(seq, kd->k, rbseq8);
+
+  //std::cout << "for: " << deserialize_kmer(kd->k, bk, fbseq8) << std::endl;
+  //std::cout << "rev: " << deserialize_kmer(kd->k, bk, rbseq8) << std::endl;
+
+  cbseq64 = fbseq64;
+  if(memcmp(fbseq64, rbseq64, sizeof(uint64_t) * size64) > 0) {
+    cbseq64 = rbseq64;
   }
-  parallel_kcontainer_add_bseq(kd, bseq8_sub);
+
+  for(i = 0; i < size64; i++) {
+    bseq64_sub[i] = cbseq64[i];
+  }
+  parallel_kcontainer_add_bseq(kd, bseq8_sub, gidx, offset);
 
   for(int j = kd->k; j < length; j++) {
+    offset++;
+
     // shift all the bits over
-    bseq64[0] >>= 2;
-    //bseq8[0] <<= 2;
-    //for(int i = 1; i < size64; i++) {
+    fbseq64[0] >>= 2;
+    rbseq64[size64 - 1] <<= 2;
     for(int i = 1; i < size64; i++) {
-        bseq64[i - 1] |= (bseq64[i] << 62);
-        //bseq64[i - 1] |= (bseq64[i] >> 62);
-        bseq64[i] >>= 2;
-        //bseq64[i] <<= 2;
+        fbseq64[i - 1] |= (fbseq64[i] << 62);
+        fbseq64[i] >>= 2;
+
+        rbseq64[size64 - i] |= (rbseq64[size64 - i - 1] >> 62);
+        rbseq64[size64 - i - 1] <<= 2;
     }
 
-    serialize_position(j, bk - 1, last_index, bseq8, seq);
+    serialize_position(j, bk - 1, last_index, fbseq8, seq);
+    serialize_position_comp(j, 0, 0, rbseq8, seq);
     //std::cout << "inserting: " << deserialize_kmer(k, calc_bk(k), bseq8) << std::endl;
+
+    //std::cout << "******************" << std::endl;
+    //std::cout << "for: " << deserialize_kmer(kd->k, bk, fbseq8) << std::endl;
+    //std::cout << "rev: " << deserialize_kmer(kd->k, bk, rbseq8) << std::endl;
+
+    cbseq64 = fbseq64;
+    if(memcmp(fbseq64, rbseq64, sizeof(uint64_t) * size64) > 0) {
+      cbseq64 = rbseq64;
+    }
 
     bseq64_sub = (uint64_t*) calloc(size64, sizeof(uint64_t));
     bseq8_sub = (uint8_t*) bseq64_sub;
     for(i = 0; i < size64; i++) {
-      bseq64_sub[i] = bseq64[i];
+      bseq64_sub[i] = cbseq64[i];
     }
 
-    parallel_kcontainer_add_bseq(kd, bseq8_sub);
+    parallel_kcontainer_add_bseq(kd, bseq8_sub, gidx, offset);
   }
 }
 

@@ -20,7 +20,7 @@ with(open(sys.argv[3], 'r')) as fh:
             if len(seq) > 0:
                 #seqs.append(seq)
                 tstart_time = time.time()
-                ks.parallel_add_seq(seq, len(seq))
+                ks.parallel_add_seq(seq, len(seq), 0)
                 telapsed_time = time.time() - tstart_time
                 print c, '\tadded seq of len', len(seq), telapsed_time
             c += 1
@@ -30,7 +30,7 @@ with(open(sys.argv[3], 'r')) as fh:
     if len(seq) > 0:
         #seqs.append(seq)
         tstart_time = time.time()
-        ks.parallel_add_seq(seq, len(seq))
+        ks.parallel_add_seq(seq, len(seq), 0)
         telapsed_time = time.time() - tstart_time
         print c, '\tadded seq of len', len(seq), telapsed_time
 

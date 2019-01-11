@@ -118,11 +118,6 @@ set(PYBIND11_PYTHON_VERSION ${PYTHON_VERSION})
 pybind11_add_module( _Kset ${SOURCES} ${SET_SOURCES} )
 set_target_properties( _Kset PROPERTIES COMPILE_DEFINITIONS "KSET" )
 
-pybind11_add_module( _Kdict ${SOURCES} ${DICT_SOURCES} )
-set_target_properties( _Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
-pybind11_add_module( _Kcounter ${SOURCES} ${COUNTER_SOURCES} )
-set_target_properties( _Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER" )
-
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
         string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls")
@@ -169,25 +164,7 @@ set_property(TARGET jemalloc PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libje
 set_property(TARGET jemalloc PROPERTY INTERFACE_LINK_LIBRARIES pthread dl)
 set_property(TARGET jemalloc_shared PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_SHARED_LIBRARY_SUFFIX})
 include_directories(test_set_driver "${install_dir}/include")
-include_directories(_Kdict "${install_dir}/include")
 include_directories(_Kset "${install_dir}/include")
-#include_directories(_Kcounter "${install_dir}/include")
 #include_directories(test_dict_driver "${install_dir}/include")
 
-add_dependencies(_Kdict project_jemalloc)
 add_dependencies(_Kset project_jemalloc)
-add_dependencies(_Kcounter project_jemalloc)
-
-#include_directories(settest "${install_dir}/include")
-#include_directories(settestserial "${install_dir}/include")
-#include_directories(settestserialfast "${install_dir}/include")
-#add_dependencies(settest project_jemalloc)
-#add_dependencies(settestserial project_jemalloc)
-#add_dependencies(settestserialfast project_jemalloc)
-
-#add_dependencies(test_dict_driver project_jemalloc)
-#add_dependencies(test_set_driver project_jemalloc)
-#target_link_libraries(test_dict_driver m jemalloc)
-#target_link_libraries(test_set_driver m jemalloc)
-
-

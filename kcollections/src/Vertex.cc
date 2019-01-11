@@ -10,22 +10,13 @@ void init_vertex( Vertex* v )
     init_uc( &( v->uc ) );
 }
 
-#if defined KDICT || defined KCOUNTER
-#if KDICT
-py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
-#elif KCOUNTER
-int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth )
-#endif
+PgData* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
 {
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
     int uc_idx = sres.second;
     if( sres.first )
     {
-#if KDICT
-        return &v->uc.objs[ uc_idx ];
-#elif KCOUNTER
-        return v->uc.counts[ uc_idx ];
-#endif
+        return &v->uc.data[ uc_idx ];
     }
 
     if(v->vs != NULL) {
@@ -34,24 +25,12 @@ int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth )
         if((v->pref_pres >> (unsigned) prefix) & 0x1) {
             int vidx = calc_vidx(v->pref_pres, prefix);
             Vertex* child = &v->vs[vidx];
-#if KDICT
             return vertex_get(child, &bseq[1], k - 4, depth + 1);
-#elif KCOUNTER
-            return vertex_get_counter( child, &bseq[ 1 ], k - 4, depth + 1 );
-#endif
         }
     }
 
-#if KCOUNTER
-    // add a vertex to be 0 if key is not found
-    int default_count = 0;
-    vertex_insert(v, bseq, k, depth, default_count);
-    return default_count;
-#endif
-
     throw pybind11::key_error( "Key not in dictionary!" );
 }
-#endif
 
 void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
 {
@@ -136,6 +115,7 @@ void burst_uc( Vertex* v, int k, int depth )
     //init_vertex(nv);
 
     uint8_t* suffixes = v->uc.suffixes;
+    PgData* data = v->uc.data;
 #if KDICT
     py::handle* objs = v->uc.objs;
 #elif KCOUNTER
@@ -182,7 +162,7 @@ void burst_uc( Vertex* v, int k, int depth )
 #if KDICT
         vertex_insert( child, suffix, k - 4, depth + 1, &objs[ i ] );
 #elif KSET
-        vertex_insert( child, suffix, k - 4, depth + 1 );
+        vertex_insert( child, suffix, k - 4, depth + 1, (void*) &data[i], true);
 #elif KCOUNTER
         vertex_insert( child, suffix, k - 4, depth + 1, counts[ i ] );
 #endif
@@ -195,7 +175,7 @@ void burst_uc( Vertex* v, int k, int depth )
 #if KDICT
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj )
 #elif KSET
-void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, void* data, bool bursting)
 #elif KCOUNTER
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
 #endif
@@ -207,19 +187,45 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
 #if KDICT
         vertex_insert( child, &bseq[1], k - 4, depth + 1, obj );
 #elif KSET
-        vertex_insert( child, &bseq[1], k - 4, depth + 1 );
+        vertex_insert( child, &bseq[1], k - 4, depth + 1, data, bursting);
 #elif KCOUNTER
         vertex_insert( child, &bseq[1], k - 4, depth + 1, count );
 #endif
         return;
     }
 
+    // NOTE: the kmer already exists!
     //std::cout << "vertex insertion: " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
     int uc_idx = sres.second;
     if( sres.first )
     {
         // set the object here
+
+        // NOTE check if genome already seen
+        PgData* kvals = &v->uc.data[uc_idx];
+        std::tuple<uint16_t, uint32_t, uint8_t*>* cdata = (std::tuple<uint16_t, uint32_t, uint8_t*>*) data;
+        uint16_t gidx = std::get<0>(*cdata);
+        if(kvals->genomes & 0x1 << gidx) {
+            if(kvals->counts->at(gidx) == 1) {
+                kvals->counts->at(gidx) = 2;
+            }
+        } else {
+            /*kvals->counts = (uint8_t*) realloc(
+                                    kvals->counts,
+                                    (kvals->size + 1) * sizeof(uint8_t)
+                                    );
+            kvals->coords = (uint32_t*) realloc(
+                                    kvals->coords,
+                                    (kvals->size + 1) * sizeof(uint32_t)
+                                    );
+            kvals->counts[kvals->size] = 1;
+            kvals->coords[kvals->size] = pos;*/
+            kvals->counts->push_back(1);
+            uint32_t pos = std::get<1>(*cdata);
+            kvals->coords->push_back(pos);
+            kvals->size += 1;
+        }
 #if KDICT
         v->uc.objs[ uc_idx ].dec_ref();
         std::memcpy(
@@ -243,7 +249,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count )
 #if KDICT
     uc_insert( &( v->uc ), bseq, k, depth, uc_idx, obj );
 #elif KSET
-    uc_insert( &( v->uc ), bseq, k, depth, uc_idx );
+    uc_insert( &( v->uc ), bseq, k, depth, uc_idx, data, bursting);
 #elif KCOUNTER
     uc_insert( &( v->uc ), bseq, k, depth, uc_idx, count );
 #endif

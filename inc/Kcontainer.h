@@ -71,6 +71,7 @@ inline bool kcontainer_contains( Kcontainer* kd, const char* kmer )
     return false;
 }
 
+/*
 #if KDICT
 inline void kcontainer_add( Kcontainer* kd, const char* kmer, py::handle* obj )
 #elif KSET
@@ -91,28 +92,19 @@ inline void kcontainer_add( Kcontainer* kd, const char* kmer, int count )
 #endif
     free( bseq );
 }
+*/
 
-#if defined KDICT || defined KCOUNTER
-#if KDICT
-inline py::handle* kcontainer_get( Kcontainer* kd, char* kmer )
-#elif KCOUNTER
-inline int kcontainer_get( Kcontainer* kd, char* kmer )
-#endif
+inline PgData* kcontainer_get( Kcontainer* kd, const char* kmer )
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
     serialize_kmer( kmer, kd->k, bseq );
-#if KDICT
-    py::handle* res = vertex_get( &kd->v, bseq, kd->k, 0 );
-#elif KCOUNTER
-    int res = vertex_get_counter( &kd->v, bseq, kd->k, 0 );
-#endif
+    PgData* res = vertex_get( &kd->v, bseq, kd->k, 0 );
     //std::cout << "kcontainer get start" << std::endl;
     //py::print( py::str( *res ) );
     //std::cout << "kcontainer get end" << std::endl;
     free( bseq );
     return res;
 }
-#endif
 
 inline uint64_t kcontainer_size( Kcontainer* kd )
 {
@@ -129,13 +121,13 @@ inline void kcontainer_remove( Kcontainer* kd, const char* kmer )
 
 #if defined KSET || defined KCOUNTER
 void parallel_kcontainer_add_init(Kcontainer* kd, int threads);
-void parallel_kcontainer_add(Kcontainer* kd, const char* kmer);
+void parallel_kcontainer_add(Kcontainer* kd, const char* kmer, uint16_t gidx, uint32_t pos);
 void* parallel_kcontainer_add_consumer(void* bin_ptr);
 void parallel_kcontainer_add_join(Kcontainer* kc);
-void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length);
-void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq);
+void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length, uint16_t gidx, uint32_t offset);
+void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, uint16_t gidx, uint32_t pos);
 
-inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length) {
+/*inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length) {
     int size64 = kd->k / 32;
     if(kd->k % 32 > 0) {
         size64++;
@@ -185,5 +177,5 @@ inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length)
 
     free(bseq64);
 
-}
+}*/
 #endif

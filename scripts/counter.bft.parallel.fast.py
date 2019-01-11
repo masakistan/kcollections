@@ -40,7 +40,15 @@ ks.parallel_add_join()
 elapsed_time = time.time() - start_time
 print 'elapsed time:', elapsed_time
 #print 'read', len(seqs), 'seqs, adding to ks...'
+ckmers = [
+        'CCCAGGCTCAAGCAATCCTCCCACCTC',
+        'CCCAGGCTCAAGCAATCCTCCTGCCTC',
+        'CCCAGGCTCAAGTGATCCTCCCACCTC',
+        'CCCACGCTCTCCTGTTTGGCTTCCACA'
+        ]
 
+for ckmer in ckmers:
+    print ckmer, ks[ckmer]
 #for seq in seqs:
 #    print '\tadding seq...'
 #    sys.stdout.flush()
@@ -49,9 +57,6 @@ print 'elapsed time:', elapsed_time
 print len(ks), 'kmers'
 print 'done!'
 print 'checking correctness'
-
-for kmer, count in ks.iteritems():
-    print kmer, count
 
 c = 0
 if len(sys.argv) > 4:
