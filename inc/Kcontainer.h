@@ -49,14 +49,20 @@ inline void free_kcontainer( Kcontainer* kd )
 inline char* kcontainer_get_child_suffix(Vertex* v, int idx) {
     uint256_t verts = v->pref_pres;
     uint8_t j = 0, i = 0;
-    for(i = 0; i < 256; i++) {
+    while(true) {
         if(verts & 0x1) {
-            //i++;
             j++;
         }
+
         if(j > idx)
             break;
+
+        if((unsigned) i == 255) {
+            break;
+        }
+
         verts >>= 1;
+        i++;
     }
     return deserialize_kmer(4, 1, &i);
 }

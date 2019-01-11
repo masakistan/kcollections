@@ -50,7 +50,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj 
 #elif KSET
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, void* data, bool bursting);
 #elif KCOUNTER
-void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, int count );
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype count );
 #endif
 
 PgData* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth );
