@@ -3,7 +3,6 @@
 
 void init_vertex( Vertex* v )
 {
-    v->start = false;
     v->pref_pres = (uint256_t) 0;
     v->vs_size = 0;
     v->vs = NULL;
@@ -21,12 +20,6 @@ PgData* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
         return vertex_get(child, &bseq[1], k - 4, depth + 1);
     }
 
-    //std::cout << "trying to find: " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
-    for(int i = 0; i < v->uc.size; i++) {
-        int idx = calc_bk(k) * i;
-        //std::cout << deserialize_kmer(k, calc_bk(k), &v->uc.suffixes[idx]) << std::endl;
-    }
-
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
     //std::cout << "found: " << sres.first << std::endl;
     if( sres.first )
@@ -35,6 +28,14 @@ PgData* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
         return &v->uc.data[ uc_idx ];
     }
 
+    std::cout << "trying to find: " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
+    for(int i = 0; i < v->uc.size; i++) {
+        int idx = calc_bk(k) * i;
+        std::cout << deserialize_kmer(calc_bk(k) * 4, calc_bk(k), &v->uc.suffixes[idx]) << std::endl;
+    }
+    sres = binary_search_debug(v->uc.suffixes, v->uc.size, k, bseq);
+
+    std::cout << "Error: could not find " << deserialize_kmer(calc_bk(k) * 4, calc_bk(k), bseq) << std::endl;
     throw pybind11::key_error( "Key not in dictionary!" );
 }
 
@@ -212,33 +213,20 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype coun
         PgData* kvals = &v->uc.data[uc_idx];
         std::tuple<uint16_t, uint32_t, uint8_t*>* cdata = (std::tuple<uint16_t, uint32_t, uint8_t*>*) data;
         uint16_t gidx = std::get<0>(*cdata);
+        //std::cout << kvals->genomes << std::endl;
         if(kvals->genomes & 0x1 << gidx) {
-            if(kvals->counts->at(gidx) == 1) {
-                kvals->counts->at(gidx) = 2;
+            //std::cout << gidx << "\t" << (unsigned) kvals->counts->at(gidx) << std::endl;
+            //std::cout << kvals->counts->size() << std::endl;
+            if((unsigned) kvals->counts->back() == 1) {
+                kvals->counts->back() = 2;
             }
         } else {
+            kvals->genomes |= 0x1 << gidx;
             kvals->counts->push_back(1);
             uint32_t pos = std::get<1>(*cdata);
             kvals->coords->push_back(pos);
             kvals->size += 1;
         }
-#if KDICT
-        v->uc.objs[ uc_idx ].dec_ref();
-        std::memcpy(
-                &v->uc.objs[ uc_idx ],
-                obj,
-                sizeof( py::handle )
-                );
-        v->uc.objs[ uc_idx ].inc_ref();
-#elif KCOUNTER
-        if(v->uc.counts[uc_idx] < MAXCOUNT) {
-            std::memcpy(
-                    &v->uc.counts[ uc_idx ],
-                    &count,
-                    sizeof(count_dtype)
-                    );
-        }
-#endif
         return;
     }
 

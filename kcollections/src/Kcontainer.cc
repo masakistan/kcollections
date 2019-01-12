@@ -147,6 +147,7 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
         }
     }
     burst_uc(v[bin], k, 0);
+    filter_vertices(v[bin]);
 
     return NULL;
 }
@@ -163,6 +164,7 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, uint16_t gidx, 
   pthread_mutex_lock(&blocks[bin][cur_wbin]);
 
   // NOTE: add to queuue
+  //std::cout << gidx << "\t" << pos << std::endl;
   kmers[bin][cur_wbin].push_back(std::make_tuple(gidx, pos, bseq));
 
   // NOTE: if there are enough items in the queue, release the mutex
@@ -208,6 +210,7 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
   int count = 0;
   uint8_t holder;
   uint8_t last_index = (kd->k - 1) % 4;
+  uint8_t reverse_clear_bits_to_shift = last_index * 2;
 
   // serialize the first kmer
   serialize_kmer(seq, kd->k, fbseq8);
@@ -232,7 +235,7 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
     // shift all the bits over
     fbseq64[0] >>= 2;
 
-    rbseq8[bk - 1] &= ~(3 << last_index);
+    rbseq8[bk - 1] &= ~(3 << reverse_clear_bits_to_shift);
     rbseq64[size64 - 1] <<= 2;
 
 
@@ -266,6 +269,38 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
     }
 
     parallel_kcontainer_add_bseq(kd, bseq8_sub, gidx, offset);
+  }
+}
+
+void filter_vertices(Vertex* v) {
+  // NOTE: iterate over suffixes
+  std::list<uint8_t>::iterator countIter;
+  std::list<uint32_t>::iterator coordIter;
+
+  for(int i = 0; i < v->uc.size; i++) {
+    PgData* kdata = &v->uc.data[i];
+    int gidx = 0;
+    countIter = kdata->counts->begin();
+    coordIter = kdata->coords->begin();
+
+    while(countIter != kdata->counts->end()) {
+      // NOTE: get gidx
+      gidx = next_set_bit(&kdata->genomes, gidx, 32);
+
+      if(*countIter == 2) {
+        countIter = kdata->counts->erase(countIter);
+        coordIter = kdata->coords->erase(coordIter);
+        kdata->genomes &= ~(0x1 << gidx);
+      } else {
+        countIter++;
+        coordIter++;
+      }
+      gidx++;
+    }
+  }
+
+  for(int i = 0; i < v->vs_size; i++) {
+    filter_vertices(&v->vs[i]);
   }
 }
 

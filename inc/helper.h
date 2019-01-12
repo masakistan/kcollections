@@ -200,4 +200,37 @@ static std::pair< bool, int > binary_search( uint8_t* suffixes, int max, int k, 
     return std::make_pair( false, min );
 }
 
+static std::pair< bool, int > binary_search_debug( uint8_t* suffixes, int max, int k, uint8_t* bseq )
+{
+    int len = calc_bk(k);
+    if( max == 0 )
+    {
+        return std::make_pair( false, 0 );
+    }
 
+    int min = 0, mid, idx, cmp;
+    while( min < max )
+    {
+        mid = min + ( max - min ) / 2;
+        idx = mid * len;
+
+        cmp = std::memcmp( bseq, &suffixes[ idx ], len );
+        std::cout << "comparing to: " << deserialize_kmer(len * 4, len, &suffixes[idx]) << "\t" << cmp << std::endl;
+
+        //cmp = compare_seqs(bseq, &suffixes[idx], len);
+        if( cmp < 0 )
+        {
+            max = mid;
+        }
+        else if( cmp == 0 )
+        {
+            return std::make_pair( true, mid );
+        }
+        else
+        {
+            min = mid + 1;;
+        }
+    }
+
+    return std::make_pair( false, min );
+}

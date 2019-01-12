@@ -21,7 +21,6 @@ struct cVertex{
     uint256_t pref_pres;
     UC uc;
     uint16_t vs_size;
-    bool start;
 };
 
 #if KDICT
