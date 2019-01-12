@@ -18,6 +18,9 @@
     }\
 })
 
+static bool testbit32(uint32_t d, unsigned int pos) {
+    return (bool) (d & 0x1 << pos);
+}
 
 static int testbit( uint32_t A[],  unsigned int k )
    {
@@ -215,7 +218,7 @@ static std::pair< bool, int > binary_search_debug( uint8_t* suffixes, int max, i
         idx = mid * len;
 
         cmp = std::memcmp( bseq, &suffixes[ idx ], len );
-        std::cout << "comparing to: " << deserialize_kmer(len * 4, len, &suffixes[idx]) << "\t" << cmp << std::endl;
+        std::cout << min << "\t" << max << "\tcomparing to: " << deserialize_kmer(len * 4, len, &suffixes[idx]) << "\t" << cmp << std::endl;
 
         //cmp = compare_seqs(bseq, &suffixes[idx], len);
         if( cmp < 0 )

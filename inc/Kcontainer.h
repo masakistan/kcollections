@@ -132,7 +132,7 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr);
 void parallel_kcontainer_add_join(Kcontainer* kc);
 void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length, uint16_t gidx, uint32_t offset);
 void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, uint16_t gidx, uint32_t pos);
-void filter_vertices(Vertex* v);
+void filter_vertices(Vertex* v, int bk);
 
 /*inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length) {
     int size64 = kd->k / 32;

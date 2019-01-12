@@ -1,5 +1,5 @@
 from ._Kset import Kset as KsetParent
-
+from ._Kset import testbit32 as testbit32
 
 class Kset( KsetParent ):
     def __init__( self, k ):

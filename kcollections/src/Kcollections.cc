@@ -130,6 +130,8 @@ PYBIND11_MODULE( _Kset, m )
 
            Kset
       )pbdoc";
+
+    m.def("testbit32", &testbit32);
     
     py::class_<PgData>(m, "PgData")
             .def_readwrite("coords", &PgData::coords, py::return_value_policy::reference)

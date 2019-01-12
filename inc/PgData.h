@@ -11,4 +11,9 @@ struct PgData{
   uint8_t size;
 };
 
+inline void free_pgdata(PgData* d) {
+  delete d->coords;
+  delete d->counts;
+}
+
 #endif // __PGDATA_H_

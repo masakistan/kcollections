@@ -31,7 +31,7 @@ PgData* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
     std::cout << "trying to find: " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
     for(int i = 0; i < v->uc.size; i++) {
         int idx = calc_bk(k) * i;
-        std::cout << deserialize_kmer(calc_bk(k) * 4, calc_bk(k), &v->uc.suffixes[idx]) << std::endl;
+        std::cout << i << "\t" << deserialize_kmer(calc_bk(k) * 4, calc_bk(k), &v->uc.suffixes[idx]) << std::endl;
     }
     sres = binary_search_debug(v->uc.suffixes, v->uc.size, k, bseq);
 

@@ -147,7 +147,7 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
         }
     }
     burst_uc(v[bin], k, 0);
-    filter_vertices(v[bin]);
+    filter_vertices(v[bin], calc_bk(k));
 
     return NULL;
 }
@@ -272,7 +272,7 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
   }
 }
 
-void filter_vertices(Vertex* v) {
+void filter_vertices(Vertex* v, int bk) {
   // NOTE: iterate over suffixes
   std::list<uint8_t>::iterator countIter;
   std::list<uint32_t>::iterator coordIter;
@@ -282,6 +282,28 @@ void filter_vertices(Vertex* v) {
     int gidx = 0;
     countIter = kdata->counts->begin();
     coordIter = kdata->coords->begin();
+
+    if(kdata->counts->size() == 1) {
+      int suffix_idx = bk * i;
+      v->uc.size -= 1;
+      memmove(
+              &v->uc.suffixes[suffix_idx],
+              &v->uc.suffixes[suffix_idx + bk],
+              (v->uc.size - i) * sizeof(uint8_t) * bk
+              );
+      v->uc.suffixes = (uint8_t*) realloc(v->uc.suffixes, sizeof(uint8_t) * v->uc.size * bk);
+
+      free_pgdata(kdata);
+      memmove(
+              &v->uc.data[i],
+              &v->uc.data[i + 1],
+              (v->uc.size - i) * sizeof(PgData)
+              );
+      v->uc.data = (PgData*) realloc(v->uc.data, sizeof(PgData) * v->uc.size);
+      i -= 1;
+
+      continue;
+    }
 
     while(countIter != kdata->counts->end()) {
       // NOTE: get gidx
@@ -300,7 +322,7 @@ void filter_vertices(Vertex* v) {
   }
 
   for(int i = 0; i < v->vs_size; i++) {
-    filter_vertices(&v->vs[i]);
+    filter_vertices(&v->vs[i], bk - 1);
   }
 }
 
