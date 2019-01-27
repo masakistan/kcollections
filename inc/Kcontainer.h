@@ -20,7 +20,7 @@ namespace py = pybind11;
 
 
 typedef struct {
-    int k;
+    int k, bk;
     Vertex v;
 } Kcontainer;
 
@@ -29,6 +29,7 @@ typedef struct {
 inline void init_kcontainer(Kcontainer* kd, int k)
 {
     kd->k = k;
+    kd->bk = calc_bk(k);
     init_vertex(&(kd->v));
 }
 
@@ -70,7 +71,14 @@ inline char* kcontainer_get_child_suffix(Vertex* v, int idx) {
 inline bool kcontainer_contains( Kcontainer* kd, const char* kmer )
 {
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
-    serialize_kmer( kmer, kd->k, bseq );
+
+    try {
+      serialize_kmer( kmer, kd->k, bseq );
+    } catch(std::runtime_error e) {
+      free( bseq );
+      return false;
+    }
+
     bool res = vertex_contains( &( kd->v ), bseq, kd->k, 0 );
     free( bseq );
     return res;
@@ -102,13 +110,30 @@ inline void kcontainer_add( Kcontainer* kd, const char* kmer, int count )
 
 inline PgData* kcontainer_get( Kcontainer* kd, const char* kmer )
 {
-    uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
-    serialize_kmer( kmer, kd->k, bseq );
-    PgData* res = vertex_get( &kd->v, bseq, kd->k, 0 );
+    uint8_t* fbseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
+    uint8_t* rbseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
+
+    int k = kd->k;
+    serialize_for_rev_kmer( kmer, kd->k, fbseq, rbseq );
+    //std::cout << "origina: " << kmer << std::endl;
+    //std::cout << "forward: " << deserialize_kmer(calc_bk(k) * 4, calc_bk(k), fbseq) << std::endl;
+    //std::cout << "reverse: " << deserialize_kmer(calc_bk(k) * 4, calc_bk(k), rbseq) << std::endl;
+    //std::cout << "memcmp: " <<  memcmp(fbseq, rbseq, sizeof(uint8_t) * kd->bk) << std::endl;
+
+    PgData* res;
+
+    if(memcmp(fbseq, rbseq, sizeof(uint8_t) * kd->bk) <= 0) {
+        //std::cout << "looking in forward" << std::endl;
+        res = vertex_get( &kd->v, fbseq, kd->k, 0 );
+    } else {
+        //std::cout << "looking in reverse" << std::endl;
+        res = vertex_get( &kd->v, rbseq, kd->k, 0 );
+    }
     //std::cout << "kcontainer get start" << std::endl;
     //py::print( py::str( *res ) );
     //std::cout << "kcontainer get end" << std::endl;
-    free( bseq );
+    free( fbseq );
+    free( rbseq );
     return res;
 }
 
@@ -127,11 +152,11 @@ inline void kcontainer_remove( Kcontainer* kd, const char* kmer )
 
 #if defined KSET || defined KCOUNTER
 void parallel_kcontainer_add_init(Kcontainer* kd, int threads);
-void parallel_kcontainer_add(Kcontainer* kd, const char* kmer, uint16_t gidx, uint32_t pos);
+bool parallel_kcontainer_add(Kcontainer* kd, const char* kmer, uint16_t gidx, uint32_t pos);
 void* parallel_kcontainer_add_consumer(void* bin_ptr);
 void parallel_kcontainer_add_join(Kcontainer* kc);
 void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length, uint16_t gidx, uint32_t offset);
-void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, uint16_t gidx, uint32_t pos);
+void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, uint16_t gidx, uint32_t pos, bool reverse);
 void filter_vertices(Vertex* v, int bk);
 
 /*inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length) {

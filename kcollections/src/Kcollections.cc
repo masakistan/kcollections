@@ -137,6 +137,8 @@ PYBIND11_MODULE( _Kset, m )
             .def_readwrite("coords", &PgData::coords, py::return_value_policy::reference)
             .def_readwrite("genomes", &PgData::genomes, py::return_value_policy::reference)
             .def_readwrite("counts", &PgData::counts, py::return_value_policy::reference)
+            .def_readwrite("vidx", &PgData::vidx, py::return_value_policy::reference)
+            .def_readwrite("orientation", &PgData::orientation, py::return_value_policy::reference)
             .def_readwrite("size", &PgData::size, py::return_value_policy::reference);
 
     py::class_<Kset>(m, "Kset")

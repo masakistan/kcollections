@@ -108,11 +108,13 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
         } else {
             // data is a tuple
             std::memset(&uc->data[idx], 0, sizeof(PgData));
-            std::tuple<uint16_t, uint32_t, uint8_t*>* cdata = (std::tuple<uint16_t, uint32_t, uint8_t*>*) data;
+            std::tuple<uint16_t, uint32_t, bool, uint8_t*>* cdata = (std::tuple<uint16_t, uint32_t, bool, uint8_t*>*) data;
             uint16_t gidx = std::get<0>(*cdata);
             uint32_t pos = std::get<1>(*cdata);
+            bool reverse = std::get<2>(*cdata);
             //std::cout << gidx << std::endl;
             uc->data[idx].genomes |= 1 << gidx;
+            uc->data[idx].orientation |= reverse;
 
             //uc->data[idx].counts = (uint8_t*) calloc(1, sizeof(uint8_t));
             uc->data[idx].counts = new std::list<uint8_t>();

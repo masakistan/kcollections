@@ -84,8 +84,8 @@ static void serialize_position_comp(uint32_t kmerPos, int arrPos, int bitPos, ui
         case 't': break;
         case 'T': break;
         default:
-            bseq[ arrPos ] |= MASK_INSERT[ rand() % 4 ][ bitPos ]; break;
-            //throw std::runtime_error( "Could not serialize kmer." );
+	  //bseq[ arrPos ] |= MASK_INSERT[ rand() % 4 ][ bitPos ]; break;
+          throw std::runtime_error( "Could not serialize kmer." );
     }
 }
 
@@ -101,8 +101,15 @@ static void serialize_position(uint32_t kmerPos, int arrPos, int bitPos, uint8_t
         case 't': bseq[ arrPos ] |= MASK_INSERT[ 3 ][ bitPos ]; break;
         case 'T': bseq[ arrPos ] |= MASK_INSERT[ 3 ][ bitPos ]; break;
         default:
-            bseq[ arrPos ] |= MASK_INSERT[ rand() % 4 ][ bitPos ]; break;
-            //throw std::runtime_error( "Could not serialize kmer." );
+	  //bseq[ arrPos ] |= MASK_INSERT[ rand() % 4 ][ bitPos ]; break;
+          throw std::runtime_error( "Could not serialize kmer." );
+    }
+}
+
+static void serialize_for_rev_kmer( const char* kmer, int k, uint8_t* fbseq, uint8_t* rbseq ) {
+    for(int pos = 0; pos < k; pos++) {
+        serialize_position(pos, pos / 4, pos % 4, fbseq, kmer);
+        serialize_position_comp(k - pos - 1, pos / 4, pos % 4, rbseq, kmer);
     }
 }
 

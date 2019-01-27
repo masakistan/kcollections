@@ -74,26 +74,21 @@ void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
 
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
 {
+    uint8_t prefix = bseq[0];
+    //std::cout << "\tvs exists!\t" << v->vs_size << "\t" << (unsigned) prefix << std::endl;
+    if((v->pref_pres >> (unsigned) prefix) & 0x1) {
+	// get child
+	//std::cout << "found it!" << std::endl;
+	int vidx = calc_vidx(v->pref_pres, prefix);
+	Vertex* child = &v->vs[vidx];
+	return vertex_contains(child, &bseq[1], k - 4, depth + 1);
+    }
+
     //std::cout << "checking vs " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
     if( sres.first )
     {
         return true;
-    }
-
-    if(v->vs_size > 0) {
-        uint8_t prefix = bseq[0];
-        //std::cout << "\tvs exists!\t" << v->vs_size << "\t" << (unsigned) prefix << std::endl;
-        if((v->pref_pres >> (unsigned) prefix) & 0x1) {
-            // get child
-            //std::cout << "found it!" << std::endl;
-            int vidx = calc_vidx(v->pref_pres, prefix);
-            Vertex* child = &v->vs[vidx];
-            return vertex_contains(child, &bseq[1], k - 4, depth + 1);
-        } else {
-            //std::cout << "couldn't find a vs" << std::endl;
-            return false;
-        }
     }
 
     return false;
@@ -187,8 +182,19 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, void* data, bool
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype count )
 #endif
 {
+  //char* find = "TCACCGACAGCCTGAACCGCCGTGAAGTCCTGCACACGCAGGGTGAAGGCGGGCTGAAGCGGGTGGTGAAAAAGGAACACGCGGACGGCA";
+  //char* kmer = deserialize_kmer(90, calc_bk(90), &bseq[((int)depth) * -1]);
+  //bool print = false;
+  //if(strcmp(find, kmer) == 0) {
+  //print = true;
+  //std::cout << "found place" << std::endl;
+  //}
+
     uint8_t prefix = bseq[ 0 ];
     if((v->pref_pres >> (unsigned) prefix) & 0x1) {
+      //if(print){
+	//std::cout << "traverse vertex" << std::endl;
+      //}
         int vidx = calc_vidx(v->pref_pres, prefix);
         Vertex* child = &v->vs[vidx];
 #if KDICT
@@ -211,9 +217,14 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype coun
 
         // NOTE check if genome already seen
         PgData* kvals = &v->uc.data[uc_idx];
-        std::tuple<uint16_t, uint32_t, uint8_t*>* cdata = (std::tuple<uint16_t, uint32_t, uint8_t*>*) data;
+        std::tuple<uint16_t, uint32_t, bool, uint8_t*>* cdata = (std::tuple<uint16_t, uint32_t, bool, uint8_t*>*) data;
         uint16_t gidx = std::get<0>(*cdata);
         //std::cout << kvals->genomes << std::endl;
+	//if(strcmp(kmer, find) == 0) {
+	  //std::cout << "len counts:\t" << kvals->counts->size() << std::endl;
+	  //std::cout << "last val:\t" << (unsigned) kvals->counts->back() << std::endl;
+	//}
+	//free(kmer);
         if(kvals->genomes & 0x1 << gidx) {
             //std::cout << gidx << "\t" << (unsigned) kvals->counts->at(gidx) << std::endl;
             //std::cout << kvals->counts->size() << std::endl;
@@ -224,19 +235,18 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype coun
             kvals->genomes |= 0x1 << gidx;
             kvals->counts->push_back(1);
             uint32_t pos = std::get<1>(*cdata);
+            bool reverse = std::get<2>(*cdata);
             kvals->coords->push_back(pos);
+            kvals->orientation |= reverse << kvals->size;
             kvals->size += 1;
         }
         return;
     }
 
-#if KDICT
-    uc_insert( &( v->uc ), bseq, k, depth, uc_idx, obj );
-#elif KSET
+    /*if(print) {
+      std::cout << "inserting into uc" << std::endl;
+      }*/
     uc_insert( &( v->uc ), bseq, k, depth, uc_idx, data, bursting);
-#elif KCOUNTER
-    uc_insert( &( v->uc ), bseq, k, depth, uc_idx, count );
-#endif
 
     if(v->uc.size == CAPACITY)
     {

@@ -14,11 +14,6 @@ namespace py = pybind11;
 typedef struct {
     uint8_t* suffixes;
     PgData* data;
-#if KDICT
-    py::handle* objs;
-#elif KCOUNTER
-    count_dtype* counts;
-#endif
     uint16_t size;
 } UC;
 
