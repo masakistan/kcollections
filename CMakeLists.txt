@@ -5,7 +5,7 @@ if (POLICY CMP0025)
     cmake_policy(SET CMP0025 NEW)
 endif ()
 
-set(default_build_type "Release")
+set(default_build_type "Debug")
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
@@ -15,6 +15,8 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
     "Debug" "Release")
 endif()
+
+message("cmake build type: ${CMAKE_BUILD_TYPE}")
 
 message( "cmake moduel path ${CMAKE_MODULE_PATH}" )
 

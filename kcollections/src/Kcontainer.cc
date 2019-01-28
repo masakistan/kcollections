@@ -123,8 +123,6 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
     int count;
 #endif
 
-    //const char* find = "TCACCGACAGCCTGAACCGCCGTGAAGTCCTGCACACGCAGGGTGAAGGCGGGCTGAAGCGGGTGGTGAAAAAGGAACACGCGGACGGCA";
-
     while(true) {
         sem_wait(rsignal[bin]);
         cur_rbin = rbin[bin];
@@ -141,9 +139,6 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
         // NOTE: insert all kmers
         for(auto i : kmers[bin][cur_rbin]) {
             bseq = std::get<3>(i);
-	    /*if(strcmp(find, deserialize_kmer(90, calc_bk(90), bseq)) == 0) {
-	    std::cout << "found" << std::endl;
-	    }*/
             vertex_insert(v[bin], bseq, k, 0, &i, false);
             free(bseq);
         }
@@ -232,6 +227,8 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
 
   do {
     try {
+      memset(fbseq64, 0, sizeof(uint64_t) * size64);
+      memset(rbseq64, 0, sizeof(uint64_t) * size64);
       // serialize the first kmer
       serialize_kmer(&seq[start], kd->k, fbseq8);
       serialize_kmer_rev(&seq[start], kd->k, rbseq8);
@@ -242,9 +239,7 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
       start++;
     }
   } while(!find_first_kmer);
-
-  //std::cout << "for: " << deserialize_kmer(kd->k, bk, fbseq8) << std::endl;
-  //std::cout << "rev: " << deserialize_kmer(kd->k, bk, rbseq8) << std::endl;
+  find_first_kmer = false;
 
   cbseq64 = fbseq64;
   if(memcmp(fbseq64, rbseq64, sizeof(uint64_t) * size64) > 0) {
@@ -259,18 +254,7 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
   }
   parallel_kcontainer_add_bseq(kd, bseq8_sub, gidx, offset, reverse);
 
-  const char* find = "TCACCGACAGCCTGAACCGCCGTGAAGTCCTGCACACGCAGGGTGAAGGCGGGCTGAAGCGGGTGGTGAAAAAGGAACACGCGGACGGCA";
-  //std::cout << "start: " << start << std::endl;
-  bool print = false;
   for(int j = start; j < length;) {
-    char bufa[kd->k + 1];
-    bufa[kd->k] = '\0';
-    memcpy(bufa, &seq[offset + 1], kd->k);
-    print = false;
-    if(strcmp(find, bufa) == 0){
-      //std::cout << gidx << "offset:\t" << offset << ":\t" << bufa<< std::endl;
-      print = false;
-    }
 
     // shift all the bits over
     fbseq64[0] >>= 2;
@@ -291,13 +275,13 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
       serialize_position(j, bk - 1, last_index, fbseq8, seq);
       serialize_position_comp(j, 0, 0, rbseq8, seq);
       offset++;
+      find_first_kmer = true;
     } catch(std::runtime_error e) {
-      char buf[kd->k + 1];
-      buf[kd->k] = '\0';
-      memcpy(buf, &seq[offset + 1], kd->k);
-      //std::cout << "failed: " << offset << "\t" << buf << std::endl;
-
       offset = j + 1;
+      if(offset + kd->k > length) {
+	break;
+      }
+      
       do {
 	//std::cout << "trying offset: " << offset << std::endl;
 	try {
@@ -307,36 +291,17 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
 	  serialize_kmer_rev(&seq[offset], kd->k, rbseq8);
 	  
 	  find_first_kmer = true;
-	  //offset = j;
 	  j = offset + kd->k - 1;
-	  
-	  memcpy(buf, &seq[offset], kd->k);
-	  if(strcmp(buf, find) == 0){
-	    /*std::cout << "success: " << buf << std::endl;
-	    std::cout << "offset:\t" << offset << std::endl;
-	    std::cout << "j:\t" << j << std::endl;
-	    std::cout << "kmer:\t" << deserialize_kmer(90, calc_bk(90), fbseq8) << std::endl;*/
-	    print = true;
-	  }
 	} catch(std::runtime_error e) {
-	  //std::cout << gidx << "tried:\t" << offset << ":\t" << deserialize_kmer(90, calc_bk(90), fbseq8)<< std::endl;
-	  //memcpy(buf, &seq[j], kd->k);
-	  //std::cout << gidx << "\t" << j << "\tskipped: " << buf << std::endl;
 	  find_first_kmer = false;
 	  offset++;
 	}
-      } while(!find_first_kmer);
+      } while(!find_first_kmer && offset + kd->k < length);
     }
-    /*if(print) {
-      std::cout << "done pass" << std::endl;
-      }*/
-    //std::cout << "inserting: " << deserialize_kmer(k, calc_bk(k), bseq8) << std::endl;
-    //std::cout << "for: " << deserialize_kmer(bk * 4, bk, fbseq8) << std::endl;
-    //std::cout << "rev: " << deserialize_kmer(bk * 4, bk, rbseq8) << std::endl;
-
-    //std::cout << "******************" << std::endl;
-    //std::cout << "for: " << deserialize_kmer(kd->k, bk, fbseq8) << std::endl;
-    //std::cout << "rev: " << deserialize_kmer(kd->k, bk, rbseq8) << std::endl;
+    if(!find_first_kmer) {
+      break;
+    }
+    find_first_kmer = false;
 
     cbseq64 = fbseq64;
     if(memcmp(fbseq8, rbseq8, sizeof(uint8_t) * bk) > 0) {
@@ -352,15 +317,8 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
       bseq64_sub[i] = cbseq64[i];
     }
 
-    /*if(strcmp(find, deserialize_kmer(90, calc_bk(90), fbseq8)) == 0 ||
-       strcmp(find, deserialize_kmer(90, calc_bk(90), rbseq8)) == 0 || print) {
-      std::cout << "submitting to queue" << std::endl;
-      std::cout << gidx << "offset:\t" << offset << ":\t" << deserialize_kmer(90, calc_bk(90), fbseq8)<< std::endl;
-      }*/
-    
     parallel_kcontainer_add_bseq(kd, bseq8_sub, gidx, offset, reverse);
     j++;
-    print = false;
   }
 }
 

@@ -28,14 +28,14 @@ PgData* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
         return &v->uc.data[ uc_idx ];
     }
 
-    std::cout << "trying to find: " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
+    /*std::cout << "trying to find: " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
     for(int i = 0; i < v->uc.size; i++) {
         int idx = calc_bk(k) * i;
         std::cout << i << "\t" << deserialize_kmer(calc_bk(k) * 4, calc_bk(k), &v->uc.suffixes[idx]) << std::endl;
     }
     sres = binary_search_debug(v->uc.suffixes, v->uc.size, k, bseq);
 
-    std::cout << "Error: could not find " << deserialize_kmer(calc_bk(k) * 4, calc_bk(k), bseq) << std::endl;
+    std::cout << "Error: could not find " << deserialize_kmer(calc_bk(k) * 4, calc_bk(k), bseq) << std::endl;*/
     throw pybind11::key_error( "Key not in dictionary!" );
 }
 
@@ -182,19 +182,8 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, void* data, bool
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype count )
 #endif
 {
-  //char* find = "TCACCGACAGCCTGAACCGCCGTGAAGTCCTGCACACGCAGGGTGAAGGCGGGCTGAAGCGGGTGGTGAAAAAGGAACACGCGGACGGCA";
-  //char* kmer = deserialize_kmer(90, calc_bk(90), &bseq[((int)depth) * -1]);
-  //bool print = false;
-  //if(strcmp(find, kmer) == 0) {
-  //print = true;
-  //std::cout << "found place" << std::endl;
-  //}
-
     uint8_t prefix = bseq[ 0 ];
     if((v->pref_pres >> (unsigned) prefix) & 0x1) {
-      //if(print){
-	//std::cout << "traverse vertex" << std::endl;
-      //}
         int vidx = calc_vidx(v->pref_pres, prefix);
         Vertex* child = &v->vs[vidx];
 #if KDICT
@@ -208,7 +197,6 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype coun
     }
 
     // NOTE: the kmer already exists!
-    //std::cout << "vertex insertion: " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
     int uc_idx = sres.second;
     if( sres.first )
@@ -219,15 +207,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype coun
         PgData* kvals = &v->uc.data[uc_idx];
         std::tuple<uint16_t, uint32_t, bool, uint8_t*>* cdata = (std::tuple<uint16_t, uint32_t, bool, uint8_t*>*) data;
         uint16_t gidx = std::get<0>(*cdata);
-        //std::cout << kvals->genomes << std::endl;
-	//if(strcmp(kmer, find) == 0) {
-	  //std::cout << "len counts:\t" << kvals->counts->size() << std::endl;
-	  //std::cout << "last val:\t" << (unsigned) kvals->counts->back() << std::endl;
-	//}
-	//free(kmer);
         if(kvals->genomes & 0x1 << gidx) {
-            //std::cout << gidx << "\t" << (unsigned) kvals->counts->at(gidx) << std::endl;
-            //std::cout << kvals->counts->size() << std::endl;
             if((unsigned) kvals->counts->back() == 1) {
                 kvals->counts->back() = 2;
             }
@@ -242,15 +222,10 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype coun
         }
         return;
     }
-
-    /*if(print) {
-      std::cout << "inserting into uc" << std::endl;
-      }*/
     uc_insert( &( v->uc ), bseq, k, depth, uc_idx, data, bursting);
 
     if(v->uc.size == CAPACITY)
     {
-        //std::cout << "bursting" << std::endl;
         burst_uc( v, k, depth );
     }
 }
@@ -267,7 +242,6 @@ void free_vertex( Vertex* v )
 uint64_t vertex_size( Vertex* v )
 {
     uint64_t c = v->uc.size;
-    //std::cout << &v->uc << ":" << v->uc.size << std::endl;
     for(int i = 0; i < v->vs_size; i++) {
         c += vertex_size(&v->vs[i]);
     }
