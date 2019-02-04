@@ -17,6 +17,18 @@ py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth )
 int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth )
 #endif
 {
+    uint8_t prefix = bseq[0];
+
+    if((v->pref_pres >> (unsigned) prefix) & 0x1) {
+	int vidx = calc_vidx(v->pref_pres, prefix);
+	Vertex* child = &v->vs[vidx];
+#if KDICT
+	return vertex_get(child, &bseq[1], k - 4, depth + 1);
+#elif KCOUNTER
+	return vertex_get_counter( child, &bseq[ 1 ], k - 4, depth + 1 );
+#endif
+    }
+
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
     int uc_idx = sres.second;
     if( sres.first )
@@ -26,20 +38,6 @@ int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth )
 #elif KCOUNTER
         return v->uc.counts[ uc_idx ];
 #endif
-    }
-
-    if(v->vs != NULL) {
-        uint8_t prefix = bseq[0];
-
-        if((v->pref_pres >> (unsigned) prefix) & 0x1) {
-            int vidx = calc_vidx(v->pref_pres, prefix);
-            Vertex* child = &v->vs[vidx];
-#if KDICT
-            return vertex_get(child, &bseq[1], k - 4, depth + 1);
-#elif KCOUNTER
-            return vertex_get_counter( child, &bseq[ 1 ], k - 4, depth + 1 );
-#endif
-        }
     }
 
 #if KCOUNTER
@@ -55,6 +53,16 @@ int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth )
 
 void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
 {
+    uint8_t prefix = bseq[0];
+    //std::cout << "\tchecking prefix: " << (unsigned) prefix << std::endl;
+
+    if((v->pref_pres >> (unsigned) prefix) & 0x1) {
+	int vidx = calc_vidx(v->pref_pres, prefix);
+	//std::cout << "\t\tfound vertex to traverse " << vidx << std::endl;
+	Vertex* child = &v->vs[vidx];
+	vertex_remove(child, &bseq[1], k - 4, depth + 1);
+    }
+
     //std::cout << "removing: " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
     //std::cout << "\tnum uc items: " << v->uc.size << std::endl;
     for(int i = 0; i < v->uc.size; i++) {
@@ -71,23 +79,21 @@ void vertex_remove( Vertex* v, uint8_t* bseq, int k, int depth )
         return;
     }
 
-    if(v->vs != NULL) {
-        uint8_t prefix = bseq[0];
-        //std::cout << "\tchecking prefix: " << (unsigned) prefix << std::endl;
-
-        if((v->pref_pres >> (unsigned) prefix) & 0x1) {
-            int vidx = calc_vidx(v->pref_pres, prefix);
-            //std::cout << "\t\tfound vertex to traverse " << vidx << std::endl;
-            Vertex* child = &v->vs[vidx];
-            vertex_remove(child, &bseq[1], k - 4, depth + 1);
-        }
-    }
-
     throw pybind11::key_error( "Key not found!" );
 }
 
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
 {
+    uint8_t prefix = bseq[0];
+    //std::cout << "\tvs exists!\t" << v->vs_size << "\t" << (unsigned) prefix << std::endl;
+    if((v->pref_pres >> (unsigned) prefix) & 0x1) {
+	// get child
+	//std::cout << "found it!" << std::endl;
+	int vidx = calc_vidx(v->pref_pres, prefix);
+	Vertex* child = &v->vs[vidx];
+	return vertex_contains(child, &bseq[1], k - 4, depth + 1);
+    }
+
     //std::cout << "checking vs " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
     if( sres.first )
@@ -95,35 +101,20 @@ bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth )
         return true;
     }
 
-    if(v->vs_size > 0) {
-        uint8_t prefix = bseq[0];
-        //std::cout << "\tvs exists!\t" << v->vs_size << "\t" << (unsigned) prefix << std::endl;
-        if((v->pref_pres >> (unsigned) prefix) & 0x1) {
-            // get child
-            //std::cout << "found it!" << std::endl;
-            int vidx = calc_vidx(v->pref_pres, prefix);
-            Vertex* child = &v->vs[vidx];
-            return vertex_contains(child, &bseq[1], k - 4, depth + 1);
-        } else {
-            //std::cout << "couldn't find a vs" << std::endl;
-            return false;
-        }
-    }
-
     return false;
 }
 
 int calc_vidx(uint256_t vertices, uint8_t bts) {
     vertices <<= (256 - (unsigned) bts);
-    uint32_t* t = (uint32_t*) &vertices;
-    int vidx = __builtin_popcount(t[0]);
-    vidx += __builtin_popcount(t[1]);
-    vidx += __builtin_popcount(t[2]);
-    vidx += __builtin_popcount(t[3]);
-    vidx += __builtin_popcount(t[4]);
-    vidx += __builtin_popcount(t[5]);
-    vidx += __builtin_popcount(t[6]);
-    vidx += __builtin_popcount(t[7]);
+    uint64_t* t = (uint64_t*) &vertices;
+    int vidx = __builtin_popcountll(t[0]);
+    vidx += __builtin_popcountll(t[1]);
+    vidx += __builtin_popcountll(t[2]);
+    vidx += __builtin_popcountll(t[3]);
+    //vidx += __builtin_popcount(t[4]);
+    //vidx += __builtin_popcount(t[5]);
+    //vidx += __builtin_popcount(t[6]);
+    //vidx += __builtin_popcount(t[7]);
     return vidx;
 }
 
