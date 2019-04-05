@@ -85,7 +85,9 @@ static void serialize_position_comp(uint32_t kmerPos, int arrPos, int bitPos, ui
         case 'T': break;
         default:
 	  //bseq[ arrPos ] |= MASK_INSERT[ rand() % 4 ][ bitPos ]; break;
-          throw std::runtime_error( "Could not serialize kmer." );
+          std::string msg("Could not serialize kmer. Unkonw base seen was ");
+          msg += kmer[kmerPos];
+          throw std::runtime_error(msg);
     }
 }
 
@@ -102,7 +104,9 @@ static void serialize_position(uint32_t kmerPos, int arrPos, int bitPos, uint8_t
         case 'T': bseq[ arrPos ] |= MASK_INSERT[ 3 ][ bitPos ]; break;
         default:
 	  //bseq[ arrPos ] |= MASK_INSERT[ rand() % 4 ][ bitPos ]; break;
-          throw std::runtime_error( "Could not serialize kmer." );
+          std::string msg("Could not serialize kmer. Unkonw base seen was ");
+          msg += kmer[kmerPos];
+          throw std::runtime_error(msg);
     }
 }
 
