@@ -133,13 +133,28 @@ inline void kcontainer_remove( Kcontainer* kd, const char* kmer )
     free( bseq );
 }
 
-#if defined KSET || defined KCOUNTER
+#if defined(KSET) || defined(KCOUNTER) || defined(KDICT)
 void parallel_kcontainer_add_init(Kcontainer* kd, int threads);
+
+#if defined(KSET) || defined(KCOUNTER)
 void parallel_kcontainer_add(Kcontainer* kd, const char* kmer);
+#elif defined(KDICT)
+void parallel_kcontainer_add(Kcontainer* kd, const char* kmer, py::handle* value);
+#endif
+
 void* parallel_kcontainer_add_consumer(void* bin_ptr);
 void parallel_kcontainer_add_join(Kcontainer* kc);
+#if defined(KSET) || defined(KCOUNTER)
 void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length);
+#elif defined(KDICT)
+void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length, py::iterable* values);
+#endif
+
+#if defined(KSET) || defined(KCOUNTER)
 void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq);
+#elif defined(KDICT)
+void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, py::handle* value);
+#endif
 
 inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length) {
     int size64 = kd->k / 32;

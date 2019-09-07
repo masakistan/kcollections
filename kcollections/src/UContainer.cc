@@ -36,6 +36,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
     {
         uc->suffixes = ( uint8_t* ) calloc( len , sizeof( uint8_t ) );
 #if KDICT
+	//std::cout << "adding to empty uc" << std::endl;
         uc->objs = ( py::handle* ) calloc( len , sizeof( py::handle ) );
 #elif KCOUNTER
         uc->counts = ( count_dtype* ) calloc( len, sizeof(count_dtype) );
@@ -48,6 +49,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
                 len * ( uc->size + 1 ) * sizeof( uint8_t )
                 );
 #if KDICT
+	//std::cout << "adding to uc" << std::endl;
         uc->objs = ( py::handle* ) realloc(
                 uc->objs,
                 ( uc->size + 1 ) * sizeof( py::handle )
@@ -74,6 +76,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
                     );
 
 #if KDICT
+	    //std::cout << "need to move bytes" << std::endl;
             bytes_to_move = ( uc->size - idx ) * sizeof( py::handle );
             std::memmove(
                     &uc->objs[ idx + 1 ],
@@ -91,8 +94,10 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
         }
 
 #if KDICT
+	//std::cout << "increment reference\t" << std::string(py::str(*obj)) << std::endl;
         std::memcpy(&uc->objs[idx], obj, sizeof(py::handle));
         uc->objs[idx].inc_ref();
+	//std::cout << "finish increment" << std::endl;
 #elif KCOUNTER
         if(count < MAXCOUNT - 1) {
             std::memcpy(&uc->counts[idx], &count, sizeof(count_dtype));

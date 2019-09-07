@@ -1,7 +1,13 @@
 #include "Kcontainer.h"
 
+#if defined(KSET) || defined(KCOUNTER) || defined(KDICT)
+
 #if defined(KSET) || defined(KCOUNTER)
 std::vector<std::vector<std::vector<uint8_t*>>> kmers;
+#elif defined(KDICT)
+std::vector<std::vector<std::vector<std::pair<uint8_t*, py::handle*>>>> kmers;
+#endif
+
 Vertex** v;
 sem_t* signal_b;
 pthread_mutex_t** blocks;
@@ -16,7 +22,10 @@ int bits_to_shift;
 int MAX_BIN_SIZE = 500;
 
 void parallel_kcontainer_add_join(Kcontainer* kc) {
+  //std::cout << "joining threads" << std::endl;
+
   for(int i = 0; i < nthreads; i++) {
+    //std::cout << "posting to thread: " << i << std::endl;
     // NOTE: we post twice to finish working.
     // once to finish any kmers in the pipe
     // and a second time to pass the empty kmer list to
@@ -41,7 +50,7 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
   // NOTE: clean up memory
   int idx = 0;
   for(int i = 0; i < nthreads; i++) {
-    //std::cout << "placing vs at: " << idx << std::endl;
+    //std::cout << "thread: " << i << "\t" << v[i]->vs_size << std::endl;
     std::memmove(&kc->v.vs[idx], v[i]->vs, v[i]->vs_size * sizeof(Vertex));
     kc->v.pref_pres |= v[i]->pref_pres;
     idx += v[i]->vs_size;
@@ -84,11 +93,23 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads) {
     // NOTE: initialize per thread variables
     // NOTE: initialize mutexes
     for(int i = 0; i < threads; i++) {
+      
+#if defined(KSET) || defined(KCOUNTER)
       kmers.push_back(std::vector<std::vector<uint8_t*>>());
+#elif defined(KDICT)
+      kmers.push_back(std::vector<std::vector<std::pair<uint8_t*, py::handle*>>>());
+#endif
+      
       blocks[i] = (pthread_mutex_t*) calloc(work_queues, sizeof(pthread_mutex_t));
       for(int j = 0; j < work_queues; j++) {
         pthread_mutex_init(&blocks[i][j], NULL);
+	
+#if defined(KSET) || defined(KCOUNTER)
         kmers[i].push_back(std::vector<uint8_t*>());
+#elif defined(KDICT)
+        kmers[i].push_back(std::vector<std::pair<uint8_t*, py::handle*>>());
+#endif
+	
       }
         v[i] = (Vertex*) calloc(1, sizeof(Vertex));
         init_vertex(v[i]);
@@ -108,11 +129,13 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
     int cur_rbin;
 
 #if KCOUNTER
-    int count;
+    int count = 0;
 #endif
 
     while(true) {
+      //std::cout << "waiting" << std::endl;
         sem_wait(rsignal[bin]);
+	//std::cout << "running! " << kmers[bin][cur_rbin].size() << std::endl;
         cur_rbin = rbin[bin];
         pthread_mutex_lock(&blocks[bin][cur_rbin]);
 
@@ -120,23 +143,35 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
 
         // NOTE: if the list is empty we're done
         if(kmers[bin][cur_rbin].size() == 0) {
+	  //std::cout << "thread finished!" << std::endl;
           pthread_mutex_unlock(&blocks[bin][cur_rbin]);
           break;
         }
 
         // NOTE: insert all kmers
+	int kmer_idx = 0;
         for(auto i : kmers[bin][cur_rbin]) {
+	  //std::cout << "kmer idx: " << kmer_idx << std::endl;
+	  kmer_idx++;
 #if KSET
             vertex_insert(v[bin], i, k, 0);
+            free(i);
 #elif KCOUNTER
             count = vertex_get_counter(v[bin], i, k, 0);
             vertex_insert(v[bin], i, k, 0, ++count);
-#endif
             free(i);
+#elif KDICT
+	    //std::cout << "type: " << typeid(i.second).name() << std::endl;
+            vertex_insert(v[bin], i.first, k, 0, i.second);
+	    free(i.first);
+	    free(i.second);
+#endif
         }
 
         // NOTE: clear the vector
+	//std::cout << "before clear" << std::endl;
         kmers[bin][cur_rbin].clear();
+	//std::cout << "after clear" << std::endl;
         pthread_mutex_unlock(&blocks[bin][cur_rbin]);
         rbin[bin]++;
         if(rbin[bin] == work_queues) {
@@ -148,7 +183,11 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
     return NULL;
 }
 
+#if defined(KSET) || defined(KCOUNTER)
 void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
+#elif defined(KDICT)
+  void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, py::handle* obj) {
+#endif
    uint idx = (unsigned) bseq[0];
 
   // NOTE: determine bin
@@ -160,7 +199,16 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
   pthread_mutex_lock(&blocks[bin][cur_wbin]);
 
   // NOTE: add to queuue
+#if defined(KSET) || defined(KCOUNTER)
   kmers[bin][cur_wbin].push_back(bseq);
+#elif defined(KDICT)
+  //std::cout << "obj: " << obj << "\t" << std::string(py::str(*obj)) << std::endl;
+  py::handle* obj_copy = (py::handle*) malloc(sizeof(py::handle));
+  memcpy(obj_copy, obj, sizeof(py::handle));
+  std::pair<uint8_t*, py::handle*> data(bseq, obj_copy);
+  //std::cout << "compare: " << obj << "\t" << data.second << "\t" << obj_copy << std::endl;
+  kmers[bin][cur_wbin].push_back(data);
+#endif
 
   // NOTE: if there are enough items in the queue, release the mutex
   if(kmers[bin][cur_wbin].size() == MAX_BIN_SIZE) {
@@ -176,14 +224,26 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
   pthread_mutex_unlock(&blocks[bin][cur_wbin]);
 }
 
+#if defined(KSET) || defined(KCOUNTER)
 void parallel_kcontainer_add(Kcontainer* kd, const char* kmer) {
+#elif defined(KDICT)
+void parallel_kcontainer_add(Kcontainer* kd, const char* kmer, py::handle* value) {
+#endif
     // NOTE: start adding
   uint8_t* pbseq = ( uint8_t* ) calloc( bk, sizeof( uint8_t ) );
   serialize_kmer(kmer, kd->k, pbseq);
+#if defined(KSET) || defined(KCOUNTER)
   parallel_kcontainer_add_bseq(kd, pbseq);
+#elif defined(KDICT)
+  parallel_kcontainer_add_bseq(kd, pbseq, value);
+#endif
 }
 
+#if defined(KSET) || defined(KCOUNTER)
 void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length) {
+#elif defined(KDICT)
+  void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length, py::iterable* values) {
+#endif
   int size64 = kd->k / 32;
   if(kd->k % 32 > 0) {
       size64++;
@@ -205,7 +265,13 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
   for(i = 0; i < size64; i++) {
     bseq64_sub[i] = bseq64[i];
   }
+#if defined(KSET) || defined(KCOUNTER)
   parallel_kcontainer_add_bseq(kd, bseq8_sub);
+#elif defined(KDICT)
+  auto iter = py::iter(*values);
+  parallel_kcontainer_add_bseq(kd, bseq8_sub, &iter);
+  iter++;
+#endif
 
   for(int j = kd->k; j < length; j++) {
     // shift all the bits over
@@ -228,7 +294,12 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
       bseq64_sub[i] = bseq64[i];
     }
 
+#if defined(KSET) || defined(KCOUNTER)
     parallel_kcontainer_add_bseq(kd, bseq8_sub);
+#elif defined(KDICT)
+    parallel_kcontainer_add_bseq(kd, bseq8_sub, &iter);
+    iter++;
+#endif
   }
 }
 

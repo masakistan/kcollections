@@ -191,6 +191,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype count )
 #endif
 {
+  //std::cout << "vertex insertion: " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
     uint8_t prefix = bseq[ 0 ];
     if((v->pref_pres >> (unsigned) prefix) & 0x1) {
         int vidx = calc_vidx(v->pref_pres, prefix);
@@ -205,7 +206,6 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype coun
         return;
     }
 
-    //std::cout << "vertex insertion: " << deserialize_kmer(k, calc_bk(k), bseq) << std::endl;
     std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
     int uc_idx = sres.second;
     if( sres.first )
