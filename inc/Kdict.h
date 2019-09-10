@@ -13,12 +13,12 @@ private:
 public:
   Kdict( const int k );
   ~Kdict();
-  void add( char* kmer, py::handle obj );
+  void add( char* kmer, py::object obj );
   bool contains( char* kmer );
   void clear();
   uint64_t size();
   void remove( char* kmer );
-  py::handle* get( char* kmer );
+  py::object* get( char* kmer );
   int get_k() { return m_k; }
   Kcontainer* get_kc() { return kc; }
 
@@ -52,11 +52,11 @@ public:
   
   Vertex* get_root() { return &kc->v; }
 
-  void parallel_add_init(int threads) {
-    parallel_kcontainer_add_init(kc, threads);
+  void parallel_add_init(int threads, const std::function<py::object(py::object, py::object)> &f)  {
+    parallel_kcontainer_add_init(kc, threads, f);
   }
   
-  void parallel_add(const char* kmer, py::handle value) {
+  void parallel_add(const char* kmer, py::object value) {
     parallel_kcontainer_add(kc, kmer, value);
   }
   

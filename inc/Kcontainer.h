@@ -81,7 +81,7 @@ inline bool kcontainer_contains( Kcontainer* kd, const char* kmer )
 }
 
 #if KDICT
-inline void kcontainer_add( Kcontainer* kd, const char* kmer, py::handle obj )
+inline void kcontainer_add( Kcontainer* kd, const char* kmer, py::object obj )
 #elif KSET
 inline void kcontainer_add( Kcontainer* kd, const char* kmer )
 #elif KCOUNTER
@@ -103,7 +103,7 @@ inline void kcontainer_add( Kcontainer* kd, const char* kmer, int count )
 
 #if defined KDICT || defined KCOUNTER
 #if KDICT
-inline py::handle* kcontainer_get( Kcontainer* kd, char* kmer )
+inline py::object* kcontainer_get( Kcontainer* kd, char* kmer )
 #elif KCOUNTER
 inline int kcontainer_get( Kcontainer* kd, char* kmer )
 #endif
@@ -111,7 +111,7 @@ inline int kcontainer_get( Kcontainer* kd, char* kmer )
     uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
     serialize_kmer( kmer, kd->k, bseq );
 #if KDICT
-    py::handle* res = vertex_get( &kd->v, bseq, kd->k, 0 );
+    py::object* res = vertex_get( &kd->v, bseq, kd->k, 0 );
 #elif KCOUNTER
     int res = vertex_get_counter( &kd->v, bseq, kd->k, 0 );
 #endif
@@ -137,12 +137,17 @@ inline void kcontainer_remove( Kcontainer* kd, const char* kmer )
 }
 
 #if defined(KSET) || defined(KCOUNTER) || defined(KDICT)
+
+#if defined(KSET) || defined(KCOUNTER)
 void parallel_kcontainer_add_init(Kcontainer* kd, int threads);
+#elif defined(KDICT)
+void parallel_kcontainer_add_init(Kcontainer* kd, int threads, const std::function<py::object(py::object, py::object)> &f );
+#endif
 
 #if defined(KSET) || defined(KCOUNTER)
 void parallel_kcontainer_add(Kcontainer* kd, const char* kmer);
 #elif defined(KDICT)
-void parallel_kcontainer_add(Kcontainer* kd, const char* kmer, py::handle value);
+void parallel_kcontainer_add(Kcontainer* kd, const char* kmer, py::object value);
 #endif
 
 void* parallel_kcontainer_add_consumer(void* bin_ptr);
@@ -156,7 +161,7 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
 #if defined(KSET) || defined(KCOUNTER)
 void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq);
 #elif defined(KDICT)
-void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, py::handle value);
+void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, py::object value);
 #endif
 
 inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length) {

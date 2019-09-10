@@ -1,4 +1,5 @@
 #if KDICT
+#include <pybind11/functional.h>
 #include "Kdict.h"
 
 PYBIND11_MODULE( _Kdict, m )

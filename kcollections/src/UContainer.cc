@@ -24,7 +24,7 @@ void print( UC* uc, int k, int depth )
 }
 
 #if KDICT
-void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::handle obj )
+void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::object obj )
 #elif KSET
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
 #elif KCOUNTER
@@ -37,7 +37,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
         uc->suffixes = ( uint8_t* ) calloc( len , sizeof( uint8_t ) );
 #if KDICT
 	//std::cout << "adding to empty uc" << std::endl;
-        uc->objs = ( py::handle* ) calloc( len , sizeof( py::handle ) );
+        uc->objs = ( py::object* ) calloc( len , sizeof( py::object ) );
 #elif KCOUNTER
         uc->counts = ( count_dtype* ) calloc( len, sizeof(count_dtype) );
 #endif
@@ -50,9 +50,9 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
                 );
 #if KDICT
 	//std::cout << "adding to uc" << std::endl;
-        uc->objs = ( py::handle* ) realloc(
+        uc->objs = ( py::object* ) realloc(
                 uc->objs,
-                ( uc->size + 1 ) * sizeof( py::handle )
+                ( uc->size + 1 ) * sizeof( py::object )
                 );
 #elif KCOUNTER
         uc->counts = ( count_dtype* ) realloc(
@@ -77,7 +77,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
 
 #if KDICT
 	    //std::cout << "need to move bytes" << std::endl;
-            bytes_to_move = ( uc->size - idx ) * sizeof( py::handle );
+            bytes_to_move = ( uc->size - idx ) * sizeof( py::object );
             std::memmove(
                     &uc->objs[ idx + 1 ],
                     &uc->objs[ idx ],
@@ -95,7 +95,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
 
 #if KDICT
 	//std::cout << "increment reference\t" << std::string(py::str(*obj)) << std::endl;
-        std::memcpy(&uc->objs[idx], &obj, sizeof(py::handle));
+        std::memcpy(&uc->objs[idx], &obj, sizeof(py::object));
         uc->objs[idx].inc_ref();
 	//std::cout << "finish increment" << std::endl;
 #elif KCOUNTER
@@ -140,7 +140,7 @@ void uc_remove( UC* uc, int bk, int idx )
             bytes_to_move
             );
 #if KDICT
-    bytes_to_move = ( uc->size - ( idx + 1 ) ) * sizeof( py::handle );
+    bytes_to_move = ( uc->size - ( idx + 1 ) ) * sizeof( py::object );
     uc->objs[ idx ].dec_ref();
     std::memmove(
             &uc->objs[ idx ],

@@ -46,7 +46,7 @@ void burst_uc( Vertex* v, int k, int depth );
 int calc_vidx(uint256_t vertices, uint8_t bts);
 
 #if KDICT
-void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle obj );
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object obj, std::function<py::object(py::object, py::object)>* merge_func = NULL);
 #elif KSET
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth );
 #elif KCOUNTER
@@ -54,7 +54,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype coun
 #endif
 
 #if KDICT
-py::handle* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth );
+py::object* vertex_get( Vertex* v, uint8_t* bseq, int k, int depth );
 #elif KCOUNTER
 int vertex_get_counter( Vertex* v, uint8_t* bseq, int k, int depth );
 #endif

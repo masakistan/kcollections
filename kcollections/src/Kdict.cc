@@ -18,13 +18,13 @@ void Kdict::clear()
     kc = create_kcontainer( m_k );
 }
 
-void Kdict::add( char* kmer, py::handle obj )
+void Kdict::add( char* kmer, py::object obj )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kdict" );
     kcontainer_add( kc, kmer, obj );
 }
 
-py::handle* Kdict::get( char* kmer )
+py::object* Kdict::get( char* kmer )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kdict" );
     return kcontainer_get( kc, kmer );
