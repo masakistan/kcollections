@@ -58,6 +58,7 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
     free(v[i]->vs);
     free(v[i]);
     kmers[i].clear();
+    free(blocks[i]);
   }
 
   kmers.clear();
@@ -203,10 +204,7 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
   kmers[bin][cur_wbin].push_back(bseq);
 #elif defined(KDICT)
   //std::cout << "obj: " << obj << "\t" << std::string(py::str(*obj)) << std::endl;
-  py::handle* obj_copy = (py::handle*) malloc(sizeof(py::handle));
-  memcpy(obj_copy, &obj, sizeof(py::handle));
   std::pair<uint8_t*, py::handle> data(bseq, obj);
-  //std::cout << "compare: " << obj << "\t" << data.second << "\t" << obj_copy << std::endl;
   kmers[bin][cur_wbin].push_back(data);
 #endif
 

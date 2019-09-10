@@ -46,7 +46,7 @@ inline void free_kcontainer( Kcontainer* kd )
     free(kd);
 }
 
-inline char* kcontainer_get_child_suffix(Vertex* v, int idx) {
+inline std::string kcontainer_get_child_suffix(Vertex* v, int idx) {
     uint256_t verts = v->pref_pres;
     uint8_t j = 0, i = 0;
     while(true) {
@@ -64,7 +64,10 @@ inline char* kcontainer_get_child_suffix(Vertex* v, int idx) {
         verts >>= 1;
         i++;
     }
-    return deserialize_kmer(4, 1, &i);
+    char* kmer = deserialize_kmer(4, 1, &i);
+    std::string skmer(kmer);
+    free(kmer);
+    return skmer;
 }
 
 inline bool kcontainer_contains( Kcontainer* kd, const char* kmer )
