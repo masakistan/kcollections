@@ -270,11 +270,11 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
   //  std::cout << std::string(py::str(item)) << "\t" << typeid(item).name() << std::endl;
   //}
 
-  py::handle* temp_val = NULL;
+  //py::handle* temp_val = NULL;
   //py::handle* temp_val = (py::handle*) malloc(sizeof(py::handle));
   
   auto iter = py::iter(values);
-  std::cout << typeid(iter).name() << "\t" << typeid(*iter).name() << "\t" << typeid(*(&iter)).name()  << "\t" << std::endl;
+  //std::cout << typeid(iter).name() << "\t" << typeid(*iter).name() << "\t" << typeid(*(&iter)).name()  << "\t" << std::endl;
 
   //memcpy(temp_val, *iter, sizeof(py::handle));
   //temp_val = py::cast(*iter);
@@ -312,6 +312,9 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
     iter++;
 #endif
   }
+
+  free(bseq64);
+  //free(bseq64_sub);
 }
 
 #endif
