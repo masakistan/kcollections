@@ -24,7 +24,7 @@ void print( UC* uc, int k, int depth )
 }
 
 #if KDICT
-void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::handle* obj )
+void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::handle obj )
 #elif KSET
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx )
 #elif KCOUNTER
@@ -95,7 +95,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
 
 #if KDICT
 	//std::cout << "increment reference\t" << std::string(py::str(*obj)) << std::endl;
-        std::memcpy(&uc->objs[idx], obj, sizeof(py::handle));
+        std::memcpy(&uc->objs[idx], &obj, sizeof(py::handle));
         uc->objs[idx].inc_ref();
 	//std::cout << "finish increment" << std::endl;
 #elif KCOUNTER

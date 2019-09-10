@@ -171,7 +171,7 @@ void burst_uc( Vertex* v, int k, int depth )
 
         Vertex* child = &v->vs[vidx];
 #if KDICT
-        vertex_insert( child, suffix, k - 4, depth + 1, &objs[ i ] );
+        vertex_insert( child, suffix, k - 4, depth + 1, *objs[ i ] );
 #elif KSET
         vertex_insert( child, suffix, k - 4, depth + 1 );
 #elif KCOUNTER
@@ -184,7 +184,7 @@ void burst_uc( Vertex* v, int k, int depth )
 }
 
 #if KDICT
-void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj )
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle obj )
 #elif KSET
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth )
 #elif KCOUNTER
@@ -215,7 +215,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype coun
         v->uc.objs[ uc_idx ].dec_ref();
         std::memcpy(
                 &v->uc.objs[ uc_idx ],
-                obj,
+                &obj,
                 sizeof( py::handle )
                 );
         v->uc.objs[ uc_idx ].inc_ref();

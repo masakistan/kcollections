@@ -78,7 +78,7 @@ inline bool kcontainer_contains( Kcontainer* kd, const char* kmer )
 }
 
 #if KDICT
-inline void kcontainer_add( Kcontainer* kd, const char* kmer, py::handle* obj )
+inline void kcontainer_add( Kcontainer* kd, const char* kmer, py::handle obj )
 #elif KSET
 inline void kcontainer_add( Kcontainer* kd, const char* kmer )
 #elif KCOUNTER
@@ -139,7 +139,7 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads);
 #if defined(KSET) || defined(KCOUNTER)
 void parallel_kcontainer_add(Kcontainer* kd, const char* kmer);
 #elif defined(KDICT)
-void parallel_kcontainer_add(Kcontainer* kd, const char* kmer, py::handle* value);
+void parallel_kcontainer_add(Kcontainer* kd, const char* kmer, py::handle value);
 #endif
 
 void* parallel_kcontainer_add_consumer(void* bin_ptr);
@@ -147,13 +147,13 @@ void parallel_kcontainer_add_join(Kcontainer* kc);
 #if defined(KSET) || defined(KCOUNTER)
 void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length);
 #elif defined(KDICT)
-void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length, py::iterable* values);
+void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length, py::iterable values);
 #endif
 
 #if defined(KSET) || defined(KCOUNTER)
 void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq);
 #elif defined(KDICT)
-void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, py::handle* value);
+void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, py::handle value);
 #endif
 
 inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length) {

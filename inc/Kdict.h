@@ -13,7 +13,7 @@ private:
 public:
   Kdict( const int k );
   ~Kdict();
-  void add( char* kmer, py::handle* obj );
+  void add( char* kmer, py::handle obj );
   bool contains( char* kmer );
   void clear();
   uint64_t size();
@@ -53,7 +53,7 @@ public:
     parallel_kcontainer_add_init(kc, threads);
   }
   
-  void parallel_add(const char* kmer, py::handle* value) {
+  void parallel_add(const char* kmer, py::handle value) {
     parallel_kcontainer_add(kc, kmer, value);
   }
   
@@ -61,7 +61,7 @@ public:
     parallel_kcontainer_add_join(kc);
   }
 
-  void parallel_add_seq(char* seq, uint32_t length, py::iterable* values) {
+  void parallel_add_seq(char* seq, uint32_t length, py::iterable values) {
     parallel_kcontainer_add_seq(kc, seq, length, values);
   }
 };

@@ -23,7 +23,7 @@ typedef struct {
 void print( UC* uc, int k, int depth );
 
 #if KDICT
-void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::handle* obj );
+void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, py::handle obj );
 #elif KSET
 void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx );
 #elif KCOUNTER

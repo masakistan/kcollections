@@ -46,7 +46,7 @@ void burst_uc( Vertex* v, int k, int depth );
 int calc_vidx(uint256_t vertices, uint8_t bts);
 
 #if KDICT
-void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle* obj );
+void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::handle obj );
 #elif KSET
 void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth );
 #elif KCOUNTER
