@@ -215,13 +215,13 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object obj, 
 #if KDICT
       //py::object merged_obj = obj;
       if(merge_func != NULL) {
-	std::cout << "merging!" << std::endl;
+	//std::cout << "merging!" << std::endl;
 	py::gil_scoped_release release;
 	py::object merged_obj = (*merge_func)(v->uc.objs[uc_idx], obj);
 	py::gil_scoped_acquire acquire;
 	//merged_obj.inc_ref();
-	std::cout << std::string(py::str(merged_obj)) << std::endl;
-	std::cout << "\tdone merging" << std::endl;
+	//std::cout << std::string(py::str(merged_obj)) << std::endl;
+	//std::cout << "\tdone merging" << std::endl;
 
 	//v->uc.objs[ uc_idx ].dec_ref();
 	std::memcpy(
@@ -233,7 +233,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object obj, 
 	
 	return;
       } else {
-	std::cout << "not merging" << std::endl;
+	//std::cout << "not merging" << std::endl;
       }
 
       v->uc.objs[ uc_idx ].dec_ref();
