@@ -265,7 +265,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object obj, 
 
   if(v->uc.size == CAPACITY)
     {
-      std::cout << "bursting" << std::endl;
+      //std::cout << "bursting" << std::endl;
       burst_uc( v, k, depth );
     }
 }

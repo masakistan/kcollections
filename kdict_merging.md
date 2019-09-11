@@ -4,6 +4,7 @@ There are two differences between `Kset` and `Kdict` when performing parallel op
 First, when initializing the data structure for parallel insertion `Kdict` requires a merging function be provided.
 This tells the data structure what to do when there are multiple values being added for a single key.
 Second, when using the `Kdict.parallel_add_seq` method a third argument is required that is an iterable.
+This iterable contains the value associated with each kmer key.
 
 ## The Merging Function
 The merging function must have two input parameters and one return value.
