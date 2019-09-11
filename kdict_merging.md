@@ -23,7 +23,7 @@ The function can be much more complex depending on what you want to accomplish.
 Though we provide `Kcounter`, kmer counting could be accomplished using `Kdict`.
 
 ``` python
-dna = ''
+dna = 'ACTGGTACTG'
 kd = kcollections.Kdict(4)
 kd.parallel_add_init(4, lambda prev_val, new_val: prev_val + new_val)
 kd.parallel_add_seq(dna, len(dna), [1 for _ in range(len(dna))])

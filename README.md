@@ -127,7 +127,7 @@ del kd['AAACTGTCTTCCTTTATTTGTTCAGGT']
 Parallel insertion for `Kdict` requires the inclusion of a merging function to resolve different values for the same key.
 The following snippet adds 27mers from a string of DNA using a provided lambda function to merge value conflicts.
 This merge function simply keeps the newest value associated with the kmer.
-More examples of merging functions with `Kdict` can be found [here](kdict_merging.md)
+More examples of merging functions with `Kdict` can be found [here](kdict_merging.md).
 
 ```python
 kd = kcollections.Kdict(27)
