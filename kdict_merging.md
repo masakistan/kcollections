@@ -6,7 +6,7 @@ This tells the data structure what to do when there are multiple values being ad
 Second, when using the `Kdict.parallel_add_seq` method a third argument is required that is an iterable.
 
 ## The Merging Function
-The merging function must have two input parameters and one output.
+The merging function must have two input parameters and one return value.
 For example:
 
 ```python
