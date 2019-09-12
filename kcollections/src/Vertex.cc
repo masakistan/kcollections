@@ -224,7 +224,8 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object obj, 
 	py::gil_scoped_acquire acquire;
 	  py::object merged_obj = (*merge_func)(v->uc.objs[uc_idx], obj);
 	  //std::cout << "merged: " << std::string(py::str(merged_obj)) << std::endl;
-	  v->uc.objs[ uc_idx ].dec_ref();
+	  //obj.dec_ref();
+	  v->uc.objs[uc_idx].dec_ref();
 	  merged_obj.inc_ref();
 	  py::gil_scoped_release release;
 

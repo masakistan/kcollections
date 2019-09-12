@@ -349,7 +349,7 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
 
 #endif
   }
-  //std::cout << "done adding stuff" << std::endl;
+  std::cout << "done adding stuff" << std::endl;
 
   free(bseq64);
   //free(bseq64_sub);
