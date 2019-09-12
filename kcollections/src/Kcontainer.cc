@@ -1,5 +1,6 @@
 #include "Kcontainer.h"
-
+//py::object Integer = py::module::import("integer").attr("Integer");
+py::object getrefcount = py::module::import("sys").attr("getrefcount");
 #if defined(KSET) || defined(KCOUNTER) || defined(KDICT)
 
 #if defined(KSET) || defined(KCOUNTER)
@@ -7,6 +8,8 @@ std::vector<std::vector<std::vector<uint8_t*>>> kmers;
 #elif defined(KDICT)
 std::vector<std::vector<std::vector<std::pair<uint8_t*, py::object>>>> kmers;
 #endif
+
+class customPy;
 
 struct thread_info{
   int thread_id;
@@ -30,7 +33,7 @@ int bits_to_shift;
 int MAX_BIN_SIZE = 500;
 
 void parallel_kcontainer_add_join(Kcontainer* kc) {
-  //std::cout << "joining threads" << std::endl;
+  std::cout << "joining threads" << std::endl;
 
   for(int i = 0; i < nthreads; i++) {
     //std::cout << "posting to thread: " << i << std::endl;
@@ -42,6 +45,8 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
     sem_post(rsignal[i]);
   }
 
+  //std::cout << "posted" << std::endl;
+
   int total_vs = 0;
   uint16_t total_kmers = 0;
   for(int i = 0; i < nthreads; i++) {
@@ -51,6 +56,8 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
     total_vs += v[i]->vs_size;
     sem_close(rsignal[i]);
   }
+
+  //std::cout << "here" << std::endl;
 
 
   kc->v.vs = (Vertex*) calloc(total_vs, sizeof(Vertex));
@@ -74,6 +81,8 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
     delete bin_ids[i].merge_func;
 #endif
   }
+
+  //std::cout << "cleaning" << std::endl;
 
   free(v);
   free(signal_b);
@@ -140,7 +149,9 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads, const std::functi
         //bin_ids[i] = i;
         bin_ids[i].thread_id = i;
 #if defined(KDICT)
+	py::gil_scoped_acquire acquire;
         bin_ids[i].merge_func = new std::function<py::object(py::object, py::object)>(f);
+	py::gil_scoped_release release;
 #endif
 
         // NOTE: spin up worker threads
@@ -185,8 +196,11 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
 #elif KDICT
             vertex_insert(v[bin], i.first, k, 0, i.second, ti->merge_func);
 	    free(i.first);
+	    //std::cout << "done free" << std::endl;
 	    //free(i.second);
+	    py::gil_scoped_acquire acquire;
 	    i.second.dec_ref();
+	    py::gil_scoped_release release;
 #endif
         }
 
@@ -198,7 +212,11 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
           rbin[bin] = 0;
         }
     }
+#if defined(KDICT)
+    burst_uc(v[bin], k, 0, ti->merge_func);
+#else
     burst_uc(v[bin], k, 0);
+#endif
 
     return NULL;
 }
@@ -208,6 +226,7 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq) {
 #elif defined(KDICT)
 void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, py::object obj) {
 #endif
+  //std::cout << "adding bseq" << std::endl;
    uint idx = (unsigned) bseq[0];
 
   // NOTE: determine bin
@@ -222,8 +241,12 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, py::object obj)
 #if defined(KSET) || defined(KCOUNTER)
   kmers[bin][cur_wbin].push_back(bseq);
 #elif defined(KDICT)
-  obj.inc_ref();
+  //obj.inc_ref();
   std::pair<uint8_t*, py::object> data(bseq, obj);
+  py::gil_scoped_acquire acquire;
+  //std::cout << "putting in queue" << std::string(py::str(obj)) << std::endl;
+  data.second.inc_ref();
+  py::gil_scoped_release release;
   kmers[bin][cur_wbin].push_back(data);
 #endif
 
@@ -288,8 +311,14 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
   
   auto iter = py::iter(values);
 
+  //std::cout << "adding val: " << std::string(py::str(*iter)) << std::endl;
+  //(*iter).inc_ref();
   parallel_kcontainer_add_bseq(kd, bseq8_sub, (*iter).cast<py::object>());
-  iter++;
+  //(*iter).dec_ref();
+  //iter++;
+  py::gil_scoped_acquire acquire;
+  std::advance(iter, 1);
+  py::gil_scoped_release release;
 #endif
 
   for(int j = kd->k; j < length; j++) {
@@ -301,7 +330,6 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
 
     serialize_position(j, bk - 1, last_index, bseq8, seq);
     //std::cout << "inserting: " << deserialize_kmer(k, calc_bk(k), bseq8) << std::endl;
-
     bseq64_sub = (uint64_t*) calloc(size64, sizeof(uint64_t));
     bseq8_sub = (uint8_t*) bseq64_sub;
     for(i = 0; i < size64; i++) {
@@ -312,11 +340,16 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
     //std::cout << "about to add 2" << std::endl;
     parallel_kcontainer_add_bseq(kd, bseq8_sub);
 #elif defined(KDICT)
-    //std::cout << "adding val: " << std::string(py::str(*iter)) << std::endl;
+    //std::cout << j << "/" << length << "\tadding val 2: " << std::endl;; //<< std::string(py::str(*iter)) << std::endl;
+
     parallel_kcontainer_add_bseq(kd, bseq8_sub, (*iter).cast<py::object>());
-    iter++;
+    py::gil_scoped_acquire acquire;
+    std::advance(iter, 1);
+    py::gil_scoped_release release;
+
 #endif
   }
+  //std::cout << "done adding stuff" << std::endl;
 
   free(bseq64);
   //free(bseq64_sub);

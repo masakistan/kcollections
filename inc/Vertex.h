@@ -42,7 +42,11 @@ uint64_t vertex_size( Vertex* v );
 void init_vertex( Vertex* v );
 void free_vertex( Vertex* v );
 bool vertex_contains( Vertex* v, uint8_t* bseq, int k, int depth );
+#if defined(KDICT)
+void burst_uc( Vertex* v, int k, int depth, std::function<py::object(py::object, py::object)>* merge_func );
+#else
 void burst_uc( Vertex* v, int k, int depth );
+#endif
 int calc_vidx(uint256_t vertices, uint8_t bts);
 
 #if KDICT

@@ -96,7 +96,9 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
 #if KDICT
 	//std::cout << "increment reference\t" << std::string(py::str(*obj)) << std::endl;
         std::memcpy(&uc->objs[idx], &obj, sizeof(py::object));
+	py::gil_scoped_acquire acquire;
         uc->objs[idx].inc_ref();
+	py::gil_scoped_release release;
 	//std::cout << "finish increment" << std::endl;
 #elif KCOUNTER
         if(count < MAXCOUNT - 1) {
@@ -119,10 +121,10 @@ void free_uc( UC* uc )
         free( uc->suffixes );
         //std::cout << "\tdone removing suffixes" << std::endl;
 #if KDICT
-        for( int i = 0; i < uc->size; i++ )
-        {
-            uc->objs[ i ].dec_ref();
-        }
+        //for( int i = 0; i < uc->size; i++ )
+        //{
+        //    uc->objs[ i ].dec_ref();
+        //}
         free( uc->objs );
 #elif KCOUNTER
         free( uc->counts );
@@ -141,7 +143,7 @@ void uc_remove( UC* uc, int bk, int idx )
             );
 #if KDICT
     bytes_to_move = ( uc->size - ( idx + 1 ) ) * sizeof( py::object );
-    uc->objs[ idx ].dec_ref();
+    //uc->objs[ idx ].dec_ref();
     std::memmove(
             &uc->objs[ idx ],
             &uc->objs[ idx + 1 ],

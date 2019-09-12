@@ -118,7 +118,11 @@ int calc_vidx(uint256_t vertices, uint8_t bts) {
   return vidx;
 }
 
+#if defined(KDICT)
+void burst_uc( Vertex* v, int k, int depth, std::function<py::object(py::object, py::object)>* merge_func )
+#else
 void burst_uc( Vertex* v, int k, int depth )
+#endif
 {
   //std::cout << "bursting!" << std::endl;
   int suffix_size = calc_bk( k );
@@ -171,7 +175,7 @@ void burst_uc( Vertex* v, int k, int depth )
 
       Vertex* child = &v->vs[vidx];
 #if KDICT
-      vertex_insert( child, suffix, k - 4, depth + 1, objs[ i ], NULL );
+      vertex_insert( child, suffix, k - 4, depth + 1, objs[ i ], merge_func );
 #elif KSET
       vertex_insert( child, suffix, k - 4, depth + 1 );
 #elif KCOUNTER
@@ -197,7 +201,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object obj, 
     int vidx = calc_vidx(v->pref_pres, prefix);
     Vertex* child = &v->vs[vidx];
 #if KDICT
-    vertex_insert( child, &bseq[1], k - 4, depth + 1, obj );
+    vertex_insert( child, &bseq[1], k - 4, depth + 1, obj, merge_func );
 #elif KSET
     vertex_insert( child, &bseq[1], k - 4, depth + 1 );
 #elif KCOUNTER
@@ -209,40 +213,51 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object obj, 
   // NOTE: if the key already exisrts, we need to update it somehow
   std::pair< bool, int > sres = uc_find( &( v->uc ), k, depth, bseq );
   int uc_idx = sres.second;
-  if( sres.first )
-    {
-      // set the object here
+  if( sres.first ) {
+    //std::cout << "found previously!" << std::endl;
+      // replace object here
 #if KDICT
       //py::object merged_obj = obj;
       if(merge_func != NULL) {
 	//std::cout << "merging!" << std::endl;
-	py::gil_scoped_release release;
-	py::object merged_obj = (*merge_func)(v->uc.objs[uc_idx], obj);
+	//return;
 	py::gil_scoped_acquire acquire;
-	//merged_obj.inc_ref();
-	//std::cout << std::string(py::str(merged_obj)) << std::endl;
-	//std::cout << "\tdone merging" << std::endl;
+	  py::object merged_obj = (*merge_func)(v->uc.objs[uc_idx], obj);
+	  //std::cout << "merged: " << std::string(py::str(merged_obj)) << std::endl;
+	  v->uc.objs[ uc_idx ].dec_ref();
+	  py::gil_scoped_release release;
 
-	//v->uc.objs[ uc_idx ].dec_ref();
 	std::memcpy(
 		  &v->uc.objs[ uc_idx ],
 		  &merged_obj,
 		  sizeof( py::object )
 		  );
+	//std::cout << "output" << std::string(py::str(*(v->uc.objs[uc_idx]))) << std::endl;
+	py::gil_scoped_acquire acquire1;
 	v->uc.objs[ uc_idx ].inc_ref();
+	py::gil_scoped_release release1;
+	//std::cout << "done merging" << std::endl;
 	
 	return;
       } else {
-	//std::cout << "not merging" << std::endl;
+	std::cout << "not merging\t" << merge_func << std::endl;
       }
 
-      v->uc.objs[ uc_idx ].dec_ref();
+      {
+	py::gil_scoped_acquire acquire;
+	v->uc.objs[ uc_idx ].dec_ref();
+	py::gil_scoped_release release;
+      }
       std::memcpy(
 		  &v->uc.objs[ uc_idx ],
 		  &obj,
 		  sizeof( py::object )
 		  );
-      v->uc.objs[ uc_idx ].inc_ref();
+      {
+	py::gil_scoped_acquire acquire;
+	v->uc.objs[ uc_idx ].inc_ref();
+	py::gil_scoped_release release;
+      }
 #elif KCOUNTER
       if(v->uc.counts[uc_idx] < MAXCOUNT) {
 	std::memcpy(
@@ -266,7 +281,11 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object obj, 
   if(v->uc.size == CAPACITY)
     {
       //std::cout << "bursting " << v->uc.size << std::endl;
+#if defined(KDICT)      
+      burst_uc( v, k, depth, merge_func );
+#else
       burst_uc( v, k, depth );
+#endif
       //std::cout << "\tafter" << v->uc.size << std::endl;
     }
 }
