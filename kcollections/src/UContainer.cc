@@ -106,7 +106,7 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
         std::memcpy( &uc->suffixes[ suffix_idx ], bseq, len );
         uc->size++;
     } else {
-        //std::cout << "this is a mistake!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+        std::cout << "this is a mistake!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
     }
 }
 

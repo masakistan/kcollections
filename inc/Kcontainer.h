@@ -188,7 +188,7 @@ inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length)
     vertex_insert(&(kd->v), bseq8, kd->k, 0, ++count);
 #endif
 
-    std::cout << strlen(seq) << std::endl;
+    //std::cout << strlen(seq) << std::endl;
     for(uint32_t j = kd->k; j < length; j++) {
         //std::cout << j << "\t" << seq[j] << std::endl;
         // shift all the bits over
