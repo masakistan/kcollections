@@ -198,9 +198,9 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
 	    free(i.first);
 	    //std::cout << "done free" << std::endl;
 	    //free(i.second);
-	    py::gil_scoped_acquire acquire;
-	    i.second.dec_ref();
-	    py::gil_scoped_release release;
+	    //py::gil_scoped_acquire acquire;
+	    //i.second.dec_ref();
+	    //py::gil_scoped_release release;
 #endif
         }
 
@@ -243,10 +243,10 @@ void parallel_kcontainer_add_bseq(Kcontainer* kd, uint8_t* bseq, py::object obj)
 #elif defined(KDICT)
   //obj.inc_ref();
   std::pair<uint8_t*, py::object> data(bseq, obj);
-  py::gil_scoped_acquire acquire;
+  //py::gil_scoped_acquire acquire;
   //std::cout << "putting in queue" << std::string(py::str(obj)) << std::endl;
-  data.second.inc_ref();
-  py::gil_scoped_release release;
+  //data.second.inc_ref();
+  //py::gil_scoped_release release;
   kmers[bin][cur_wbin].push_back(data);
 #endif
 

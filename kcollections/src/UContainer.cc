@@ -121,10 +121,10 @@ void free_uc( UC* uc )
         free( uc->suffixes );
         //std::cout << "\tdone removing suffixes" << std::endl;
 #if KDICT
-        //for( int i = 0; i < uc->size; i++ )
-        //{
-        //    uc->objs[ i ].dec_ref();
-        //}
+        for( int i = 0; i < uc->size; i++ )
+        {
+            uc->objs[ i ].dec_ref();
+        }
         free( uc->objs );
 #elif KCOUNTER
         free( uc->counts );

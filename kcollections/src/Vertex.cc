@@ -225,6 +225,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object obj, 
 	  py::object merged_obj = (*merge_func)(v->uc.objs[uc_idx], obj);
 	  //std::cout << "merged: " << std::string(py::str(merged_obj)) << std::endl;
 	  v->uc.objs[ uc_idx ].dec_ref();
+	  merged_obj.inc_ref();
 	  py::gil_scoped_release release;
 
 	std::memcpy(
@@ -233,9 +234,9 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object obj, 
 		  sizeof( py::object )
 		  );
 	//std::cout << "output" << std::string(py::str(*(v->uc.objs[uc_idx]))) << std::endl;
-	py::gil_scoped_acquire acquire1;
-	v->uc.objs[ uc_idx ].inc_ref();
-	py::gil_scoped_release release1;
+	//py::gil_scoped_acquire acquire1;
+	//v->uc.objs[ uc_idx ].inc_ref();
+	//py::gil_scoped_release release1;
 	//std::cout << "done merging" << std::endl;
 	
 	return;
@@ -246,6 +247,7 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object obj, 
       {
 	py::gil_scoped_acquire acquire;
 	v->uc.objs[ uc_idx ].dec_ref();
+	obj.inc_ref();
 	py::gil_scoped_release release;
       }
       std::memcpy(
@@ -254,9 +256,9 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, py::object obj, 
 		  sizeof( py::object )
 		  );
       {
-	py::gil_scoped_acquire acquire;
-	v->uc.objs[ uc_idx ].inc_ref();
-	py::gil_scoped_release release;
+	//py::gil_scoped_acquire acquire;
+	//v->uc.objs[ uc_idx ].inc_ref();
+	//py::gil_scoped_release release;
       }
 #elif KCOUNTER
       if(v->uc.counts[uc_idx] < MAXCOUNT) {
