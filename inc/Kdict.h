@@ -21,6 +21,7 @@ public:
   py::object* get( char* kmer );
   int get_k() { return m_k; }
   Kcontainer* get_kc() { return kc; }
+  void add_seq( char* seq, uint32_t length, py::iterable values, std::function<py::object(py::object, py::object)> &f);
 
   std::string get_uc_kmer( Vertex* v, int k, int idx )
   {

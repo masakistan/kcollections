@@ -47,3 +47,8 @@ void Kdict::remove( char* kmer )
     kcontainer_remove( kc, kmer );
 }
 
+void Kdict::add_seq( char* seq, uint32_t length, py::iterable values, std::function<py::object(py::object, py::object)> &f)
+{
+  kcontainer_add_seq( kc, seq, length, values, f );
+}
+

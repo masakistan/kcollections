@@ -52,6 +52,7 @@ PYBIND11_MODULE( _Kdict, m )
     .def("parallel_add_init", &Kdict::parallel_add_init, py::call_guard<py::gil_scoped_release>())
     .def("parallel_add", &Kdict::parallel_add)
     .def("parallel_add_seq", &Kdict::parallel_add_seq)
+    .def("add_seq", &Kdict::add_seq)
     .def("parallel_add_join", &Kdict::parallel_add_join, py::call_guard<py::gil_scoped_release>());
 
   py::class_<Vertex>(m, "Vertex")

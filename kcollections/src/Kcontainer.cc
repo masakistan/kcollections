@@ -316,9 +316,9 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
   parallel_kcontainer_add_bseq(kd, bseq8_sub, (*iter).cast<py::object>());
   //(*iter).dec_ref();
   //iter++;
-  py::gil_scoped_acquire acquire;
-  std::advance(iter, 1);
-  py::gil_scoped_release release;
+  //py::gil_scoped_acquire acquire;
+  //std::advance(iter, 1);
+  //py::gil_scoped_release release;
 #endif
 
   for(int j = kd->k; j < length; j++) {
@@ -341,13 +341,12 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
     parallel_kcontainer_add_bseq(kd, bseq8_sub);
 #elif defined(KDICT)
     //std::cout << j << "/" << length << "\tadding val 2: " << std::endl;; //<< std::string(py::str(*iter)) << std::endl;
-
-    parallel_kcontainer_add_bseq(kd, bseq8_sub, (*iter).cast<py::object>());
     py::gil_scoped_acquire acquire;
     std::advance(iter, 1);
     py::gil_scoped_release release;
 
-#endif
+    parallel_kcontainer_add_bseq(kd, bseq8_sub, (*iter).cast<py::object>());
+   #endif
   }
   std::cout << "done adding stuff" << std::endl;
 
