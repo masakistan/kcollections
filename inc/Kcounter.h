@@ -23,7 +23,8 @@ public:
   int get_k() { return m_k; }
   Kcontainer* get_kc() { return kc; }
   void parallel_add_init(int threads) {
-    parallel_kcontainer_add_init(kc, threads);
+    std::function<int(int, int)> f = [] (int prev_val, int new_val)->int{ return prev_val + new_val; };
+    parallel_kcontainer_add_init(kc, threads, f);
   };
   void parallel_add(const char* kmer) {
     parallel_kcontainer_add(kc, kmer);
@@ -36,10 +37,8 @@ public:
 
   std::string get_uc_kmer( Vertex* v, int k, int idx )
   {
-    UC* uc = &v->uc;
-    int bk = calc_bk( k );
-    int suffix_idx = bk * idx;
-    char* kmer = deserialize_kmer( k, bk, &uc->suffixes[ suffix_idx ] );
+    UC<int>* uc = v->uc;
+    char* kmer = deserialize_kmer(k, uc->get_suffix(k, idx));
     std::string skmer(kmer);
     free(kmer);
     return skmer;
@@ -47,7 +46,7 @@ public:
 
   int get_uc_size( Vertex* v )
   {
-    return v->uc.size;
+    return v->uc->get_size();
   }
 
   Vertex* get_root() { return &kc->v; }

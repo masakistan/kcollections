@@ -13,22 +13,20 @@ private:
 public:
   Kdict( const int k );
   ~Kdict();
-  void add( char* kmer, py::object obj );
+  void add( char* kmer, int obj );
   bool contains( char* kmer );
   void clear();
   uint64_t size();
   void remove( char* kmer );
-  py::object* get( char* kmer );
+  int get( char* kmer );
   int get_k() { return m_k; }
   Kcontainer* get_kc() { return kc; }
-  void add_seq( char* seq, uint32_t length, py::iterable values, std::function<py::object(py::object, py::object)> &f);
+  void add_seq( char* seq, uint32_t length, py::iterable values, std::function<int(int, int)> &f);
 
   std::string get_uc_kmer( Vertex* v, int k, int idx )
   {
-    UC* uc = &v->uc;
-    int bk = calc_bk( k );
-    int suffix_idx = bk * idx;
-    char* kmer = deserialize_kmer( k, bk, &uc->suffixes[ suffix_idx ] );
+    UC<int>* uc = v->uc;
+    char* kmer = deserialize_kmer(k, uc->get_suffix(k, idx));
     std::string skmer(kmer);
     free(kmer);
     return skmer;
@@ -36,7 +34,7 @@ public:
 
   int get_uc_size( Vertex* v )
   {
-    return v->uc.size;
+    return v->uc->get_size();
   }
   
   int get_vs_size( Vertex* v ){ return v->vs_size; }
@@ -53,11 +51,11 @@ public:
   
   Vertex* get_root() { return &kc->v; }
 
-  void parallel_add_init(int threads, const std::function<py::object(py::object, py::object)> &f)  {
+  void parallel_add_init(int threads, const std::function<int(int, int)> &f)  {
     parallel_kcontainer_add_init(kc, threads, f);
   }
   
-  void parallel_add(const char* kmer, py::object value) {
+  void parallel_add(const char* kmer, int value) {
     parallel_kcontainer_add(kc, kmer, value);
   }
   

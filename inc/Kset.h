@@ -24,10 +24,8 @@ public:
 
   std::string get_uc_kmer( Vertex* v, int k, int idx )
   {
-    UC* uc = &v->uc;
-    int bk = calc_bk( k );
-    int suffix_idx = bk * idx;
-    char* kmer = deserialize_kmer( k, bk, &uc->suffixes[ suffix_idx ] );
+    UC<int>* uc = v->uc;
+    char* kmer = deserialize_kmer(k, uc->get_suffix(k, idx));
     std::string skmer(kmer);
     free(kmer);
     return skmer;
@@ -35,7 +33,7 @@ public:
 
   int get_uc_size( Vertex* v )
   {
-    return v->uc.size;
+    return v->uc->get_size();
   }
 
   Vertex* get_root() { return &kc->v; }

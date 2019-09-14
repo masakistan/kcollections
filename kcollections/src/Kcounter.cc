@@ -49,7 +49,8 @@ void Kcounter::remove( char* kmer )
 
 void Kcounter::add_seq( char* seq, uint32_t length )
 {
-    kcontainer_add_seq( kc, seq, length );
+  std::function<int(int, int)> f = [] (int prev_val, int new_val)->int{ return prev_val + new_val; };
+  kcontainer_add_seq(kc, seq, length, f);
 }
 
 void Kcounter::parallel_add_seq(char* seq, uint32_t length) {

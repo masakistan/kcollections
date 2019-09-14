@@ -18,13 +18,13 @@ void Kdict::clear()
     kc = create_kcontainer( m_k );
 }
 
-void Kdict::add( char* kmer, py::object obj )
+void Kdict::add( char* kmer, int obj )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kdict" );
     kcontainer_add( kc, kmer, obj );
 }
 
-py::object* Kdict::get( char* kmer )
+int Kdict::get( char* kmer )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kdict" );
     return kcontainer_get( kc, kmer );
@@ -47,7 +47,7 @@ void Kdict::remove( char* kmer )
     kcontainer_remove( kc, kmer );
 }
 
-void Kdict::add_seq( char* seq, uint32_t length, py::iterable values, std::function<py::object(py::object, py::object)> &f)
+void Kdict::add_seq( char* seq, uint32_t length, py::iterable values, std::function<int(int, int)> &f)
 {
   kcontainer_add_seq( kc, seq, length, values, f );
 }
