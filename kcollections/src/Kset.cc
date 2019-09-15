@@ -45,6 +45,6 @@ void Kset::add_seq(const char* seq, uint32_t length)
     kcontainer_add_seq(kc, seq, length);
 }
 
-void Kset::parallel_add_seq(char* seq, uint32_t length) {
+void Kset::parallel_add_seq(const char* seq, uint32_t length) {
     parallel_kcontainer_add_seq(kc, seq, length);
 }

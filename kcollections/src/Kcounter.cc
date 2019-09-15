@@ -21,7 +21,7 @@ void Kcounter::clear()
 void Kcounter::insert( char* kmer, count_dtype count )
 {
     CHECK_KMER_LENGTH( kmer, m_k, "Kcounter" );
-    kcontainer_add( kc, kmer, count );
+    kcontainer_add( kc, kmer, count, merge_func );
 }
 
 count_dtype Kcounter::get( char* kmer )
@@ -47,12 +47,11 @@ void Kcounter::remove( char* kmer )
     kcontainer_remove( kc, kmer );
 }
 
-void Kcounter::add_seq( char* seq, uint32_t length )
+void Kcounter::add_seq(const char* seq, uint32_t length)
 {
-  std::function<int(int, int)> f = [] (int prev_val, int new_val)->int{ return prev_val + new_val; };
-  kcontainer_add_seq(kc, seq, length, f);
+  kcontainer_add_seq(kc, seq, length, merge_func);
 }
 
-void Kcounter::parallel_add_seq(char* seq, uint32_t length) {
+void Kcounter::parallel_add_seq(const char* seq, uint32_t length) {
     parallel_kcontainer_add_seq(kc, seq, length);
 }

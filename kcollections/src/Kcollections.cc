@@ -55,8 +55,8 @@ PYBIND11_MODULE( _Kdict, m )
     .def("add_seq", &Kdict::add_seq)
     .def("parallel_add_join", &Kdict::parallel_add_join, py::call_guard<py::gil_scoped_release>());
 
-  py::class_<Vertex>(m, "Vertex")
-    .def_readonly( "uc", &Vertex::uc );
+  py::class_<Vertex<int>, std::shared_ptr< Vertex<int>>>(m, "Vertex", py::module_local())
+    .def( "uc", &Vertex<int>::get_uc );
 
 }
 #elif KCOUNTER
@@ -115,9 +115,9 @@ PYBIND11_MODULE( _Kcounter, m )
     .def("parallel_add_join", &Kcounter::parallel_add_join)
     .def_property_readonly("k", &Kcounter::get_k);
 
-  py::class_<Vertex>(m, "Vertex")
-    .def_readonly( "vs_size", &Vertex::vs_size)
-    .def_readonly( "uc", &Vertex::uc );
+  py::class_<Vertex<int>, std::shared_ptr< Vertex<int>>>(m, "Vertex", py::module_local())
+    .def( "vs_size", &Vertex<int>::get_vs_size)
+    .def( "uc", &Vertex<int>::get_uc );
 }
 #elif KSET
 #include "Kset.h"
@@ -174,9 +174,9 @@ PYBIND11_MODULE( _Kset, m )
     .def("parallel_add_join", &Kset::parallel_add_join)
     .def_property_readonly("k", &Kset::get_k);
 
-  py::class_<Vertex>(m, "Vertex")
-    .def_readonly( "vs_size", &Vertex::vs_size)
-    .def_readonly( "uc", &Vertex::uc );
+  py::class_<Vertex<int>, std::shared_ptr< Vertex<int>>>(m, "Vertex", py::module_local())
+    .def( "get_vs_size", &Vertex<int>::get_vs_size)
+    .def( "get_uc", &Vertex<int>::get_uc );
 }
 #endif
 

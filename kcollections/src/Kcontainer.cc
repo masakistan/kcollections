@@ -24,7 +24,7 @@ struct thread_info{
 #endif
 };
 
-Vertex** v;
+Vertex<int>** v;
 sem_t* signal_b;
 pthread_mutex_t** blocks;
 sem_t** rsignal;
@@ -59,32 +59,34 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
     pthread_join(p_threads[i], NULL);
     //std::cout << "joined " << i << std::endl;
     //std::cout << "uc size: " << v[i]->uc.size << std::endl;
-    total_vs += v[i]->vs_size;
+    total_vs += v[i]->get_vs_size();
     sem_close(rsignal[i]);
   }
 
   //std::cout << "here" << std::endl;
 
 
-  kc->v.vs = (Vertex*) calloc(total_vs, sizeof(Vertex));
-  kc->v.vs_size = total_vs;
+  kc->v->set_vs((Vertex<int>**) calloc(total_vs, sizeof(Vertex<int>*)));
+  kc->v->set_vs_size(total_vs);
 
   // NOTE: clean up memory
   int idx = 0;
   for(int i = 0; i < nthreads; i++) {
     //std::cout << "thread: " << i << "\t" << v[i]->vs_size << std::endl;
-    std::memmove(&kc->v.vs[idx], v[i]->vs, v[i]->vs_size * sizeof(Vertex));
-    kc->v.pref_pres |= v[i]->pref_pres;
-    idx += v[i]->vs_size;
 
+    Vertex<int>** v_vs = v[i]->get_vs();
+    if(v_vs != NULL) {
+      std::memmove(&kc->v->get_vs()[idx], v[i]->get_vs(), v[i]->get_vs_size() * sizeof(Vertex<int>*));
+      kc->v->set_pref_pres(kc->v->get_pref_pres() | v[i]->get_pref_pres());
+      idx += v[i]->get_vs_size();
+      free(v_vs);
+      v[i]->set_vs((Vertex<int>**) NULL);
+    }
+
+    delete v[i];
     free(blocks[i]);
-    //free_uc(&v[i]->uc);
-    free(v[i]->vs);
-    //free_vertex(v[i]);
-    free(v[i]);
     kmers[i].clear();
 #if defined(KDICT) || defined(KCOUNTER)
-    //free(bin_ids[i].merge_func);
     delete bin_ids[i].merge_func;
 #endif
   }
@@ -99,6 +101,7 @@ void parallel_kcontainer_add_join(Kcontainer* kc) {
   free(wbin);
   free(rbin);
   free(blocks);
+
   kmers.clear();
 
   // NOTE: merge all vertices together
@@ -116,7 +119,7 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads, const std::functi
     bits_to_shift = 8 - log2((double) threads);
     bk = calc_bk(kd->k);
 
-    v = (Vertex**) calloc(threads, sizeof(Vertex*));
+    v = (Vertex<int>**) calloc(threads, sizeof(Vertex<int>*));
     signal_b = (sem_t*) calloc(threads, sizeof(sem_t));
     rsignal = (sem_t**) calloc(threads, sizeof(sem_t*));
     p_threads = (pthread_t*) calloc(threads, sizeof(pthread_t));
@@ -148,21 +151,16 @@ void parallel_kcontainer_add_init(Kcontainer* kd, int threads, const std::functi
 #endif
 	
       }
-        v[i] = (Vertex*) calloc(1, sizeof(Vertex));
-        init_vertex(v[i]);
-
-        //sem_init(&signal_b[i], 0, 0);
-        //ids.push_back(std::to_string(i).c_str());
-        rsignal[i] = sem_open((appName + std::to_string(getpid()) + std::to_string(i)).c_str(), O_CREAT, 0600, 0);
-        //rsignal[i] = &signal_b[i];
-        //bin_ids[i] = i;
-        bin_ids[i].thread_id = i;
+      v[i] = new Vertex<int>();
+      
+      rsignal[i] = sem_open((appName + std::to_string(getpid()) + std::to_string(i)).c_str(), O_CREAT, 0600, 0);
+      bin_ids[i].thread_id = i;
 #if defined(KDICT) || defined(KCOUNTER)
-        bin_ids[i].merge_func = new std::function<int(int, int)>(f);
+      bin_ids[i].merge_func = new std::function<int(int, int)>(f);
 #endif
-
-        // NOTE: spin up worker threads
-        pthread_create(&p_threads[i], NULL, parallel_kcontainer_add_consumer, &bin_ids[i]);
+      
+      // NOTE: spin up worker threads
+      pthread_create(&p_threads[i], NULL, parallel_kcontainer_add_consumer, &bin_ids[i]);
     }
 }
 
@@ -194,10 +192,10 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
     for(auto i : kmers[bin][cur_rbin]) {
       kmer_idx++;
 #if KSET
-      vertex_insert(v[bin], i, k, 0);
+      v[bin]->vertex_insert(i, k);
       free(i);
 #elif defined(KDICT) || defined(KCOUNTER)
-      vertex_insert(v[bin], i.first, k, 0, i.second, ti->merge_func);
+      v[bin]->vertex_insert(i.first, k, i.second, *ti->merge_func);
       free(i.first);
 #endif
     }
@@ -211,11 +209,11 @@ void* parallel_kcontainer_add_consumer(void* bin_ptr) {
     }
   }
 #if defined(KDICT) || defined(KCOUNTER)
-  burst_uc(v[bin], k, 0, ti->merge_func);
+  v[bin]->burst_uc(k, *ti->merge_func);
 #else
-  burst_uc(v[bin], k, 0);
+  v[bin]->burst_uc(k);
 #endif
-  delete v[bin]->uc;
+  //delete v[bin]->get_uc();
   
   return NULL;
 }
@@ -264,7 +262,6 @@ void parallel_kcontainer_add(Kcontainer* kd, const char* kmer) {
 #elif defined(KDICT)
 void parallel_kcontainer_add(Kcontainer* kd, const char* kmer, int value) {
 #endif
-    // NOTE: start adding
   uint8_t* pbseq = ( uint8_t* ) calloc( bk, sizeof( uint8_t ) );
   serialize_kmer(kmer, kd->k, pbseq);
 #if defined(KSET)

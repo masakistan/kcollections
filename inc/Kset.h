@@ -22,28 +22,28 @@ public:
   int get_k() { return m_k; }
   Kcontainer* get_kc() { return kc; }
 
-  std::string get_uc_kmer( Vertex* v, int k, int idx )
+  std::string get_uc_kmer( Vertex<int>* v, int k, int idx )
   {
-    UC<int>* uc = v->uc;
+    UC<int>* uc = v->get_uc();
     char* kmer = deserialize_kmer(k, uc->get_suffix(k, idx));
     std::string skmer(kmer);
     free(kmer);
     return skmer;
 }
 
-  int get_uc_size( Vertex* v )
+  int get_uc_size( Vertex<int>* v )
   {
-    return v->uc->get_size();
+    return v->get_uc()->get_size();
   }
 
-  Vertex* get_root() { return &kc->v; }
-  int get_vs_size( Vertex* v ){ return v->vs_size; }
-  Vertex* get_child_vertex( Vertex* v, int idx )
+  Vertex<int>* get_root() { return kc->v; }
+  int get_vs_size( Vertex<int>* v ){ return v->get_vs_size(); }
+  Vertex<int>* get_child_vertex( Vertex<int>* v, int idx )
   {
-    return &v->vs[idx];
+    return v->get_vs()[idx];
   }
 
-  std::string get_child_suffix( Vertex* v, int idx )
+  std::string get_child_suffix( Vertex<int>* v, int idx )
   {
     return kcontainer_get_child_suffix(v, idx);
   }
@@ -59,5 +59,5 @@ public:
     parallel_kcontainer_add_join(kc);
   }
 
-  void parallel_add_seq(char* seq, uint32_t length);
+  void parallel_add_seq(const char* seq, uint32_t length);
 };

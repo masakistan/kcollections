@@ -21,7 +21,7 @@ namespace py = pybind11;
 
 typedef struct {
   int k;
-  Vertex v;
+  Vertex<int>* v;
 } Kcontainer;
 
 /*
@@ -37,7 +37,7 @@ public:
 inline void init_kcontainer(Kcontainer* kd, int k)
 {
   kd->k = k;
-  init_vertex(&(kd->v));
+  kd->v = new Vertex<int>();
 }
 
 inline Kcontainer* create_kcontainer(int k)
@@ -50,12 +50,12 @@ inline Kcontainer* create_kcontainer(int k)
 
 inline void free_kcontainer( Kcontainer* kd )
 {
-  free_vertex(&(kd->v));
+  delete kd->v;
   free(kd);
 }
 
-inline std::string kcontainer_get_child_suffix(Vertex* v, int idx) {
-  uint256_t verts = v->pref_pres;
+inline std::string kcontainer_get_child_suffix(Vertex<int>* v, int idx) {
+  uint256_t verts = v->get_pref_pres();
   uint8_t j = 0, i = 0;
   while(true) {
     if(verts & 0x1) {
@@ -82,31 +82,27 @@ inline bool kcontainer_contains( Kcontainer* kd, const char* kmer )
 {
   uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
   serialize_kmer( kmer, kd->k, bseq );
-  bool res = vertex_contains( &( kd->v ), bseq, kd->k, 0 );
+  bool res = kd->v->vertex_contains(bseq, kd->k);
   free( bseq );
   return res;
   return false;
 }
 
-#if KDICT
-inline void kcontainer_add( Kcontainer* kd, const char* kmer, int obj )
+#if defined(KDICT) || defined(KCOUNTER)
+inline void kcontainer_add(Kcontainer* kd, const char* kmer, int obj, std::function<int(int, int)>& merge_func)
 #elif KSET
-  inline void kcontainer_add( Kcontainer* kd, const char* kmer )
-#elif KCOUNTER
-  inline void kcontainer_add( Kcontainer* kd, const char* kmer, int count )
+  inline void kcontainer_add(Kcontainer* kd, const char* kmer)
 #endif
 {
   uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
   serialize_kmer( kmer, kd->k, bseq );
   //std::cout << deserialize_kmer(kd->k, bseq) << std::endl;
-#if KDICT
-  vertex_insert( &( kd->v ), bseq, kd->k, 0, obj );
+#if defined(KDICT) || defined(KCOUNTER)
+  kd->v->vertex_insert(bseq, kd->k, obj, merge_func);
 #elif KSET
-  vertex_insert( &( kd->v ), bseq, kd->k, 0 );
-#elif KCOUNTER
-  vertex_insert( &( kd->v ), bseq, kd->k, 0, count );
+  kd->v->vertex_insert(bseq, kd->k);
 #endif
-  free( bseq );
+  free(bseq);
 }
 
 #if defined KDICT || defined KCOUNTER
@@ -115,11 +111,8 @@ inline int kcontainer_get( Kcontainer* kd, char* kmer )
   uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
   serialize_kmer( kmer, kd->k, bseq );
 #if defined(KDICT) || defined(KCOUNTER)
-  int res = vertex_get( &kd->v, bseq, kd->k, 0 );
+  int res = kd->v->vertex_get(bseq, kd->k);
 #endif
-  //std::cout << "kcontainer get start" << std::endl;
-  //py::print( py::str( *res ) );
-  //std::cout << "kcontainer get end" << std::endl;
   free( bseq );
   return res;
 }
@@ -127,14 +120,14 @@ inline int kcontainer_get( Kcontainer* kd, char* kmer )
 
 inline uint64_t kcontainer_size( Kcontainer* kd )
 {
-  return vertex_size( &kd->v );
+  return kd->v->get_vertex_size();
 }
 
 inline void kcontainer_remove( Kcontainer* kd, const char* kmer )
 {
   uint8_t* bseq = ( uint8_t* ) calloc( kd->k, sizeof( uint8_t ) );
   serialize_kmer( kmer, kd->k, bseq );
-  vertex_remove( &kd->v, bseq, kd->k, 0 );
+  kd->v->vertex_remove(bseq, kd->k);
   free( bseq );
 }
 
@@ -187,12 +180,12 @@ inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length)
     serialize_kmer(seq, kd->k, bseq8);
 
 #if KSET
-    vertex_insert(&(kd->v), bseq8, kd->k, 0);
+    kd->v->vertex_insert(bseq8, kd->k);
 #elif defined(KCOUNTER)
-    vertex_insert(&(kd->v), bseq8, kd->k, 0, 1, &f);
+    kd->v->vertex_insert(bseq8, kd->k, 1, f);
 #elif defined(KDICT)
     auto iter = py::iter(values);
-    vertex_insert(&(kd->v), bseq8, kd->k, 0, (*iter).cast<int>(), &f);
+    kd->v->vertex_insert(bseq8, kd->k, (*iter).cast<int>(), f);
 #endif
 
     //std::cout << strlen(seq) << std::endl;
@@ -211,12 +204,12 @@ inline void kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t length)
       
       serialize_position(j, bk - 1, last_index, bseq8, seq);
 #if KSET
-      vertex_insert(&(kd->v), bseq8, kd->k, 0);
+      kd->v->vertex_insert(bseq8, kd->k);
 #elif defined(KCOUNTER)
-      vertex_insert(&(kd->v), bseq8, kd->k, 0, 1, &f);
+      kd->v->vertex_insert(bseq8, kd->k, 1, f);
 #elif defined(KDICT)
       std::advance(iter, 1);
-      vertex_insert(&(kd->v), bseq8, kd->k, 0, (*iter).cast<int>(), &f);
+      kd->v->vertex_insert(bseq8, kd->k, (*iter).cast<int>(), f);
 #endif
     }
 
