@@ -116,7 +116,7 @@ public:
   }
 
 #if defined(KDICT) || defined(KCOUNTER)
-  int vertex_get(uint8_t* bseq, int k) {
+  T vertex_get(uint8_t* bseq, int k) {
     uint8_t prefix = bseq[0];
     
     if((pref_pres >> (unsigned) prefix) & 0x1) {
@@ -141,7 +141,7 @@ public:
 #endif
 
 #if defined(KDICT) || defined(KCOUNTER)
-  void vertex_insert(uint8_t* bseq, int k, int obj, std::function<int(int, int)>& merge_func)
+  void vertex_insert(uint8_t* bseq, int k, T obj, std::function<T(T, T)>& merge_func)
 #elif KSET
   void vertex_insert(uint8_t* bseq, int k)
 #endif
@@ -164,7 +164,7 @@ public:
       // replace object here
 #if defined(KDICT) || defined(KCOUNTER)
       if(merge_func != NULL) {
-	int merged_obj = merge_func(uc->get_obj(uc_idx), obj);
+	T merged_obj = merge_func(uc->get_obj(uc_idx), obj);
 	uc->set_obj(uc_idx, merged_obj);
       } else {
 	uc->set_obj(uc_idx, obj);
@@ -199,7 +199,7 @@ public:
   }
 
 #if defined(KDICT) || defined(KCOUNTER)
-  void burst_uc(int k, std::function<int(int, int)>& merge_func)
+  void burst_uc(int k, std::function<T(T, T)>& merge_func)
 #else
   void burst_uc(int k)
 #endif
@@ -208,7 +208,7 @@ public:
     
     uint8_t* suffixes = uc->get_suffixes();
 #if defined(KDICT) || defined(KCOUNTER)
-    std::vector<int> objs = uc->get_objs();
+    std::vector<T> objs = uc->get_objs();
 #endif
     int idx;
     for(size_t i = 0; i < uc->get_size(); i++) {

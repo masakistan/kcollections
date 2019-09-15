@@ -18,10 +18,14 @@
 
 namespace py = pybind11;
 
+#if defined(KDICT) || defined(KCOUNTER)
+template <class T>
+#endif
+
 struct ThreadInfo{
   int thread_id;
 #if defined(KDICT) || defined(KCOUNTER)
-  std::function<int(int, int)>* merge_func;
+  std::function<T(T, T)>* merge_func;
 #endif
 };
 
@@ -48,7 +52,11 @@ struct ThreadGlobals {
   int bk, k, nthreads;
   pthread_t* p_threads;
   //int* bin_ids;
+#if defined(KDICT) || defined(KCOUNTER)
+  ThreadInfo<T>* bin_ids;
+#else
   ThreadInfo* bin_ids;
+#endif
   int* wbin;
   int* rbin;
   int work_queues;
@@ -142,9 +150,9 @@ public:
   }
 
 #if defined(KDICT) || defined(KCOUNTER)
-  inline void kcontainer_add(const char* kmer, int obj, std::function<int(int, int)>& merge_func)
+  void kcontainer_add(const char* kmer, T obj, std::function<T(T, T)>& merge_func)
 #elif KSET
-  inline void kcontainer_add(const char* kmer)
+  void kcontainer_add(const char* kmer)
 #endif
   {
     uint8_t* bseq = (uint8_t*) calloc(k, sizeof(uint8_t));
@@ -158,12 +166,12 @@ public:
   }
 
 #if defined KDICT || defined KCOUNTER
-  inline int kcontainer_get(char* kmer)
+  T kcontainer_get(char* kmer)
   {
     uint8_t* bseq = (uint8_t*) calloc(k, sizeof(uint8_t));
     serialize_kmer(kmer, k, bseq);
 #if defined(KDICT) || defined(KCOUNTER)
-    int res = v->vertex_get(bseq, k);
+    T res = v->vertex_get(bseq, k);
 #endif
     free(bseq);
     return res;
@@ -176,11 +184,11 @@ public:
   }
 
 #if defined(KDICT)
-  inline void kcontainer_add_seq(const char* seq, uint32_t length, py::iterable values, std::function<T(T, T)> &f)
+  void kcontainer_add_seq(const char* seq, uint32_t length, py::iterable values, std::function<T(T, T)> &f)
 #elif defined(KCOUNTER)
-  inline void kcontainer_add_seq(const char* seq, uint32_t length, std::function<T(T, T)> &f)
+  void kcontainer_add_seq(const char* seq, uint32_t length, std::function<T(T, T)> &f)
 #else
-  inline void kcontainer_add_seq(const char* seq, uint32_t length)
+  void kcontainer_add_seq(const char* seq, uint32_t length)
 #endif
   {
     int size64 = k / 32;
@@ -203,7 +211,7 @@ public:
     v->vertex_insert(bseq8, k, 1, f);
 #elif defined(KDICT)
     auto iter = py::iter(values);
-    v->vertex_insert(bseq8, k, (*iter).cast<int>(), f);
+    v->vertex_insert(bseq8, k, (*iter).cast<T>(), f);
 #endif
 
     //std::cout << strlen(seq) << std::endl;
@@ -227,7 +235,7 @@ public:
       v->vertex_insert(bseq8, k, 1, f);
 #elif defined(KDICT)
       std::advance(iter, 1);
-      v->vertex_insert(bseq8, k, (*iter).cast<int>(), f);
+      v->vertex_insert(bseq8, k, (*iter).cast<T>(), f);
 #endif
     }
 
@@ -258,7 +266,13 @@ public:
     tg->signal_b = (sem_t*) calloc(threads, sizeof(sem_t));
     tg->rsignal = (sem_t**) calloc(threads, sizeof(sem_t*));
     tg->p_threads = (pthread_t*) calloc(threads, sizeof(pthread_t));
+
+#if defined(KDICT) || defined(KCOUNTER)
+    tg->bin_ids = (ThreadInfo<T>*) calloc(threads, sizeof(ThreadInfo<T>));
+#else
     tg->bin_ids = (ThreadInfo*) calloc(threads, sizeof(ThreadInfo));
+#endif
+    
     tg->wbin = (int*) calloc(threads, sizeof(int));
     tg->rbin = (int*) calloc(threads, sizeof(int));
 
@@ -291,7 +305,7 @@ public:
 	
       }
 #if defined(KDICT) || defined(KCOUNTER)
-      tg->v[i] = new Vertex<int>();
+      tg->v[i] = new Vertex<T>();
 #else
       tg->v[i] = new Vertex();
 #endif
@@ -345,7 +359,7 @@ public:
       //std::cout << "thread: " << i << "\t" << v[i]->vs_size << std::endl;
       
 #if defined(KDICT) || defined(KCOUNTER)
-      Vertex<int>** v_vs = tg->v[i]->get_vs();
+      Vertex<T>** v_vs = tg->v[i]->get_vs();
 #else
       Vertex** v_vs = tg->v[i]->get_vs();
 #endif
@@ -394,7 +408,12 @@ public:
   
   static void* parallel_kcontainer_add_consumer(void* bin_ptr) {
     //int bin = *((int*) bin_ptr);
+#if defined(KDICT) || defined(KCOUNTER)
+    ThreadInfo<T>* ti = (ThreadInfo<T>*) bin_ptr;
+#else
     ThreadInfo* ti = (ThreadInfo*) bin_ptr;
+#endif
+    
     int bin = ti->thread_id;
     int cur_rbin;
     
@@ -488,7 +507,7 @@ public:
     parallel_kcontainer_add_bseq(bseq8_sub, 1);
 #elif defined(KDICT)
     auto iter = py::iter(values);
-    parallel_kcontainer_add_bseq(bseq8_sub, (*iter).cast<int>());
+    parallel_kcontainer_add_bseq(bseq8_sub, (*iter).cast<T>());
 #endif
     
     for(uint32_t j = tg->k; j < length; j++) {
@@ -517,7 +536,7 @@ public:
       std::advance(iter, 1);
       py::gil_scoped_release release;
       
-      parallel_kcontainer_add_bseq(bseq8_sub, (*iter).cast<int>());
+      parallel_kcontainer_add_bseq(bseq8_sub, (*iter).cast<T>());
 #endif
     }
     std::cout << "done adding stuff" << std::endl;
@@ -546,7 +565,7 @@ public:
 #if defined(KSET)
     (*tg->kmers)[bin][cur_wbin].push_back(bseq);
 #elif defined(KDICT) || defined(KCOUNTER)
-    std::pair<uint8_t*, int> data(bseq, obj);
+    std::pair<uint8_t*, T> data(bseq, obj);
     (*tg->kmers)[bin][cur_wbin].push_back(data);
 #endif
     

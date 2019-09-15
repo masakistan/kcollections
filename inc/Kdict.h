@@ -22,7 +22,7 @@ public:
     delete kc;
   }
   
-  void add(char* kmer, int obj) {
+  void add(char* kmer, T obj) {
     CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
     kc->kcontainer_add(kmer, obj, merge_func);
   }
@@ -46,7 +46,7 @@ public:
     kc->kcontainer_remove(kmer);
   }
 
-  int get(char* kmer) {
+  T get(char* kmer) {
     CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
     return kc->kcontainer_get(kmer);
   }

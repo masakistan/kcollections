@@ -66,6 +66,9 @@
 PYBIND11_MODULE( _Kdict, m )
 {
   declare_kdict<int>(m, "int");
+  declare_kdict<float>(m, "float");
+  declare_kdict<bool>(m, "bool");
+  declare_kdict<std::string>(m, "string");
 }
 
 #elif KCOUNTER
