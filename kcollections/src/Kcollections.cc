@@ -59,7 +59,8 @@
       .def("add_seq", &CClass::add_seq)
       .def("parallel_add_join", &CClass::parallel_add_join, py::call_guard<py::gil_scoped_release>());
     
-    py::class_<VClass, std::shared_ptr<VClass>>(m, "Vertex", py::module_local())
+    std::string vertex_pyclass_name = std::string("Vertex_") + typestr;
+    py::class_<VClass, std::shared_ptr<VClass>>(m, vertex_pyclass_name.c_str(), py::module_local())
       .def( "uc", &VClass::get_uc );
   }
 
