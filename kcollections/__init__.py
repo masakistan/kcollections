@@ -1,9 +1,8 @@
-from ._Kdict import Kdict as KdictParent
+from ._Kdict import Kdict_int
 from ._Kset import Kset as KsetParent
 from ._Kcounter import Kcounter as KcounterParent
 
-
-class Kdict( KdictParent ):
+class Kdict( Kdict_int ):
     def __init__( self, k ):
         super( Kdict, self ).__init__( k )
 

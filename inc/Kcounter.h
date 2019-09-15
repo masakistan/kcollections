@@ -60,3 +60,5 @@ public:
     return kc->kcontainer_get_child_suffix(v, idx);
   }
 };
+template<class T>
+ThreadGlobals<T>* Kcontainer<T>::tg = (ThreadGlobals<T>*) calloc(1, sizeof(ThreadGlobals<T>));

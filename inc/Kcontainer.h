@@ -25,7 +25,10 @@ struct ThreadInfo{
 #endif
 };
 
+#if defined(KDICT) || defined(KCOUNTER)
 template <class T>
+#endif
+
 struct ThreadGlobals {
 #if defined(KSET)
   std::vector<std::vector<std::vector<uint8_t*>>>* kmers;
@@ -33,7 +36,12 @@ struct ThreadGlobals {
   std::vector<std::vector<std::vector<std::pair<uint8_t*, T>>>>* kmers;
 #endif
 
+#if defined(KDICT) || defined(KCOUNTER)
   Vertex<T>** v;
+#else
+  Vertex** v;
+#endif
+
   sem_t* signal_b;
   pthread_mutex_t** blocks;
   sem_t** rsignal;
@@ -49,25 +57,50 @@ struct ThreadGlobals {
 };
 
 
+#if defined(KDICT) || defined(KCOUNTER)
 template <class T>
+#endif
 class Kcontainer {
 private:
   int k;
+  
+#if defined(KDICT) || defined(KCOUNTER)
   Vertex<T>* v;
+#else
+  Vertex* v;
+#endif
+  
 protected:
+#if defined(KDICT) || defined(KCOUNTER)
   static ThreadGlobals<T>* tg;
+#elif defined(KSET)
+  static ThreadGlobals* tg;
+#endif
+
 public:
   Kcontainer(const int k) : k(k) {
+#if defined(KDICT) || defined(KCOUNTER)
     v = new Vertex<T>();
+#else
+    v = new Vertex();
+#endif
   }
   
   ~Kcontainer() {
     delete v;
   }
 
+#if defined(KDICT) || defined(KCOUNTER)
   Vertex<T>* get_v() { return v; }
+#else
+  Vertex* get_v() { return v; }
+#endif
   
-  std::string kcontainer_get_child_suffix(Vertex<T> *v, int idx) {
+#if defined(KDICT) || defined(KCOUNTER)
+  std::string kcontainer_get_child_suffix(Vertex<T>* v, int idx) {
+#else
+  std::string kcontainer_get_child_suffix(Vertex* v, int idx) {
+#endif
     uint256_t verts = v->get_pref_pres();
     uint8_t j = 0, i = 0;
     while(true) {
@@ -207,7 +240,6 @@ public:
   void parallel_kcontainer_add_init(int threads, const std::function<T(T, T)> &f)
 #endif
   {
-    //tg = calloc(1, sizeof(ThreadGlobals<T>));
     tg->MAX_BIN_SIZE = 500;
     tg->work_queues = 10;
     
@@ -217,7 +249,12 @@ public:
     tg->bk = calc_bk(k);
     tg->k = k;
 
+#if defined(KDICT) || defined(KCOUNTER)
     tg->v = (Vertex<T>**) calloc(threads, sizeof(Vertex<T>*));
+#else
+    tg->v = (Vertex**) calloc(threads, sizeof(Vertex*));
+#endif
+
     tg->signal_b = (sem_t*) calloc(threads, sizeof(sem_t));
     tg->rsignal = (sem_t**) calloc(threads, sizeof(sem_t*));
     tg->p_threads = (pthread_t*) calloc(threads, sizeof(pthread_t));
@@ -253,7 +290,11 @@ public:
 #endif
 	
       }
+#if defined(KDICT) || defined(KCOUNTER)
       tg->v[i] = new Vertex<int>();
+#else
+      tg->v[i] = new Vertex();
+#endif
       
       tg->rsignal[i] = sem_open((appName + std::to_string(getpid()) + std::to_string(i)).c_str(), O_CREAT, 0600, 0);
       tg->bin_ids[i].thread_id = i;
@@ -290,7 +331,12 @@ public:
       sem_close(tg->rsignal[i]);
     }
     
+#if defined(KDICT) || defined(KCOUNTER)
     v->set_vs((Vertex<T>**) calloc(total_vs, sizeof(Vertex<T>*)));
+#else
+    v->set_vs((Vertex**) calloc(total_vs, sizeof(Vertex*)));
+#endif
+    
     v->set_vs_size(total_vs);
     
     // NOTE: clean up memory
@@ -298,13 +344,28 @@ public:
     for(int i = 0; i < tg->nthreads; i++) {
       //std::cout << "thread: " << i << "\t" << v[i]->vs_size << std::endl;
       
+#if defined(KDICT) || defined(KCOUNTER)
       Vertex<int>** v_vs = tg->v[i]->get_vs();
+#else
+      Vertex** v_vs = tg->v[i]->get_vs();
+#endif
+
       if(v_vs != NULL) {
+#if defined(KDICT) || defined(KCOUNTER)
 	std::memmove(&v->get_vs()[idx], tg->v[i]->get_vs(), tg->v[i]->get_vs_size() * sizeof(Vertex<T>*));
+#else
+	std::memmove(&v->get_vs()[idx], tg->v[i]->get_vs(), tg->v[i]->get_vs_size() * sizeof(Vertex*));
+#endif
+	
 	v->set_pref_pres(v->get_pref_pres() | tg->v[i]->get_pref_pres());
 	idx += tg->v[i]->get_vs_size();
 	free(v_vs);
+#if defined(KDICT) || defined(KCOUNTER)
 	tg->v[i]->set_vs((Vertex<T>**) NULL);
+#else
+	tg->v[i]->set_vs((Vertex**) NULL);
+#endif
+
       }
       
       delete tg->v[i];
@@ -504,5 +565,9 @@ public:
   }
 };
 
-template<class T>
-ThreadGlobals<T>* Kcontainer<T>::tg = (ThreadGlobals<T>*) calloc(1, sizeof(ThreadGlobals<T>));
+#if defined(KDICT) || defined(KCOUNTER)
+  //template<class T>
+  //ThreadGlobals<T>* Kcontainer<T>::tg = (ThreadGlobals<T>*) calloc(1, sizeof(ThreadGlobals<T>));
+#else
+  //ThreadGlobals* Kcontainer::tg = (ThreadGlobals*) calloc(1, sizeof(ThreadGlobals));
+#endif

@@ -2,7 +2,7 @@
 
 Kset::Kset( int k )
 {
-  kc = new Kcontainer<int>(k);
+  kc = new Kcontainer(k);
   m_k = k;
 }
 
@@ -14,7 +14,7 @@ Kset::~Kset()
 void Kset::clear()
 {
   delete kc;
-  kc = new Kcontainer<int>(m_k);
+  kc = new Kcontainer(m_k);
 }
 
 void Kset::add(const char* kmer)
@@ -48,3 +48,5 @@ void Kset::add_seq(const char* seq, uint32_t length)
 void Kset::parallel_add_seq(const char* seq, uint32_t length) {
   kc->parallel_kcontainer_add_seq(seq, length);
 }
+
+ThreadGlobals* Kcontainer::tg = (ThreadGlobals*) calloc(1, sizeof(ThreadGlobals));

@@ -9,7 +9,7 @@ namespace py = pybind11;
 class Kset
 {
 private:
-  Kcontainer<int>* kc;
+  Kcontainer* kc;
   int m_k;
 public:
   Kset( const int k );
@@ -20,30 +20,30 @@ public:
   uint64_t size();
   void remove( const char* kmer );
   int get_k() { return m_k; }
-  Kcontainer<int>* get_kc() { return kc; }
+  Kcontainer* get_kc() { return kc; }
 
-  std::string get_uc_kmer( Vertex<int>* v, int k, int idx )
+  std::string get_uc_kmer( Vertex* v, int k, int idx )
   {
-    UC<int>* uc = v->get_uc();
+    UC* uc = v->get_uc();
     char* kmer = deserialize_kmer(k, uc->get_suffix(k, idx));
     std::string skmer(kmer);
     free(kmer);
     return skmer;
 }
 
-  int get_uc_size( Vertex<int>* v )
+  int get_uc_size( Vertex* v )
   {
     return v->get_uc()->get_size();
   }
 
-  Vertex<int>* get_root() { return kc->get_v(); }
-  int get_vs_size( Vertex<int>* v ){ return v->get_vs_size(); }
-  Vertex<int>* get_child_vertex( Vertex<int>* v, int idx )
+  Vertex* get_root() { return kc->get_v(); }
+  int get_vs_size( Vertex* v ){ return v->get_vs_size(); }
+  Vertex* get_child_vertex( Vertex* v, int idx )
   {
     return v->get_vs()[idx];
   }
 
-  std::string get_child_suffix( Vertex<int>* v, int idx )
+  std::string get_child_suffix( Vertex* v, int idx )
   {
     return kc->kcontainer_get_child_suffix(v, idx);
   }
@@ -61,3 +61,4 @@ public:
 
   void parallel_add_seq(const char* seq, uint32_t length);
 };
+

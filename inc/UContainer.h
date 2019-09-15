@@ -12,7 +12,10 @@
 
 //namespace py = pybind11;
 
+#if defined(KDICT) || defined(KCOUNTER)
 template <class T>
+#endif
+
 class UC {
 private:
 #if defined(KDICT) || defined(KCOUNTER)
@@ -39,18 +42,19 @@ public:
 #endif
     }
   }
-  
+
+  /*
   void print(int k) {
     int len = calc_bk(k);
     int idx;
-    for(int i = 0; i < get_size(); i++) {
+    for(size_t i = 0; i < get_size(); i++) {
       idx = i * len;
       char* dseq = deserialize_kmer(k, len, suffixes[idx]);
       std::cout << "kmer: " << dseq << std::endl;
       free(dseq);
     }
   }
-
+  */
 
 #if defined(KDICT) || defined(KCOUNTER)
 void uc_insert(uint8_t* bseq, int k, int idx, T obj)

@@ -8,17 +8,31 @@
 
 namespace py = pybind11;
 
+#if defined(KDICT) || defined(KCOUNTER)
 template <class T>
+#endif
 class Vertex {
 private:
+#if defined(KDICT) || defined(KCOUNTER)
   Vertex<T>** vs;
+#else
+  Vertex** vs;
+#endif
   uint256_t pref_pres;
+#if defined(KDICT) || defined(KCOUNTER)
   UC<T>* uc;
+#else
+  UC* uc;
+#endif
   uint16_t vs_size;
 public:
   Vertex() : vs(NULL), vs_size(0) {
     pref_pres = 0;
+#if defined(KDICT) || defined(KCOUNTER)
     uc = new UC<T>();
+#else
+    uc = new UC();
+#endif
   }
 
   ~Vertex() {
@@ -34,13 +48,28 @@ public:
     }
   }
 
+#if defined(KDICT) || defined(KCOUNTER)
   Vertex<T>** get_vs() { return vs; }
+#else
+  Vertex** get_vs() { return vs; }
+#endif
+
+#if defined(KDICT) || defined(KCOUNTER)
   UC<T>* get_uc() { return uc; }
+#else
+  UC* get_uc() { return uc; }
+#endif
+  
   uint256_t get_pref_pres() { return pref_pres; }
   void set_pref_pres(uint256_t pref_pres) { this->pref_pres = pref_pres; }
   uint16_t get_vs_size() { return vs_size; }
   void set_vs_size(uint16_t vs_size) { this->vs_size = vs_size; }
+
+#if defined(KDICT) || defined(KCOUNTER)
   void set_vs(Vertex<T>** vs) { this->vs = vs; }
+#else
+  void set_vs(Vertex** vs) { this->vs = vs; }
+#endif
   
   void vertex_remove(uint8_t* bseq, int k) {
     uint8_t prefix = bseq[0];
@@ -195,22 +224,38 @@ public:
       if(!((pref_pres >> (unsigned) bits_to_shift) & 0x1)) {
 	
 	if(vs == NULL) {
+#if defined(KDICT) || defined(KCOUNTER)
 	  vs = (Vertex<T>**) calloc(1, sizeof(Vertex<T>*));
+#else
+	  vs = (Vertex**) calloc(1, sizeof(Vertex*));
+#endif
 	} else {
+#if defined(KDICT) || defined(KCOUNTER)
 	  vs = (Vertex<T>**) realloc(vs, (vs_size + 1) * sizeof(Vertex<T>*));
+#else
+	  vs = (Vertex**) realloc(vs, (vs_size + 1) * sizeof(Vertex*));
+#endif
 	}
 	// move any previous vertices if necessary
 	if(vidx < vs_size) {
 	  //std::cout << "moving " << vidx << " to " << vidx + 1 << " (size of array " << vs_size + 1 << ") moving " << (vs_size - vidx) << " total items" << std::endl;
 	  std::memmove(&vs[vidx + 1],
 		       &vs[vidx],
+#if defined(KDICT) || defined(KCOUNTER)
 		       (vs_size - vidx) * sizeof(Vertex<T>*)
+#else
+		       (vs_size - vidx) * sizeof(Vertex*)
+#endif
 		       );
 	}
 	
 	pref_pres |= ((uint256_t) 0x1 << (unsigned) bits_to_shift);
 	// insert a vertex at vidx
+#if defined(KDICT) || defined(KCOUNTER)
 	vs[vidx] = new Vertex<T>();
+#else
+	vs[vidx] = new Vertex();
+#endif
 	
 	// increment size
 	vs_size++;
@@ -220,13 +265,17 @@ public:
       
 #if defined(KDICT) || defined(KCOUNTER)
       vs[vidx]->vertex_insert(suffix, k - 4, objs[ i ], merge_func);
-#elif KSET
+#elif defined(KSET)
       vs[vidx]->vertex_insert(suffix, k - 4);
 #endif
     }
     
     delete uc;
+#if defined(KDICT) || defined(KCOUNTER)
     uc = new UC<T>();
+#elif defined(KSET)
+    uc = new UC();
+#endif
   }
 };
 
