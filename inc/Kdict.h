@@ -90,7 +90,7 @@ public:
     kc->parallel_kcontainer_add_init(threads, f);
   }
   
-  void parallel_add(const char* kmer, int value) {
+  void parallel_add(const char* kmer, T value) {
     kc->parallel_kcontainer_add(kmer, value);
   }
   

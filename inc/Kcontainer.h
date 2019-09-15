@@ -464,7 +464,7 @@ public:
 #if defined(KSET) || defined(KCOUNTER)
   void parallel_kcontainer_add(const char* kmer)
 #elif defined(KDICT)
-  void parallel_kcontainer_add(const char* kmer, int value)
+  void parallel_kcontainer_add(const char* kmer, T value)
 #endif
   {
     uint8_t* pbseq = (uint8_t*) calloc(tg->bk, sizeof(uint8_t));
@@ -547,7 +547,7 @@ public:
 #if defined(KSET)
   void parallel_kcontainer_add_bseq(uint8_t* bseq)
 #elif defined(KDICT) || defined(KCOUNTER)
-  void parallel_kcontainer_add_bseq(uint8_t* bseq, int obj)
+  void parallel_kcontainer_add_bseq(uint8_t* bseq, T obj)
 #endif
   {
     //std::cout << "adding bseq" << std::endl;
