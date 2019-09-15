@@ -9,7 +9,7 @@ namespace py = pybind11;
 class Kset
 {
 private:
-  Kcontainer* kc;
+  Kcontainer<int>* kc;
   int m_k;
 public:
   Kset( const int k );
@@ -20,7 +20,7 @@ public:
   uint64_t size();
   void remove( const char* kmer );
   int get_k() { return m_k; }
-  Kcontainer* get_kc() { return kc; }
+  Kcontainer<int>* get_kc() { return kc; }
 
   std::string get_uc_kmer( Vertex<int>* v, int k, int idx )
   {
@@ -36,7 +36,7 @@ public:
     return v->get_uc()->get_size();
   }
 
-  Vertex<int>* get_root() { return kc->v; }
+  Vertex<int>* get_root() { return kc->get_v(); }
   int get_vs_size( Vertex<int>* v ){ return v->get_vs_size(); }
   Vertex<int>* get_child_vertex( Vertex<int>* v, int idx )
   {
@@ -45,18 +45,18 @@ public:
 
   std::string get_child_suffix( Vertex<int>* v, int idx )
   {
-    return kcontainer_get_child_suffix(v, idx);
+    return kc->kcontainer_get_child_suffix(v, idx);
   }
   void add_seq(const char* seq, uint32_t length);
 
   void parallel_add_init(int threads) {
-    parallel_kcontainer_add_init(kc, threads);
+    kc->parallel_kcontainer_add_init(threads);
   };
   void parallel_add(const char* kmer) {
-    parallel_kcontainer_add(kc, kmer);
+    kc->parallel_kcontainer_add(kmer);
   }
   void parallel_add_join() {
-    parallel_kcontainer_add_join(kc);
+    kc->parallel_kcontainer_add_join();
   }
 
   void parallel_add_seq(const char* seq, uint32_t length);

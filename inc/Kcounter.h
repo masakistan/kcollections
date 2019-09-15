@@ -8,7 +8,7 @@ namespace py = pybind11;
 class Kcounter
 {
 private:
-  Kcontainer* kc;
+  Kcontainer<int>* kc;
   int m_k;
   std::function<int(int, int)> merge_func = [] (int prev_val, int new_val)->int{ return prev_val + new_val; };
 public:
@@ -22,15 +22,15 @@ public:
   void add_seq(const char* seq, uint32_t length);
   count_dtype get( char* kmer );
   int get_k() { return m_k; }
-  Kcontainer* get_kc() { return kc; }
+  Kcontainer<int>* get_kc() { return kc; }
   void parallel_add_init(int threads) {
-    parallel_kcontainer_add_init(kc, threads, merge_func);
+    kc->parallel_kcontainer_add_init(threads, merge_func);
   };
   void parallel_add(const char* kmer) {
-    parallel_kcontainer_add(kc, kmer);
+    kc->parallel_kcontainer_add(kmer);
   }
   void parallel_add_join() {
-    parallel_kcontainer_add_join(kc);
+    kc->parallel_kcontainer_add_join();
   }
 
   void parallel_add_seq(const char* seq, uint32_t length);
@@ -49,7 +49,7 @@ public:
     return v->get_uc()->get_size();
   }
 
-  Vertex<int>* get_root() { return kc->v; }
+  Vertex<int>* get_root() { return kc->get_v(); }
   int get_vs_size( Vertex<int>* v ){ return v->get_vs_size(); }
   Vertex<int>* get_child_vertex( Vertex<int>* v, int idx )
   {
@@ -57,6 +57,6 @@ public:
   }
   std::string get_child_suffix( Vertex<int>* v, int idx )
   {
-    return kcontainer_get_child_suffix(v, idx);
+    return kc->kcontainer_get_child_suffix(v, idx);
   }
 };

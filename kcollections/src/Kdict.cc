@@ -3,52 +3,52 @@
 
 Kdict::Kdict( int k )
 {
-    kc = create_kcontainer( k );
-    m_k = k;
+  kc = new Kcontainer<int>(k);
+  m_k = k;
 }
 
 Kdict::~Kdict()
 {
-    free_kcontainer( kc );
+  delete kc;
 }
 
 void Kdict::clear()
 {
-    free_kcontainer( kc );
-    kc = create_kcontainer( m_k );
+  delete kc;
+  kc = new Kcontainer<int>(m_k);
 }
 
-void Kdict::add( char* kmer, int obj )
+void Kdict::add(char* kmer, int obj)
 {
-    CHECK_KMER_LENGTH( kmer, m_k, "Kdict" );
-    kcontainer_add(kc, kmer, obj, merge_func);
+  CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
+  kc->kcontainer_add(kmer, obj, merge_func);
 }
 
-int Kdict::get( char* kmer )
+int Kdict::get(char* kmer)
 {
-    CHECK_KMER_LENGTH( kmer, m_k, "Kdict" );
-    return kcontainer_get( kc, kmer );
+  CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
+  return kc->kcontainer_get(kmer);
 }
 
-bool Kdict::contains( char* kmer )
+bool Kdict::contains(char* kmer)
 {
-    CHECK_KMER_LENGTH( kmer, m_k, "Kdict" );
-    return kcontainer_contains( kc, kmer );
+  CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
+  return kc->kcontainer_contains(kmer);
 }
 
 uint64_t Kdict::size()
 {
-    return kcontainer_size( kc );
+  return kc->kcontainer_size();
 }
 
-void Kdict::remove( char* kmer )
+void Kdict::remove(char* kmer)
 {
-    CHECK_KMER_LENGTH( kmer, m_k, "Kdict" );
-    kcontainer_remove( kc, kmer );
+  CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
+  kc->kcontainer_remove(kmer);
 }
 
-void Kdict::add_seq( const char* seq, uint32_t length, py::iterable values, std::function<int(int, int)> &f)
+void Kdict::add_seq(const char* seq, uint32_t length, py::iterable values, std::function<int(int, int)> &f)
 {
-  kcontainer_add_seq( kc, seq, length, values, f );
+  kc->kcontainer_add_seq(seq, length, values, f);
 }
 
