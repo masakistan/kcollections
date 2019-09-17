@@ -4,6 +4,7 @@
 #include <pybind11/pybind11.h>
 #endif
 
+#include <functional>
 #include "UContainer.h"
 #include "globals.h"
 #include <jemalloc/jemalloc.h>

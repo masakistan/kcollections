@@ -15,6 +15,7 @@
 #include "helper.h"
 #include <jemalloc/jemalloc.h>
 #include <math.h>
+#include <functional>
 
 #if defined(PYTHON)
 namespace py = pybind11;

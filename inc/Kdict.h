@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include "Kcontainer.h"
 
 template <class T>
