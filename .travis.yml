@@ -7,6 +7,18 @@ matrix:
   - os: osx
     osx_image: xcode10.1
     language: generic
+    env: TOXENV=py37
+  - os: osx
+    osx_image: xcode10.1
+    language: generic
+    env: TOXENV=py36
+  - os: osx
+    osx_image: xcode10.1
+    language: generic
+    env: TOXENV=py35
+  - os: osx
+    osx_image: xcode10.1
+    language: generic
     env: TOXENV=py34
   - os: osx
     osx_image: xcode10.1
@@ -16,7 +28,6 @@ before_install:
 - if [ $TRAVIS_OS_NAME == "linux" ];
   then
     pip install --user --upgrade twine;
-    
   fi
 install:
 - if [ $TRAVIS_OS_NAME == "linux" ];
