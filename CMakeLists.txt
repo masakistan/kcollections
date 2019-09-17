@@ -17,7 +17,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "Debug" "Release")
 endif()
 
-message( "cmake moduel path ${CMAKE_MODULE_PATH}" )
+message( "cmake module path ${CMAKE_MODULE_PATH}" )
 
 project (Kdict)
 # The version number.
@@ -61,7 +61,6 @@ string(APPEND SOURCES "${SOURCE_DIR}/MurmurHash3.cc;")
 #string(APPEND SOURCES "${SOURCE_DIR}/CContainer.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/UContainer.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/Vertex.cc;")
-string(APPEND SOURCES "${SOURCE_DIR}/Kcollections.cc;")
 string(APPEND SOURCES "${SOURCE_DIR}/Kcontainer.cc;")
 string(APPEND SOURCES "libs/uint256_t/uint128_t.cpp;")
 string(APPEND SOURCES "libs/uint256_t/uint256_t.cpp;")
@@ -69,6 +68,7 @@ string(APPEND SOURCES "libs/uint256_t/uint256_t.cpp;")
 string(APPEND DICT_SOURCES "${SOURCE_DIR}/Kdict.cc;")
 string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
 string(APPEND COUNTER_SOURCES "${SOURCE_DIR}/Kcounter.cc;")
+string(APPEND PYTHON_SOURCES "${SOURCE_DIR}/Kcollections.cc;")
 
 # Python library
 include_directories(${PYTHON_INCLUDE_DIR})
@@ -84,17 +84,17 @@ set (CMAKE_CXX_STANDARD 14)
 
 set(PYBIND11_PYTHON_VERSION ${PYTHON_VERSION})
 
-pybind11_add_module( _Kset ${SOURCES} ${SET_SOURCES} )
+pybind11_add_module( _Kset ${SOURCES} ${SET_SOURCES} ${PYTHON_SOURCES})
 target_link_libraries(_Kset PRIVATE pybind11::module)
 #set_target_properties( _Kset PROPERTIES COMPILE_DEFINITIONS "KSET" )
 target_compile_definitions(_Kset PUBLIC "KSET" PUBLIC "PYTHON")
 
-pybind11_add_module( _Kdict ${SOURCES} ${DICT_SOURCES} )
+pybind11_add_module( _Kdict ${SOURCES} ${DICT_SOURCES} ${PYTHON_SOURCES})
 target_link_libraries(_Kdict PRIVATE pybind11::module)
 #set_target_properties( _Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
 target_compile_definitions(_Kdict PUBLIC "KDICT" PUBLIC "PYTHON")
 
-pybind11_add_module( _Kcounter ${SOURCES} ${COUNTER_SOURCES} )
+pybind11_add_module( _Kcounter ${SOURCES} ${COUNTER_SOURCES} ${PYTHON_SOURCES})
 target_link_libraries(_Kcounter PRIVATE pybind11::module)
 #set_target_properties( _Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER" )
 target_compile_definitions(_Kcounter PUBLIC "KCOUNTER" PUBLIC "PYTHON")
@@ -118,7 +118,7 @@ set_property(TARGET jemalloc_shared PROPERTY IMPORTED_LOCATION ${install_dir}/li
 
 # Testing
 add_executable(counterbulktest "${SOURCE_DIR}/TestCounterBulk.cpp;" ${COUNTER_SOURCES} ${SOURCES})
-target_link_libraries(counterbulktest ${PYTHON_LIBRARIES} pybind11 Threads::Threads)
+target_link_libraries(counterbulktest Threads::Threads)
 set_target_properties(counterbulktest PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
 include_directories(counterbulktest "${install_dir}/include")
 add_dependencies(counterbulktest project_jemalloc)

@@ -16,7 +16,9 @@
 #include <jemalloc/jemalloc.h>
 #include <math.h>
 
+#if defined(PYTHON)
 namespace py = pybind11;
+#endif
 
 #if defined(KDICT) || defined(KCOUNTER)
 template <class T>

@@ -34,12 +34,10 @@ git clone https://github.com/masakistan/kcollections.git
 cd kcollections
 
 # python 3
-python3 setup.py bdist_wheel
-pip3 install dist/*.whl
+python3 setup.py install
 
 # python 2
-python2 setup.py bdist_wheel
-pip2 install dist/*.whl
+python2 setup.py install
 ```
 
 ## Example Usage
@@ -84,7 +82,7 @@ ks = kcollections.Kset(27)
 ks.parallel_add_init(16)
 
 # insert a sequence of kmers
-ks.parallel_add_seq(seq, len(seq))
+ks.parallel_add_seq(seq)
 
 # insert a single kmer
 ks.parallel_add('AAACTGTCTTCCTTTATTTGTTCACAG')
@@ -98,7 +96,7 @@ ks.add('AAACTGTCTTCCTTTATTTGTTCACAG')
 
 # iteration
 for kmer in ks:
-    print kmer
+    print(kmer)
 print len(ks)
 ```
 
@@ -116,8 +114,8 @@ assert kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] == 'banana'
 assert kd['AAACTGTCTTCCTTTATTTGTTCAGGT'] == 'phone'
 
 # iteration
-for kmer, val in kd.iteritems():
-    print kmer, val
+for kmer, val in kd.items():
+    print(kmer, val)
 
 # removal
 del kd['AAACTGTCTTCCTTTATTTGTTCAGGT']
@@ -131,8 +129,9 @@ More examples of merging functions with `Kdict` can be found [here](kdict_mergin
 
 ```python
 kd = kcollections.Kdict(27)
-kd.parallel_add_init(4, lambda prev_val, new_val: new_val)
-kd.parallel_add_seq(dna, len(dna), generate_idx(len(dna)))
+kd.parallel_add_init(4)
+kd.set_merge_func(lambda prev_val, new_val: new_val)
+kd.parallel_add_seq(dna, generate_idx(len(dna)))
 kd.parallel_add_join()
 ```
 
@@ -155,13 +154,13 @@ kc['AAACTGTCTTCCTTTATTTGTTCAGGG'] += 1
 
 # sequence insertion
 seq = 'AAACTGTCTTCCTTTATTTGTTCAGGGATCGTGTCAGTA'
-kc.add_seq(seq, len(seq))
+kc.add_seq(seq)
 
 assert kc['AAACTGTCTTCCTTTATTTGTTCAGGG'] == 2
 
 # iteration
-for kmer, count in kc.iteritems():
-    print kmer, count
+for kmer, count in kc.items():
+    print(kmer, count)
 ```
 
 #### Parallel Insertion
@@ -176,7 +175,7 @@ kc = Kcounter(27)
 kc.parallel_add_init(16)
 
 # insert a sequence of kmers
-kc.parallel_add_seq(seq, len(seq))
+kc.parallel_add_seq(seq)
 
 # insert a single kmer
 kc.parallel_add('AAACTGTCTTCCTTTATTTGTTCACAG')
@@ -189,8 +188,8 @@ kc.parallel_add_join()
 kc['AAACTGTCTTCCTTTATTTGTTCAGGG'] += 1
 
 # iteration
-for kmer, count in kc.iteritems():
-    print kmer, count
+for kmer, count in kc.items():
+    print(kmer, count)
 ```
 
 ## Performance

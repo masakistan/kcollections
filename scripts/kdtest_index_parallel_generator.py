@@ -17,10 +17,18 @@ def merge_func(o, n):
     
 kd = kcollections.Kdict((list, int), k)
 kd.set_merge_func(merge_func)
+kd.parallel_add_init(4)
+
+def values():
+    x = 0
+    while True:
+        yield [x]
+        x += 1
 
 for seq in seqs:
     print('adding', len(seq))
-    kd.add_seq(seq, [[i] for i in range(len(seq))])
+    kd.parallel_add_seq(seq, values())
+kd.parallel_add_join()
 
 for kmer, val in kd.iteritems():
     if isinstance(val, list) and len(val) > 7:

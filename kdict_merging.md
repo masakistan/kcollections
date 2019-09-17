@@ -3,12 +3,22 @@
 ## Declaring a Kdict
 
 Because the C++ bindings are compiled in `kcollections` the value type must be specified when using `Kdict`.
+See the last section of this page for implemented types.
 In the following example we create a `Kdict` that will store 4-mers as keys and ints as values:
 
 ```python
 import kcollections
 kd = kcollections.Kdict(int, 4)
 ```
+
+This example initializes a `Kdict` with values that are lists of ints.
+
+```python
+import kcollections
+kd = kcollections.Kdict((list, int), 4)
+```
+
+
 ## The Merging Function
 `Kdict` provides a merginging function as a means to reconcile two values for a kmer that are being added to the data structure.
 The default merging function is:
@@ -24,6 +34,35 @@ This is not interesting but given a different merging function more interesting 
 
 
 ## Examples
+
+### Default Merging Function
+This example uses the default mergining function.
+It stores the last index of each kmer in the dna string.
+
+```python
+import kcollections
+dna = 'ACTGGTACTG'
+
+kd = kcollections.Kdict(int, 4)
+
+kd.parallel_add_init(4)
+kd.parallel_add_seq(dna, [1 for _ in range(len(dna))])
+kd.parallel_add_join()
+
+for kmer, val in kd.iteritems():
+    print(kmer, val)
+```
+
+Output:
+
+```bash
+GGTA 3
+GTAC 4
+CTGG 1
+ACTG 6
+TACT 5
+TGGT 2
+```
 
 ### Kmer Counting
 Though we provide `Kcounter`, kmer counting could be accomplished using `Kdict` with no difference in performance.
@@ -95,3 +134,17 @@ Using `object` as the value type will cause `Kdict` to acquire the Global Interp
 The use of the GIL makes parallel operatoins (essentially) sequential removing any benefit of parallel operation.
 
 ## List of Available Value Types
+A type of `(list, int)` will create a list of ints as the value
+
+- `int`
+- `float`
+- `string`
+- `object`
+- `(list, int)`
+- `(list, float)`
+- `(list, string)`
+- `(list, object)`
+- `(set, int)`
+- `(set, float)`
+- `(set, string)`
+- `(set, object)`

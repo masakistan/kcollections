@@ -1,12 +1,17 @@
 #pragma once
 
+#if defined(PYTHON)
 #include <pybind11/pybind11.h>
+#endif
+
 #include "UContainer.h"
 #include "globals.h"
 #include <jemalloc/jemalloc.h>
 #include "uint256_t.h"
 
+#if defined(PYTHON)
 namespace py = pybind11;
+#endif
 
 #if defined(KDICT) || defined(KCOUNTER)
 template <class T>
@@ -96,7 +101,9 @@ public:
       return;
     }
 
+#if defined(PYTHON)
     throw pybind11::key_error( "Key not found!" );
+#endif
   }
   
   uint64_t get_vertex_size()
@@ -146,7 +153,9 @@ public:
     return 0;
 #endif
 
+#if defined(PYTHON)
     throw pybind11::key_error( "Key not in dictionary!" );
+#endif
   }
 #endif
 
