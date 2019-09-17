@@ -61,7 +61,8 @@ void declare_kdict_member(py::module &m, const std::string &typestr) {
     .def("parallel_add", &CClass::parallel_add)
     .def("parallel_add_seq", &CClass::parallel_add_seq)
     .def("add_seq", &CClass::add_seq)
-    .def("parallel_add_join", &CClass::parallel_add_join, py::call_guard<py::gil_scoped_release>());
+    .def("parallel_add_join", &CClass::parallel_add_join, py::call_guard<py::gil_scoped_release>())
+    .def("set_merge_func", &CClass::set_merge_func);
   
   std::string vertex_pyclass_name = std::string("Vertex_") + typestr;
   py::class_<VClass, std::shared_ptr<VClass>>(m, vertex_pyclass_name.c_str(), py::module_local())
@@ -82,8 +83,9 @@ PYBIND11_MODULE( _Kdict, m )
   declare_kdict<float>(m, "float");
   declare_kdict<bool>(m, "bool");
   declare_kdict<std::string>(m, "string");
+  declare_kdict<py::object>(m, "object");
 
-  declare_kdict_member<py::list>(m, "pylist");
+  //declare_kdict_member<py::list>(m, "pylist");
 }
 
 #elif KCOUNTER

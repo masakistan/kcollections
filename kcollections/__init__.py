@@ -100,7 +100,6 @@ def Kdict(val_type, k):
         type_name = 'Kdict_' + val_type.__name__
     else:
         type_name = 'Kdict_' + '_'.join([x.__name__ if x != list else 'vector' for x in val_type])
-    print(type_name)
     return create_kdict(eval(type_name))(k)
 
 

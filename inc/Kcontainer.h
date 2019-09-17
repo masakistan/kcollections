@@ -322,7 +322,7 @@ public:
   }
 
   void parallel_kcontainer_add_join() {
-    std::cout << "joining threads" << std::endl;
+    //std::cout << "joining threads" << std::endl;
     
     for(int i = 0; i < tg->nthreads; i++) {
       // NOTE: we post twice to finish working.
@@ -544,7 +544,7 @@ public:
       //std::cout << "after cast insert" << std::endl;
 #endif
     }
-    std::cout << "done adding stuff" << std::endl;
+    //std::cout << "done adding stuff" << std::endl;
     
     free(bseq64);
 }

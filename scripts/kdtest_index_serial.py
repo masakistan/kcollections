@@ -16,6 +16,7 @@ def merge_func(o, n):
     return o
     
 kd = kcollections.Kdict((list, int), k)
+kd.set_merge_func(merge_func)
 
 for seq in seqs:
     print('adding', len(seq))

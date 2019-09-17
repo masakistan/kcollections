@@ -1,32 +1,38 @@
-# Kdict Merging for Parallel Operations
+# Kdict
 
-There are two differences between `Kset` and `Kdict` when performing parallel operations.
-First, when initializing the data structure for parallel insertion `Kdict` requires a merging function be provided.
-This tells the data structure what to do when there are multiple values being added for a single key.
-Second, when using the `Kdict.parallel_add_seq` method a third argument is required that is an iterable.
-This iterable contains the value associated with each kmer key.
+## Declaring a Kdict
 
+Because the C++ bindings are compiled in `kcollections` the value type must be specified when using `Kdict`.
+In the following example we create a `Kdict` that will store 4-mers as keys and ints as values:
+
+```python
+import kcollections
+kd = kcollections.Kdict(int, 4)
+```
 ## The Merging Function
-The merging function must have two input parameters and one return value.
-For example:
+`Kdict` provides a merginging function as a means to reconcile two values for a kmer that are being added to the data structure.
+The default merging function is:
 
 ```python
 def merge_func(prev_val, new_val):
     return new_val
 ```
 
-will overwrite the previous value associated with the kmer with the new value associated with the kmer.
-The function can be much more complex depending on what you want to accomplish.
+This simply replaces the old value for a kmer with the new value.
+
+This is not interesting but given a different merging function more interesting information can be stored in a `Kdict` as seen in the following examples.
+
 
 ## Examples
 
 ### Kmer Counting
-Though we provide `Kcounter`, kmer counting could be accomplished using `Kdict`.
+Though we provide `Kcounter`, kmer counting could be accomplished using `Kdict` with no difference in performance.
 
 ``` python
 dna = 'ACTGGTACTG'
-kd = kcollections.Kdict(4)
-kd.parallel_add_init(4, lambda prev_val, new_val: prev_val + new_val)
+kd = kcollections.Kdict(int, 4)
+kd.set_merge_func(lambda prev_val, new_val: prev_val + new_val)
+kd.parallel_add_init(4)
 kd.parallel_add_seq(dna, len(dna), [1 for _ in range(len(dna))])
 kd.parallel_add_join()
 
@@ -47,22 +53,19 @@ TGGT 1
 Here, the lambda function `lambda prev_val, new_val: prev_val + new_val` performs the counting.
 
 ### All Indices for Kmers
-The following example stores the index of each kmer in a DNA string.
-If a kmer occurs in multiple locations the value is converted into a list with all indices.
+The following example stores all indices of each kmer occurrence in a DNA string.
 
 ``` python
 dna = 'ACTGGTACTG'
 
 def merge_func(prev_val, new_val):
-    if isinstance(prev_val, list):
-        prev_obj.append(new_val)
-        return prev_val
-    else:
-        return [prev_val, new_val]
+    prev_val.append(new_val)
+	return prev_val
 
 kd = kcollections.Kdict(4)
-kd.parallel_add_init(4, merge_func)
-kd.parallel_add_seq(dna, len(dna), [i for i in range(len(dna))])
+kd.set_merge_func(merge_func)
+kd.parallel_add_init(4)
+kd.parallel_add_seq(dna, len(dna), [[i] for i in range(len(dna))])
 kd.parallel_add_join()
 
 for kmer, val in kd.iteritems():
@@ -72,10 +75,19 @@ for kmer, val in kd.iteritems():
 Output:
 
 ``` bash
-GGTA 3
-GTAC 4
-CTGG 1
+GGTA [3]
+GTAC [4]
+CTGG [1]
 ACTG [0, 6]
-TACT 5
-TGGT 2
+TACT [5]
+TGGT [2]
 ```
+
+## PyObject Values and the GIL
+
+`pybind11` provides automatic type conversion for many types and we have implemented several cases but there may be instances where you want to use a custom python object or an object that we have not provided explicit support for.
+To use `Kdict` for an unsupported type, initialize it with `object` as the value type for the dictionary.
+Using `object` as the value type will cause `Kdict` to acquire the Global Interpreter Lock (GIL) when performing operations.
+The use of the GIL makes parallel operatoins (essentially) sequential removing any benefit of parallel operation.
+
+## List of Available Value Types

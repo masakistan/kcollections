@@ -13,19 +13,18 @@ for i, seq in enumerate(seqs):
     print('seqs', i, len(seq))
     
 kd = kcollections.Kdict(int, k)
-kd.set_merge_func(lambda o, n: o + n)
 kd.parallel_add_init(4)
 
 for i, seq in enumerate(seqs):
     print('adding', i, len(seq))
-    kd.parallel_add_seq(seq, [1 for _ in range(len(seq))])
+    kd.parallel_add_seq(seq, [i for i in range(len(seq))])
 
 kd.parallel_add_join()
 print('\t', len(kd), None)
 
 for kmer, val in kd.iteritems():
-    if val > 7:
-        print(kmer, val)
+    if seq.index(kmer) != val:
+        print(kmer, 'first:', seq.index(kmer), '\tlast:', val)
 
 #print kd['TTTTTTTTGTTTAAGGAGGAAAGAACA']
 print('passed')

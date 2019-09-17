@@ -11,16 +11,20 @@ class Kdict
 private:
   Kcontainer<T>* kc;
   int m_k;
-  std::function<T(T, T)> merge_func = [] (T prev_val, T new_val)->T{ return new_val; };
+  std::function<T(T, T)> merge_func;
 public:
-  Kdict(const int k) {
+  Kdict(const int k) : m_k(k) {
     kc = new Kcontainer<T>(k);
-    m_k = k;
+    merge_func = [] (T prev_val, T new_val)->T{ return new_val;};
   }
   
   ~Kdict() {
     delete kc;
   }
+  
+  void set_merge_func(std::function<T(T, T)> merge_func) {
+    this->merge_func = merge_func;
+  }     
   
   void add(char* kmer, T& obj) {
     CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
@@ -54,8 +58,8 @@ public:
   int get_k() { return m_k; }
   Kcontainer<T>* get_kc() { return kc; }
   
-  void add_seq(const char* seq, py::iterable& values, std::function<T(T, T)> &f) {
-    kc->kcontainer_add_seq(seq, strlen(seq), values, f);
+  void add_seq(const char* seq, py::iterable& values) {
+    kc->kcontainer_add_seq(seq, strlen(seq), values, merge_func);
   }
 
   std::string get_uc_kmer( Vertex<T>* v, int k, int idx )
@@ -86,8 +90,8 @@ public:
   
   Vertex<T>* get_root() { return kc->get_v(); }
 
-  void parallel_add_init(int threads, const std::function<T(T, T)> &f)  {
-    kc->parallel_kcontainer_add_init(threads, f);
+  void parallel_add_init(int threads)  {
+    kc->parallel_kcontainer_add_init(threads, merge_func);
   }
   
   void parallel_add(const char* kmer, T& value) {
@@ -99,7 +103,7 @@ public:
   }
 
   void parallel_add_seq(const char* seq, py::iterable& values) {
-    std::cout << "parallel adding seq" << std::endl;
+    //std::cout << "parallel adding seq" << std::endl;
     kc->parallel_kcontainer_add_seq(seq, strlen(seq), values);
   }
 };

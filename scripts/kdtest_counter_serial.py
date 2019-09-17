@@ -13,10 +13,11 @@ for i, seq in enumerate(seqs):
     print('seqs', i, len(seq))
     
 kd = kcollections.Kdict(int, k)
+kd.set_merge_func(lambda o, n: o + n)
 
 for i, seq in enumerate(seqs):
     print('adding', i, len(seq))
-    kd.add_seq(seq, [1 for _ in range(len(seq))], lambda n, o: n + o)
+    kd.add_seq(seq, [1 for _ in range(len(seq))])
 
 print('\t', len(kd), None)
 
