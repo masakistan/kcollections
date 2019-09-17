@@ -29,15 +29,18 @@ This is not interesting but given a different merging function more interesting 
 Though we provide `Kcounter`, kmer counting could be accomplished using `Kdict` with no difference in performance.
 
 ``` python
+import kcollections
 dna = 'ACTGGTACTG'
+
 kd = kcollections.Kdict(int, 4)
 kd.set_merge_func(lambda prev_val, new_val: prev_val + new_val)
+
 kd.parallel_add_init(4)
-kd.parallel_add_seq(dna, len(dna), [1 for _ in range(len(dna))])
+kd.parallel_add_seq(dna, [1 for _ in range(len(dna))])
 kd.parallel_add_join()
 
 for kmer, val in kd.iteritems():
-    print kmer, val
+    print(kmer, val)
 ```
 
 Output:
@@ -56,20 +59,21 @@ Here, the lambda function `lambda prev_val, new_val: prev_val + new_val` perform
 The following example stores all indices of each kmer occurrence in a DNA string.
 
 ``` python
+import kcollections
 dna = 'ACTGGTACTG'
 
 def merge_func(prev_val, new_val):
-    prev_val.append(new_val)
-	return prev_val
+    prev_val.append(new_val[0])
+    return prev_val
 
-kd = kcollections.Kdict(4)
+kd = kcollections.Kdict((list, int), 4)
 kd.set_merge_func(merge_func)
 kd.parallel_add_init(4)
-kd.parallel_add_seq(dna, len(dna), [[i] for i in range(len(dna))])
+kd.parallel_add_seq(dna,[[i] for i in range(len(dna))])
 kd.parallel_add_join()
 
-for kmer, val in kd.iteritems():
-    print kmer, val
+for kmer, val in kd.items():
+    print(kmer, val)
 ```
 
 Output:
