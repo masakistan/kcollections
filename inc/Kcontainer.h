@@ -184,7 +184,7 @@ public:
   }
 
 #if defined(KDICT)
-  void kcontainer_add_seq(const char* seq, uint32_t length, py::iterable values, std::function<T(T, T)> &f)
+  void kcontainer_add_seq(const char* seq, uint32_t length, py::iterable& values, std::function<T(T, T)> &f)
 #elif defined(KCOUNTER)
   void kcontainer_add_seq(const char* seq, uint32_t length, std::function<T(T, T)> &f)
 #else
@@ -464,7 +464,7 @@ public:
 #if defined(KSET) || defined(KCOUNTER)
   void parallel_kcontainer_add(const char* kmer)
 #elif defined(KDICT)
-  void parallel_kcontainer_add(const char* kmer, T value)
+  void parallel_kcontainer_add(const char* kmer, T& value)
 #endif
   {
     uint8_t* pbseq = (uint8_t*) calloc(tg->bk, sizeof(uint8_t));
@@ -481,9 +481,10 @@ public:
 #if defined(KSET) || defined(KCOUNTER)
   void parallel_kcontainer_add_seq(const char* seq, uint32_t length)
 #elif defined(KDICT)
-  void parallel_kcontainer_add_seq(const char* seq, uint32_t length, py::iterable values)
+  void parallel_kcontainer_add_seq(const char* seq, uint32_t length, py::iterable& values)
 #endif
   {
+    //std::cout << "parallel kcontainer add seq" << std::endl;
     int size64 = tg->k / 32;
     if(tg->k % 32 > 0) {
       size64++;
@@ -507,7 +508,9 @@ public:
     parallel_kcontainer_add_bseq(bseq8_sub, 1);
 #elif defined(KDICT)
     auto iter = py::iter(values);
+    //std::cout << "casting" << std::endl;
     parallel_kcontainer_add_bseq(bseq8_sub, (*iter).cast<T>());
+    //std::cout << "after cast insert" << std::endl;
 #endif
     
     for(uint32_t j = tg->k; j < length; j++) {
@@ -536,7 +539,9 @@ public:
       std::advance(iter, 1);
       py::gil_scoped_release release;
       
+      //std::cout << j << " casting" << std::endl;
       parallel_kcontainer_add_bseq(bseq8_sub, (*iter).cast<T>());
+      //std::cout << "after cast insert" << std::endl;
 #endif
     }
     std::cout << "done adding stuff" << std::endl;
@@ -557,6 +562,7 @@ public:
     // hard coded for 4 threads right now
     uint bin = idx >> tg->bits_to_shift;
     int cur_wbin = tg->wbin[bin];
+    //std::cout << "bin: " << bin << "\t" << cur_wbin << std::endl;
     
     // NOTE: check if producer has the mutex
     pthread_mutex_lock(&tg->blocks[bin][cur_wbin]);
@@ -565,7 +571,9 @@ public:
 #if defined(KSET)
     (*tg->kmers)[bin][cur_wbin].push_back(bseq);
 #elif defined(KDICT) || defined(KCOUNTER)
+    //std::cout << "creating pair" << std::endl;
     std::pair<uint8_t*, T> data(bseq, obj);
+    //std::cout << "pair created" << std::endl;
     (*tg->kmers)[bin][cur_wbin].push_back(data);
 #endif
     

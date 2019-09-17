@@ -40,13 +40,13 @@ void Kset::remove(const char* kmer)
   kc->kcontainer_remove(kmer);
 }
 
-void Kset::add_seq(const char* seq, uint32_t length)
+void Kset::add_seq(const char* seq)
 {
-  kc->kcontainer_add_seq(seq, length);
+  kc->kcontainer_add_seq(seq, strlen(seq));
 }
 
-void Kset::parallel_add_seq(const char* seq, uint32_t length) {
-  kc->parallel_kcontainer_add_seq(seq, length);
+void Kset::parallel_add_seq(const char* seq) {
+  kc->parallel_kcontainer_add_seq(seq, strlen(seq));
 }
 
 ThreadGlobals* Kcontainer::tg = (ThreadGlobals*) calloc(1, sizeof(ThreadGlobals));

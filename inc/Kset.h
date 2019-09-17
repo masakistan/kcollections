@@ -47,7 +47,7 @@ public:
   {
     return kc->kcontainer_get_child_suffix(v, idx);
   }
-  void add_seq(const char* seq, uint32_t length);
+  void add_seq(const char* seq);
 
   void parallel_add_init(int threads) {
     kc->parallel_kcontainer_add_init(threads);
@@ -59,6 +59,6 @@ public:
     kc->parallel_kcontainer_add_join();
   }
 
-  void parallel_add_seq(const char* seq, uint32_t length);
+  void parallel_add_seq(const char* seq);
 };
 

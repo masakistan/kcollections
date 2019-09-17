@@ -22,7 +22,7 @@ public:
     delete kc;
   }
   
-  void add(char* kmer, T obj) {
+  void add(char* kmer, T& obj) {
     CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
     kc->kcontainer_add(kmer, obj, merge_func);
   }
@@ -54,8 +54,8 @@ public:
   int get_k() { return m_k; }
   Kcontainer<T>* get_kc() { return kc; }
   
-  void add_seq(const char* seq, uint32_t length, py::iterable values, std::function<T(T, T)> &f) {
-    kc->kcontainer_add_seq(seq, length, values, f);
+  void add_seq(const char* seq, py::iterable& values, std::function<T(T, T)> &f) {
+    kc->kcontainer_add_seq(seq, strlen(seq), values, f);
   }
 
   std::string get_uc_kmer( Vertex<T>* v, int k, int idx )
@@ -90,7 +90,7 @@ public:
     kc->parallel_kcontainer_add_init(threads, f);
   }
   
-  void parallel_add(const char* kmer, T value) {
+  void parallel_add(const char* kmer, T& value) {
     kc->parallel_kcontainer_add(kmer, value);
   }
   
@@ -98,8 +98,9 @@ public:
     kc->parallel_kcontainer_add_join();
   }
 
-  void parallel_add_seq(const char* seq, uint32_t length, py::iterable values) {
-    kc->parallel_kcontainer_add_seq(seq, length, values);
+  void parallel_add_seq(const char* seq, py::iterable& values) {
+    std::cout << "parallel adding seq" << std::endl;
+    kc->parallel_kcontainer_add_seq(seq, strlen(seq), values);
   }
 };
 template<class T>

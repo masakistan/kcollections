@@ -19,7 +19,7 @@ public:
   void clear();
   uint64_t size();
   void remove( char* kmer );
-  void add_seq(const char* seq, uint32_t length);
+  void add_seq(const char* seq);
   count_dtype get( char* kmer );
   int get_k() { return m_k; }
   Kcontainer<int>* get_kc() { return kc; }
@@ -33,7 +33,7 @@ public:
     kc->parallel_kcontainer_add_join();
   }
 
-  void parallel_add_seq(const char* seq, uint32_t length);
+  void parallel_add_seq(const char* seq);
 
   std::string get_uc_kmer( Vertex<int>* v, int k, int idx )
   {

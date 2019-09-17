@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 
     fh.close();
     std::cout << "seq size: " << seq.size() << std::endl;
-    kc->parallel_add_seq(seq.c_str(), seq.size());
+    kc->parallel_add_seq(seq.c_str());
 
   } else {
     std::cout << "Could not open file: " << file_path << std::endl;

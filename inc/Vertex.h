@@ -164,6 +164,7 @@ public:
       // replace object here
 #if defined(KDICT) || defined(KCOUNTER)
       if(merge_func != NULL) {
+	//std::cout << "merging objects!" << std::endl;
 	T merged_obj = merge_func(uc->get_obj(uc_idx), obj);
 	uc->set_obj(uc_idx, merged_obj);
       } else {
