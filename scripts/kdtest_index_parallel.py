@@ -21,7 +21,7 @@ kd.parallel_add_init(4)
 
 for seq in seqs:
     print('adding', len(seq))
-    kd.parallel_add_seq(seq, [[i] for i in range(len(seq))])
+    kd.parallel_add_seq(seq, iter([[i] for i in range(len(seq))]))
 kd.parallel_add_join()
 
 for kmer, val in kd.iteritems():

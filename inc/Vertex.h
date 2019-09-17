@@ -48,6 +48,16 @@ public:
     }
   }
 
+  int calc_vidx(uint256_t vertices, uint8_t bts) {
+    vertices <<= (256 - (unsigned) bts);
+    uint64_t* t = (uint64_t*) &vertices;
+    int vidx = __builtin_popcountll(t[0]);
+    vidx += __builtin_popcountll(t[1]);
+    vidx += __builtin_popcountll(t[2]);
+    vidx += __builtin_popcountll(t[3]);
+    return vidx;
+  }
+
 #if defined(KDICT) || defined(KCOUNTER)
   Vertex<T>** get_vs() { return vs; }
 #else
@@ -187,16 +197,6 @@ public:
       burst_uc(k);
 #endif
     }
-  }
-
-  int calc_vidx(uint256_t vertices, uint8_t bts) {
-    vertices <<= (256 - (unsigned) bts);
-    uint64_t* t = (uint64_t*) &vertices;
-    int vidx = __builtin_popcountll(t[0]);
-    vidx += __builtin_popcountll(t[1]);
-    vidx += __builtin_popcountll(t[2]);
-    vidx += __builtin_popcountll(t[3]);
-    return vidx;
   }
 
 #if defined(KDICT) || defined(KCOUNTER)

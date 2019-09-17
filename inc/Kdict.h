@@ -1,9 +1,6 @@
 #pragma once
 
-#include <pybind11/pybind11.h>
 #include "Kcontainer.h"
-
-namespace py = pybind11;
 
 template <class T>
 class Kdict
@@ -58,7 +55,13 @@ public:
   int get_k() { return m_k; }
   Kcontainer<T>* get_kc() { return kc; }
   
-  void add_seq(const char* seq, py::iterable& values) {
+#if defined(PYTHON)
+  void add_seq(const char* seq, py::iterable& values)
+#else
+    template <typename Iter>
+  void add_seq(const char* seq, Iter& values)
+#endif
+  {
     kc->kcontainer_add_seq(seq, strlen(seq), values, merge_func);
   }
 
@@ -102,7 +105,13 @@ public:
     kc->parallel_kcontainer_add_join();
   }
 
-  void parallel_add_seq(const char* seq, py::iterable& values) {
+#if defined(PYTHON)
+  void parallel_add_seq(const char* seq, py::iterable& values)
+#else
+    template <typename Iter>
+  void parallel_add_seq(const char* seq, Iter& values)
+#endif
+  {
     //std::cout << "parallel adding seq" << std::endl;
     kc->parallel_kcontainer_add_seq(seq, strlen(seq), values);
   }

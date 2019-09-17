@@ -86,6 +86,7 @@ PYBIND11_MODULE( _Kdict, m )
   declare_kdict<py::object>(m, "object");
 
   //declare_kdict_member<py::list>(m, "pylist");
+  declare_kdict_member<std::vector<std::vector<int>>>(m, "list_list");
 }
 
 #elif KCOUNTER

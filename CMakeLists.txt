@@ -86,15 +86,18 @@ set(PYBIND11_PYTHON_VERSION ${PYTHON_VERSION})
 
 pybind11_add_module( _Kset ${SOURCES} ${SET_SOURCES} )
 target_link_libraries(_Kset PRIVATE pybind11::module)
-set_target_properties( _Kset PROPERTIES COMPILE_DEFINITIONS "KSET" )
+#set_target_properties( _Kset PROPERTIES COMPILE_DEFINITIONS "KSET" )
+target_compile_definitions(_Kset PUBLIC "KSET" PUBLIC "PYTHON")
 
 pybind11_add_module( _Kdict ${SOURCES} ${DICT_SOURCES} )
 target_link_libraries(_Kdict PRIVATE pybind11::module)
-set_target_properties( _Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
+#set_target_properties( _Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
+target_compile_definitions(_Kdict PUBLIC "KDICT" PUBLIC "PYTHON")
 
 pybind11_add_module( _Kcounter ${SOURCES} ${COUNTER_SOURCES} )
 target_link_libraries(_Kcounter PRIVATE pybind11::module)
-set_target_properties( _Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER" )
+#set_target_properties( _Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER" )
+target_compile_definitions(_Kcounter PUBLIC "KCOUNTER" PUBLIC "PYTHON")
 
 # Jemalloc
 set(PROJECT_JEMALLOC_PATH ${CMAKE_BINARY_DIR}/jemalloc-5.1.0)

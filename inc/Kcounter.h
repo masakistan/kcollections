@@ -1,9 +1,6 @@
 #pragma once
 
-#include <pybind11/pybind11.h>
 #include "Kcontainer.h"
-
-namespace py = pybind11;
 
 class Kcounter
 {

@@ -32,5 +32,5 @@ done
 # Install packages and test
 for PYBIN in /opt/python/*/bin/; do
     "${PYBIN}/pip" install kcollections --no-index -f /io/wheelhouse
-    (cd "$HOME"; "${PYBIN}/python" -c 'from kcollections import Kset, Kdict')
+    (cd "$HOME"; "${PYBIN}/python" -c 'from kcollections import Kset, Kcounter, Kdict_int, Kdict_float, Kdict_string')
 done

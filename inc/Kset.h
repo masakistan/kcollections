@@ -1,10 +1,7 @@
 #pragma once
 
 #include "uint256_t.h"
-#include <pybind11/pybind11.h>
 #include "Kcontainer.h"
-
-namespace py = pybind11;
 
 class Kset
 {
@@ -43,7 +40,7 @@ public:
     return v->get_vs()[idx];
   }
 
-  std::string get_child_suffix( Vertex* v, int idx )
+  std::string get_child_suffix(Vertex* v, int idx)
   {
     return kc->kcontainer_get_child_suffix(v, idx);
   }

@@ -184,7 +184,12 @@ public:
   }
 
 #if defined(KDICT)
+#if defined(PYTHON)
   void kcontainer_add_seq(const char* seq, uint32_t length, py::iterable& values, std::function<T(T, T)> &f)
+#else
+  template <typename Iterable>
+  void kcontainer_add_seq(const char* seq, uint32_t length, Iterable& values, std::function<T(T, T)> &f)
+#endif
 #elif defined(KCOUNTER)
   void kcontainer_add_seq(const char* seq, uint32_t length, std::function<T(T, T)> &f)
 #else
@@ -210,8 +215,13 @@ public:
 #elif defined(KCOUNTER)
     v->vertex_insert(bseq8, k, 1, f);
 #elif defined(KDICT)
+#if defined(PYTHON)
     auto iter = py::iter(values);
     v->vertex_insert(bseq8, k, (*iter).cast<T>(), f);
+#else
+    auto iter = values.begin();
+    v->vertex_insert(bseq8, k, *iter, f);
+#endif
 #endif
 
     //std::cout << strlen(seq) << std::endl;
@@ -234,8 +244,12 @@ public:
 #elif defined(KCOUNTER)
       v->vertex_insert(bseq8, k, 1, f);
 #elif defined(KDICT)
+#if defined(PYTHON)
       std::advance(iter, 1);
       v->vertex_insert(bseq8, k, (*iter).cast<T>(), f);
+#else
+      v->vertex_insert(bseq8, k, *iter, f);
+#endif
 #endif
     }
 
@@ -481,7 +495,12 @@ public:
 #if defined(KSET) || defined(KCOUNTER)
   void parallel_kcontainer_add_seq(const char* seq, uint32_t length)
 #elif defined(KDICT)
+#if defined(PYTHON)
   void parallel_kcontainer_add_seq(const char* seq, uint32_t length, py::iterable& values)
+#else
+  template <typename Iterable>
+  void parallel_kcontainer_add_seq(const char* seq, uint32_t length, Iterable& values)
+#endif
 #endif
   {
     //std::cout << "parallel kcontainer add seq" << std::endl;
@@ -507,9 +526,15 @@ public:
 #elif defined(KCOUNTER)
     parallel_kcontainer_add_bseq(bseq8_sub, 1);
 #elif defined(KDICT)
+
+#if defined(PYTHON)
     auto iter = py::iter(values);
     //std::cout << "casting" << std::endl;
     parallel_kcontainer_add_bseq(bseq8_sub, (*iter).cast<T>());
+#else
+    auto iter = values.begin();
+    parallel_kcontainer_add_bseq(bseq8_sub, *iter);
+#endif
     //std::cout << "after cast insert" << std::endl;
 #endif
     
@@ -535,6 +560,7 @@ public:
       parallel_kcontainer_add_bseq(bseq8_sub, 1);
 #elif defined(KDICT)
       //std::cout << j << "/" << length << "\tadding val 2: " << std::endl;; //<< std::string(py::str(*iter)) << std::endl;
+      //#if defined(PYTHON)
       py::gil_scoped_acquire acquire;
       std::advance(iter, 1);
       py::gil_scoped_release release;
@@ -542,6 +568,10 @@ public:
       //std::cout << j << " casting" << std::endl;
       parallel_kcontainer_add_bseq(bseq8_sub, (*iter).cast<T>());
       //std::cout << "after cast insert" << std::endl;
+      //#else
+      //std::advance(iter, 1);
+      //parallel_kcontainer_add_bseq(bseq8_sub, *iter);
+      //#endif
 #endif
     }
     //std::cout << "done adding stuff" << std::endl;
