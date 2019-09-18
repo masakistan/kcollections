@@ -7,6 +7,18 @@ matrix:
   - os: osx
     osx_image: xcode10.1
     language: generic
+    env: TOXENV=py37
+  - os: osx
+    osx_image: xcode10.1
+    language: generic
+    env: TOXENV=py36
+  - os: osx
+    osx_image: xcode10.1
+    language: generic
+    env: TOXENV=py35
+  - os: osx
+    osx_image: xcode10.1
+    language: generic
     env: TOXENV=py34
   - os: osx
     osx_image: xcode10.1
@@ -53,10 +65,10 @@ script:
     if [ $TOXENV == "py27" ];
     then
       echo "testing python 2";
-      (cd "$HOME"; python2 -c 'from kcollections import Kset, Kdict, Kcounter');
+      (cd "$HOME"; python2 -c 'from kcollections import Kset, Kdict_int, Kcounter');
     else
       echo "testing python 3";
-      (cd "$HOME"; python3 -c 'from kcollections import Kset, Kdict, Kcounter');
+      (cd "$HOME"; python3 -c 'from kcollections import Kset, Kdict_int, Kcounter');
     fi
   fi
 deploy:

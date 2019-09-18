@@ -34,42 +34,19 @@ git clone https://github.com/masakistan/kcollections.git
 cd kcollections
 
 # python 3
-python3 setup.py bdist_wheel
-pip3 install dist/*.whl
+python3 setup.py install
 
 # python 2
-python2 setup.py bdist_wheel
-pip2 install dist/*.whl
+python2 setup.py install
 ```
 
 ## Example Usage
-
-### Using Kdict
-Currently, parallel methods are not implemented for `Kdict`.
-
-```python
-import kcollections
-kd = kcollections.Kdict(27)
-
-# insertion and value assignment
-kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] = 'banana'
-kd['AAACTGTCTTCCTTTATTTGTTCAGGT'] = 'phone'
-assert kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] == 'banana'
-assert kd['AAACTGTCTTCCTTTATTTGTTCAGGT'] == 'phone'
-
-# iteration
-for kmer, val in kd.iteritems():
-    print kmer, val
-
-# removal
-del kd['AAACTGTCTTCCTTTATTTGTTCAGGT']
-```
 
 ### Using Kset
 
 #### Serial Insertion
 Kmers can be added one at a time with `add`, but the fastest way to add kmers to a set is
-to add an DNA sequence using `add_seq`.
+to add a DNA sequence using `add_seq`.
 
 ```python
 import kcollections
@@ -105,7 +82,7 @@ ks = kcollections.Kset(27)
 ks.parallel_add_init(16)
 
 # insert a sequence of kmers
-ks.parallel_add_seq(seq, len(seq))
+ks.parallel_add_seq(seq)
 
 # insert a single kmer
 ks.parallel_add('AAACTGTCTTCCTTTATTTGTTCACAG')
@@ -119,8 +96,43 @@ ks.add('AAACTGTCTTCCTTTATTTGTTCACAG')
 
 # iteration
 for kmer in ks:
-    print kmer
+    print(kmer)
 print len(ks)
+```
+
+### Using Kdict
+
+#### Serial Insertion
+```python
+import kcollections
+kd = kcollections.Kdict(27)
+
+# insertion and value assignment
+kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] = 'banana'
+kd['AAACTGTCTTCCTTTATTTGTTCAGGT'] = 'phone'
+assert kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] == 'banana'
+assert kd['AAACTGTCTTCCTTTATTTGTTCAGGT'] == 'phone'
+
+# iteration
+for kmer, val in kd.items():
+    print(kmer, val)
+
+# removal
+del kd['AAACTGTCTTCCTTTATTTGTTCAGGT']
+```
+
+#### Parallel Insertion
+Parallel insertion for `Kdict` requires the inclusion of a merging function to resolve different values for the same key.
+The following snippet adds 27mers from a string of DNA using a provided lambda function to merge value conflicts.
+This merge function simply keeps the newest value associated with the kmer.
+More examples of merging functions with `Kdict` can be found [here](kdict_merging.md).
+
+```python
+kd = kcollections.Kdict(27)
+kd.parallel_add_init(4)
+kd.set_merge_func(lambda prev_val, new_val: new_val)
+kd.parallel_add_seq(dna, generate_idx(len(dna)))
+kd.parallel_add_join()
 ```
 
 ### Using Kcounter
@@ -133,7 +145,7 @@ fastest ways to add kmers to a set is to add an DNA sequence using `add_seq` (or
 `parallel_add_seq` for multithreaded inserts).
 
 #### Serial Insertion
-``` python
+```python
 from kcollections import Kcounter
 kc = Kcounter(27)
 
@@ -142,18 +154,18 @@ kc['AAACTGTCTTCCTTTATTTGTTCAGGG'] += 1
 
 # sequence insertion
 seq = 'AAACTGTCTTCCTTTATTTGTTCAGGGATCGTGTCAGTA'
-kc.add_seq(seq, len(seq))
+kc.add_seq(seq)
 
 assert kc['AAACTGTCTTCCTTTATTTGTTCAGGG'] == 2
 
 # iteration
-for kmer, count in kc.iteritems():
-    print kmer, count
+for kmer, count in kc.items():
+    print(kmer, count)
 ```
 
 #### Parallel Insertion
 
-``` python
+```python
 from kcollections import Kcounter
 kc = Kcounter(27)
 
@@ -163,7 +175,7 @@ kc = Kcounter(27)
 kc.parallel_add_init(16)
 
 # insert a sequence of kmers
-kc.parallel_add_seq(seq, len(seq))
+kc.parallel_add_seq(seq)
 
 # insert a single kmer
 kc.parallel_add('AAACTGTCTTCCTTTATTTGTTCACAG')
@@ -176,8 +188,8 @@ kc.parallel_add_join()
 kc['AAACTGTCTTCCTTTATTTGTTCAGGG'] += 1
 
 # iteration
-for kmer, count in kc.iteritems():
-    print kmer, count
+for kmer, count in kc.items():
+    print(kmer, count)
 ```
 
 ## Performance

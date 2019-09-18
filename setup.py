@@ -42,6 +42,7 @@ class CMakeBuild(build_ext):
             cfg = 'Debug'
         else:
             cfg = 'Release'
+        #cfg = 'Debug'
         build_args = ['--config', cfg]
 
         if platform.system() == 'Windows':
@@ -72,7 +73,7 @@ class CMakeBuild(build_ext):
 setup(
     name='kcollections',
     version=__version__,
-    author='M. Stanley Fujimoto',
+    author='M. Stanley Fujimoto and Cole A. Lyman',
     author_email='sfujimoto@gmail.com',
     url='https://github.com/masakistan/kcollections',
     license='GPLv3',
