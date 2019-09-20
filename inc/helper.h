@@ -9,16 +9,17 @@
 #include <cstring>
 
 #define CHECK_KMER_LENGTH(kmer, k, type) ({     \
-    if( strlen(kmer) != k )\
+      if(strlen(kmer) != (size_t) k)		\
     {\
         char buffer[1000];\
         sprintf( buffer, "kmer %s of length %d does not match the %s length of %d",\
-            kmer, strlen(kmer), type, k );\
+		 kmer, (int) strlen(kmer), type, k );			\
         throw std::length_error(std::string(buffer));\
     }\
 })
 
 
+/*
 static int testbit( uint32_t A[],  unsigned int k )
    {
       return ( (A[k/32] & (1 << (k%32) )) != 0 ) ;
@@ -34,17 +35,17 @@ static void  setbit( uint32_t A[],  unsigned int k )
       A[k/32] |= 1 << (k%32);  // Set the bit at the k-th position in A[i]
    }
 
-static int next_set_bit( uint32_t* array, int pos, int len )
+static int next_set_bit( uint32_t* array, int pos, size_t len )
 {
-    for( unsigned int i = pos; i < len; i++ )
-    {
-        if( testbit( array, i ) )
-        {
-            return i;
-        }
-    }
-    return -1;
+  for(size_t i = pos; i < len; i++) {
+    if( testbit( array, i ) )
+      {
+	return i;
+      }
+  }
+  return -1;
 }
+*/
 
 inline int calc_bk( int k )
 {
@@ -95,11 +96,12 @@ static void serialize_kmer( const char* kmer, int k, uint8_t* bseq )
     }
 }
 
-static char* deserialize_kmer( int k, int bk, uint8_t* bseq )
+static char* deserialize_kmer( int k, uint8_t* bseq )
 {
-    int bases_processed = 0, j, pos, bases_in_byte, bases_to_process = k;
-    char* kmer = ( char* ) malloc( sizeof( char ) * ( k + 1 ) );
-    uint8_t tbkmer;
+  int bk = calc_bk(k);
+  int j, pos, bases_in_byte, bases_to_process = k;
+  char* kmer = ( char* ) malloc( sizeof( char ) * ( k + 1 ) );
+  uint8_t tbkmer;
     
     for( int i = 0; i < bk; i ++ )
     {
@@ -128,6 +130,7 @@ static char* deserialize_kmer( int k, int bk, uint8_t* bseq )
     return kmer;
 }
 
+/*
 static int compare_seqs(uint8_t* seq1, uint8_t* seq2, int len) {
     //std::cout << "compare\n" << deserialize_kmer(len * 4, len, seq1) << "\n";
     //std::cout << deserialize_kmer(len*4, len, seq2) << std::endl;
@@ -140,37 +143,32 @@ static int compare_seqs(uint8_t* seq1, uint8_t* seq2, int len) {
     }
     return 0;
 }
+*/
 
 static std::pair< bool, int > binary_search( uint8_t* suffixes, int max, int len, uint8_t* bseq )
 {
-    if( max == 0 )
-    {
-        return std::make_pair( false, 0 );
+  if( max == 0 ) {
+    return std::make_pair( false, 0 );
+  }
+  
+  int min = 0, mid, idx, cmp;
+  while( min < max ) {
+    mid = min + ( max - min ) / 2;
+    idx = mid * len;
+    
+    cmp = std::memcmp( bseq, &suffixes[ idx ], len );
+    //cmp = compare_seqs(bseq, &suffixes[idx], len);
+    if( cmp < 0 ) {
+      max = mid;
     }
-
-    int min = 0, mid, idx, cmp;
-    while( min < max )
-    {
-        mid = min + ( max - min ) / 2;
-        idx = mid * len;
-
-        cmp = std::memcmp( bseq, &suffixes[ idx ], len );
-        //cmp = compare_seqs(bseq, &suffixes[idx], len);
-        if( cmp < 0 )
-        {
-            max = mid;
-        }
-        else if( cmp == 0 )
-        {
-            return std::make_pair( true, mid );
-        }
-        else
-        {
-            min = mid + 1;;
-        }
+    else if( cmp == 0 ) {
+      return std::make_pair( true, mid );
     }
-
-    return std::make_pair( false, min );
+    else {
+      min = mid + 1;;
+    }
+  }
+  
+  return std::make_pair( false, min );
 }
-
 

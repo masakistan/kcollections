@@ -1,47 +1,121 @@
 #pragma once
 
-#include <pybind11/pybind11.h>
+#include <functional>
 #include "Kcontainer.h"
 
-namespace py = pybind11;
-
+template <class T>
 class Kdict
 {
-    private:
-        Kcontainer* kc;
-        int m_k;
-    public:
-        Kdict( const int k );
-        ~Kdict();
-        void add( char* kmer, py::handle* obj );
-        bool contains( char* kmer );
-        void clear();
-        uint64_t size();
-        void remove( char* kmer );
-        py::handle* get( char* kmer );
-        int get_k() { return m_k; }
-        Kcontainer* get_kc() { return kc; }
+private:
+  Kcontainer<T>* kc;
+  int m_k;
+  std::function<T(T, T)> merge_func;
+public:
+  Kdict(const int k) : m_k(k) {
+    kc = new Kcontainer<T>(k);
+    merge_func = [] (T prev_val, T new_val)->T{ return new_val;};
+  }
+  
+  ~Kdict() {
+    delete kc;
+  }
+  
+  void set_merge_func(std::function<T(T, T)> merge_func) {
+    this->merge_func = merge_func;
+  }     
+  
+  void add(char* kmer, T& obj) {
+    CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
+    kc->kcontainer_add(kmer, obj, merge_func);
+  }
+  
+  bool contains(char* kmer) {
+    CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
+    return kc->kcontainer_contains(kmer);
+  }
+  
+  void clear() {
+    delete kc;
+    kc = new Kcontainer<T>(m_k);
+  }
 
-        char* get_uc_kmer( Vertex* v, int k, int idx )
-        {
-            UC* uc = &v->uc;
-            int bk = calc_bk( k );
-            int suffix_idx = bk * idx;
-            return deserialize_kmer( k, bk, &uc->suffixes[ suffix_idx ] );
-        }
+  uint64_t size() {
+    return kc->kcontainer_size();
+  }
+  
+  void remove(char* kmer) {
+    CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
+    kc->kcontainer_remove(kmer);
+  }
 
-        int get_uc_size( Vertex* v )
-        {
-            return v->uc.size;
-        }
-        int get_vs_size( Vertex* v ){ return v->vs_size; }
-        Vertex* get_child_vertex( Vertex* v, int idx )
-        {
-            return &v->vs[idx];
-        }
-        char* get_child_suffix( Vertex* v, int idx )
-        {
-            return kcontainer_get_child_suffix(v, idx);
-        }
-        Vertex* get_root() { return &kc->v; }
+  T get(char* kmer) {
+    CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
+    return kc->kcontainer_get(kmer);
+  }
+  
+  int get_k() { return m_k; }
+  Kcontainer<T>* get_kc() { return kc; }
+  
+#if defined(PYTHON)
+  void add_seq(const char* seq, py::iterable& values)
+#else
+    template <typename Iter>
+  void add_seq(const char* seq, Iter& values)
+#endif
+  {
+    kc->kcontainer_add_seq(seq, strlen(seq), values, merge_func);
+  }
+
+  std::string get_uc_kmer( Vertex<T>* v, int k, int idx )
+  {
+    UC<T>* uc = v->get_uc();
+    char* kmer = deserialize_kmer(k, uc->get_suffix(k, idx));
+    std::string skmer(kmer);
+    free(kmer);
+    return skmer;
+  }
+
+  int get_uc_size( Vertex<T>* v )
+  {
+    return v->get_uc()->get_size();
+  }
+  
+  int get_vs_size( Vertex<T>* v ){ return v->get_vs_size(); }
+  
+  Vertex<T>* get_child_vertex( Vertex<T>* v, int idx )
+  {
+    return v->get_vs()[idx];
+  }
+  
+  std::string get_child_suffix( Vertex<T>* v, int idx )
+  {
+    return kc->kcontainer_get_child_suffix(v, idx);
+  }
+  
+  Vertex<T>* get_root() { return kc->get_v(); }
+
+  void parallel_add_init(int threads)  {
+    kc->parallel_kcontainer_add_init(threads, merge_func);
+  }
+  
+  void parallel_add(const char* kmer, T& value) {
+    kc->parallel_kcontainer_add(kmer, value);
+  }
+  
+  void parallel_add_join() {
+    kc->parallel_kcontainer_add_join();
+  }
+
+#if defined(PYTHON)
+  void parallel_add_seq(const char* seq, py::iterable& values)
+#else
+    template <typename Iter>
+  void parallel_add_seq(const char* seq, Iter& values)
+#endif
+  {
+    //std::cout << "parallel adding seq" << std::endl;
+    kc->parallel_kcontainer_add_seq(seq, strlen(seq), values);
+  }
 };
+template<class T>
+ThreadGlobals<T>* Kcontainer<T>::tg = (ThreadGlobals<T>*) calloc(1, sizeof(ThreadGlobals<T>));
