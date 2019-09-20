@@ -139,3 +139,7 @@ add_library(jemalloc_shared SHARED IMPORTED)
 set_property(TARGET jemalloc PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_STATIC_LIBRARY_SUFFIX})
 set_property(TARGET jemalloc PROPERTY INTERFACE_LINK_LIBRARIES pthread dl)
 set_property(TARGET jemalloc_shared PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_SHARED_LIBRARY_SUFFIX})
+
+include_directories(Kset "${install_dir}/include")
+include_directories(Kdict "${install_dir}/include")
+include_directories(Kcounter "${install_dir}/include")
