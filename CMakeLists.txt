@@ -56,8 +56,14 @@ string(APPEND COUNTER_SOURCES "${SOURCE_DIR}/Kcounter.cc;")
 
 export(PACKAGE kcollections)
 
-add_library(kcollections ${SOURCES})
+add_library(Kset ${SOURCES} ${SET_SOURCES})
+set_target_properties(Kset PROPERTIES COMPILE_DEFINITIONS "KSET")
 
+add_library(Kdict ${SOURCES} ${DICT_SOURCES})
+set_target_properties(Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT")
+
+add_library(Kcounter ${SOURCES} ${COUNTER_SOURCES})
+set_target_properties(Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
 
 # set c++14
 set (CMAKE_CXX_STANDARD 14)
@@ -85,23 +91,6 @@ if (${PYTHON})
     target_link_libraries(_Kcounter PRIVATE pybind11::module)
     target_compile_definitions(_Kcounter PUBLIC "KCOUNTER" PUBLIC "PYTHON")
 endif()
-
-# Jemalloc
-set(PROJECT_JEMALLOC_PATH ${CMAKE_BINARY_DIR}/jemalloc-5.1.0)
-ExternalProject_Add(project_jemalloc
-  URL https://github.com/jemalloc/jemalloc/releases/download/5.1.0/jemalloc-5.1.0.tar.bz2
-  URL_HASH MD5=1f47a5aff2d323c317dfa4cf23be1ce4
-  PREFIX ${PROJECT_JEMALLOC_PATH}
-  CONFIGURE_COMMAND ${PROJECT_JEMALLOC_PATH}/src/project_jemalloc/configure --prefix=${PROJECT_JEMALLOC_PATH}
-  BUILD_IN_SOURCE TRUE
-  BUILD_COMMAND ${MAKE})
-ExternalProject_Get_Property(project_jemalloc install_dir)
-add_library(jemalloc STATIC IMPORTED)
-add_library(jemalloc_shared SHARED IMPORTED)
-
-set_property(TARGET jemalloc PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_property(TARGET jemalloc PROPERTY INTERFACE_LINK_LIBRARIES pthread dl)
-set_property(TARGET jemalloc_shared PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_SHARED_LIBRARY_SUFFIX})
 
 # Testing
 add_executable(counterbulktest "${SOURCE_DIR}/TestCounterBulk.cpp;" ${COUNTER_SOURCES} ${SOURCES})
