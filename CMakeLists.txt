@@ -53,9 +53,7 @@ string(APPEND DICT_SOURCES "${SOURCE_DIR}/Kdict.cc;")
 string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
 string(APPEND COUNTER_SOURCES "${SOURCE_DIR}/Kcounter.cc;")
 
-set (CMAKE_CXX_STANDARD 14)
-
-export(PACKAGE kcollections)
+set(CMAKE_CXX_STANDARD 14)
 
 add_library(Kset SHARED ${SOURCES} ${SET_SOURCES})
 set_target_properties(Kset PROPERTIES COMPILE_DEFINITIONS "KSET")
@@ -68,6 +66,9 @@ add_dependencies(Kdict project_jemalloc)
 add_library(Kcounter SHARED ${SOURCES} ${COUNTER_SOURCES})
 set_target_properties(Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
 add_dependencies(Kcounter project_jemalloc)
+
+install(TARGETS Kset Kdict Kcounter EXPORT kcollections)
+export(TARGETS Kset Kdict Kcounter FILE ${CMAKE_BINARY_DIR}/kcollections-config.cmake)
 
 option(PYTHON "compile the python bindings")
 if (${PYTHON})
