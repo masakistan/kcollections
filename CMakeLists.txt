@@ -54,17 +54,17 @@ string(APPEND COUNTER_SOURCES "${SOURCE_DIR}/Kcounter.cc;")
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_library(Kset SHARED ${SOURCES} ${SET_SOURCES})
+add_library(Kset STATIC ${SOURCES} ${SET_SOURCES})
 set_target_properties(Kset PROPERTIES COMPILE_DEFINITIONS "KSET")
 add_dependencies(Kset project_jemalloc)
 target_link_libraries(Kset jemalloc)
 
-add_library(Kdict SHARED ${SOURCES} ${DICT_SOURCES})
+add_library(Kdict STATIC ${SOURCES} ${DICT_SOURCES})
 set_target_properties(Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT")
 add_dependencies(Kdict project_jemalloc)
 target_link_libraries(Kdict jemalloc)
 
-add_library(Kcounter SHARED ${SOURCES} ${COUNTER_SOURCES})
+add_library(Kcounter STATIC ${SOURCES} ${COUNTER_SOURCES})
 set_target_properties(Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
 add_dependencies(Kcounter project_jemalloc)
 target_link_libraries(Kcounter jemalloc)
