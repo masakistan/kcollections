@@ -34,8 +34,6 @@ message("looking in ${CMAKE_MODULE_PATH}")
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-message("Using Python version " ${PYTHON_VERSION})
-
 # Add inc directories
 include_directories(inc)
 
@@ -49,24 +47,27 @@ string(APPEND SOURCES "${SOURCE_DIR}/Kcontainer.cc;")
 string(APPEND SOURCES "libs/uint256_t/uint128_t.cpp;")
 string(APPEND SOURCES "libs/uint256_t/uint256_t.cpp;")
 
-string(APPEND PYTHON_CXX_SOURCES "${SOURCE_DIR}/CContainer.cc;")
+#string(APPEND PYTHON_CXX_SOURCES "${SOURCE_DIR}/CContainer.cc;") # should this be included?
+string(APPEND PYTHON_CXX_SOURCES "${SOURCE_DIR}/Kcollections.cc;")
 string(APPEND DICT_SOURCES "${SOURCE_DIR}/Kdict.cc;")
 string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
 string(APPEND COUNTER_SOURCES "${SOURCE_DIR}/Kcounter.cc;")
 
+set (CMAKE_CXX_STANDARD 14)
+
 export(PACKAGE kcollections)
 
-add_library(Kset ${SOURCES} ${SET_SOURCES})
+add_library(Kset SHARED ${SOURCES} ${SET_SOURCES})
 set_target_properties(Kset PROPERTIES COMPILE_DEFINITIONS "KSET")
+add_dependencies(Kset project_jemalloc)
 
-add_library(Kdict ${SOURCES} ${DICT_SOURCES})
+add_library(Kdict SHARED ${SOURCES} ${DICT_SOURCES})
 set_target_properties(Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT")
+add_dependencies(Kdict project_jemalloc)
 
-add_library(Kcounter ${SOURCES} ${COUNTER_SOURCES})
+add_library(Kcounter SHARED ${SOURCES} ${COUNTER_SOURCES})
 set_target_properties(Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
-
-# set c++14
-set (CMAKE_CXX_STANDARD 14)
+add_dependencies(Kcounter project_jemalloc)
 
 option(PYTHON "compile the python bindings")
 if (${PYTHON})
@@ -105,6 +106,12 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
         string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls")
         message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
+        if(APPLE)
+            add_custom_command(TARGET counterbulktest POST_BUILD
+                COMMAND dsymutil counterbulktest
+                )
+            message( "Detected Mac OS with clang, modifying exe with dsymutil for debugging." )
+        endif()
     endif()
   # using Clang
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -133,6 +140,7 @@ set_property(TARGET jemalloc PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libje
 set_property(TARGET jemalloc PROPERTY INTERFACE_LINK_LIBRARIES pthread dl)
 set_property(TARGET jemalloc_shared PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_SHARED_LIBRARY_SUFFIX})
 include_directories(test_set_driver "${install_dir}/include")
+
 if (${PYTHON})
     include_directories(_Kdict "${install_dir}/include")
     include_directories(_Kset "${install_dir}/include")
