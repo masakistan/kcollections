@@ -130,6 +130,41 @@ static char* deserialize_kmer( int k, uint8_t* bseq )
     return kmer;
 }
 
+static std::string deserialize_kmer_to_string( int k, uint8_t* bseq )
+{
+  int bk = calc_bk(k);
+  int j, pos, bases_in_byte, bases_to_process = k;
+  //char* kmer = ( char* ) malloc( sizeof( char ) * ( k + 1 ) );
+  std::string kmer((size_t) k, 'X');
+  uint8_t tbkmer;
+    
+    for( int i = 0; i < bk; i ++ )
+    {
+        tbkmer = bseq[ i ];
+        if( bases_to_process >= 4 )
+        {
+            bases_in_byte = 4;
+        }
+        else
+        {
+            bases_in_byte = bases_to_process;
+            //tbkmer >>= 8 - (bases_in_byte * 2);
+        }
+
+        tbkmer = bseq[ i ];
+        for( j = 0; j < bases_in_byte; j++ )
+        {
+            pos = ( i * 4 ) + j;
+            kmer[ pos ] = COMP_TO_ASCII[ tbkmer & 0x3 ];
+            tbkmer >>= 2;
+        }
+        bases_to_process -= bases_in_byte;
+    }
+
+    return kmer;
+}
+
+
 /*
 static int compare_seqs(uint8_t* seq1, uint8_t* seq2, int len) {
     //std::cout << "compare\n" << deserialize_kmer(len * 4, len, seq1) << "\n";

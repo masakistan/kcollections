@@ -57,6 +57,14 @@ public:
   {
     return kc->kcontainer_get_child_suffix(v, idx);
   }
+
+  Kcontainer<int>::iterator begin() {
+    return kc->begin();
+  }
+
+  Kcontainer<int>::iterator end() {
+    return kc->end();
+  }
 };
 template<class T>
 ThreadGlobals<T>* Kcontainer<T>::tg = (ThreadGlobals<T>*) calloc(1, sizeof(ThreadGlobals<T>));

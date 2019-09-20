@@ -72,14 +72,6 @@ struct ThreadGlobals {
 template <class T>
 #endif
 class Kcontainer {
-private:
-  int k;
-  
-#if defined(KDICT) || defined(KCOUNTER)
-  Vertex<T>* v;
-#else
-  Vertex* v;
-#endif
   
 protected:
 #if defined(KDICT) || defined(KCOUNTER)
@@ -100,17 +92,153 @@ public:
   ~Kcontainer() {
     delete v;
   }
+  class KcontainerIterator {
+  public:
+    typedef std::input_iterator_tag iterator_category;    // iterator category
+    typedef std::string value_type;           // value type
+    typedef std::ptrdiff_t difference_type;           // difference type
+    typedef std::string* pointer;    // pointer
+    typedef std::string& reference;           // reference
+
+    KcontainerIterator() {}
 
 #if defined(KDICT) || defined(KCOUNTER)
-  Vertex<T>* get_v() { return v; }
+    KcontainerIterator(Vertex<T>* v, int k, std::string prefix) : k(k)
 #else
+    KcontainerIterator(Vertex* v, int k, std::string prefix) : k(k)
+#endif
+    {
+      // check if there is an uncompressed container to start
+      depth = 0;
+      v_stack.push_back(v);
+      uc_stack.push_back(0);
+      cc_stack.push_back(0);
+      get_next();
+      kmer = std::string(k, 'X');
+      //std::cout << "creating iterator!\t" << kmer << std::endl;
+    }
+    
+    reference operator*() {
+      return kmer;
+    }
+    
+    pointer operator->() {
+      return &kmer;
+    }
+    
+    KcontainerIterator& operator++() {
+      get_next();
+      return *this;
+    }
+    
+    KcontainerIterator operator++(int) {
+      KcontainerIterator oldValue = *this;
+      get_next();
+      return oldValue;
+    }
+    
+    bool operator== (KcontainerIterator& right) {
+      if(v_stack.size() != right.v_stack.size()) {
+	return false;
+      }
+
+      if(v_stack.size() == 0) {
+	return true;
+      }
+      
+      if(v_stack.back() != right.v_stack.back() || uc_stack.back() != right.uc_stack.back() || cc_stack.back() != right.cc_stack.back()) {
+	return false;
+      }
+      
+      return true;
+    }
+    
+    bool operator!= (KcontainerIterator& right) {
+      return !(*this == right);
+    }
+    
+  private:
+    
+    int depth, k;
+    std::string kmer;
+#if defined(KDICT) || defined(KCOUNTER)
+    std::vector<Vertex<T>*> v_stack;
+#else
+    std::vector<Vertex*> v_stack;
+#endif
+    std::vector<int> uc_stack;
+    std::vector<int> cc_stack;
+    //std::vector<std::string> prefixes;
+    
+    void get_next() {
+      int uc_idx = uc_stack.back();
+      int cc_idx = cc_stack.back();
+#if defined(KDICT) || defined(KCOUNTER)
+      Vertex<T>* v_ptr = v_stack.back();
+#else
+      Vertex* v_ptr = v_stack.back();
+#endif
+
+      int n = k - (depth * 4);
+      
+      if(uc_idx < v_ptr->get_uc()->get_size()) {
+	// NOTE: remove last n characters
+	// NOTE: replace last n characters
+	kmer.replace(k - n, n, deserialize_kmer_to_string(n, v_ptr->get_uc()->get_suffix(n, uc_idx)));
+	uc_stack.back()++;
+	return;
+      } else {
+	if(cc_idx < v_ptr->get_vs_size()) {
+	  kmer.replace(k - n, k - n + 4, kcontainer_get_child_suffix(v_ptr, cc_idx));
+	  
+	  depth++;
+	  v_stack.push_back(v_ptr->get_vs()[cc_idx]);
+	  cc_stack.back()++;
+	  cc_stack.push_back(0);
+	  uc_stack.push_back(0);
+	  return get_next();
+	}
+      }
+
+      depth--;
+      v_stack.pop_back();
+      cc_stack.pop_back();
+      uc_stack.pop_back();
+
+      if(v_stack.size() == 0) {
+	kmer = std::string("");
+	return;
+      }
+      
+      return get_next();
+    }
+  };
+  
+  typedef KcontainerIterator iterator;
+  
+#if defined(KDICT) || defined(KCOUNTER)
+  Kcontainer<T>::iterator begin() {
+    return Kcontainer<T>::iterator(v, k, std::string(""));
+  }
+  Kcontainer<T>::iterator end() {
+    return Kcontainer<T>::iterator();
+  }
+  Vertex<T>* get_v() { return v; }
+  
+#else
+  Kcontainer::iterator begin() {
+    return Kcontainer::iterator(v, k, std::string(""));
+  }
+  Kcontainer::iterator end() {
+    return Kcontainer::iterator();
+  }
   Vertex* get_v() { return v; }
 #endif
   
 #if defined(KDICT) || defined(KCOUNTER)
-  std::string kcontainer_get_child_suffix(Vertex<T>* v, int idx) {
+  static std::string kcontainer_get_child_suffix(Vertex<T>* v, int idx) {
 #else
-  std::string kcontainer_get_child_suffix(Vertex* v, int idx) {
+  static std::string kcontainer_get_child_suffix(Vertex* v, int idx) {
 #endif
     uint256_t verts = v->get_pref_pres();
     uint8_t j = 0, i = 0;
@@ -623,11 +751,14 @@ public:
     }
     pthread_mutex_unlock(&tg->blocks[bin][cur_wbin]);
   }
+private:
+  int k;
+  
+#if defined(KDICT) || defined(KCOUNTER)
+  Vertex<T>* v;
+#else
+  Vertex* v;
+#endif
 };
 
-#if defined(KDICT) || defined(KCOUNTER)
-  //template<class T>
-  //ThreadGlobals<T>* Kcontainer<T>::tg = (ThreadGlobals<T>*) calloc(1, sizeof(ThreadGlobals<T>));
-#else
-  //ThreadGlobals* Kcontainer::tg = (ThreadGlobals*) calloc(1, sizeof(ThreadGlobals));
-#endif
+
