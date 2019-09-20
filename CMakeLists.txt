@@ -79,17 +79,17 @@ if (${PYTHON})
 
     pybind11_add_module( _Kset ${PYTHON_CXX_SOURCES})
     set_target_properties( _Kset PROPERTIES COMPILE_DEFINITIONS "KSET" )
-    target_link_libraries(_Kset PRIVATE pybind11::module Kset)
+    target_link_libraries(_Kset PUBLIC pybind11::module Kset)
     target_compile_definitions(_Kset PUBLIC "KSET" PUBLIC "PYTHON")
 
     pybind11_add_module( _Kdict ${PYTHON_CXX_SOURCES})
     set_target_properties( _Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
-    target_link_libraries(_Kdict PRIVATE pybind11::module Kdict)
+    target_link_libraries(_Kdict PUBLIC pybind11::module Kdict)
     target_compile_definitions(_Kdict PUBLIC "KDICT" PUBLIC "PYTHON")
 
     pybind11_add_module( _Kcounter ${PYTHON_CXX_SOURCES})
     set_target_properties( _Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER" )
-    target_link_libraries(_Kcounter PRIVATE pybind11::module Kcounter)
+    target_link_libraries(_Kcounter PUBLIC pybind11::module Kcounter)
     target_compile_definitions(_Kcounter PUBLIC "KCOUNTER" PUBLIC "PYTHON")
 endif()
 
