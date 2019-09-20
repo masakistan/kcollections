@@ -69,9 +69,6 @@ set_target_properties(Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
 add_dependencies(Kcounter project_jemalloc)
 target_link_libraries(Kcounter jemalloc)
 
-install(TARGETS Kset Kdict Kcounter EXPORT kcollections)
-export(TARGETS Kset Kdict Kcounter FILE ${CMAKE_BINARY_DIR}/kcollections-config.cmake)
-
 option(PYTHON "compile the python bindings")
 if (${PYTHON})
     # pybind11 library
