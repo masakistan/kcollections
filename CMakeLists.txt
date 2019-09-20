@@ -73,7 +73,7 @@ export(TARGETS Kset Kdict Kcounter FILE ${CMAKE_BINARY_DIR}/kcollections-config.
 option(PYTHON "compile the python bindings")
 if (${PYTHON})
     # pybind11 library
-    add_subdirectory(libs/pybind11-2.2.4)
+    add_subdirectory(libs/pybind11-2.3.0)
     set(PYBIND11_PYTHON_VERSION ${PYTHON_VERSION})
     include_directories(${PYTHON_INCLUDE_DIR})
     include_directories(libs/pybind11-2.2.4/include)
