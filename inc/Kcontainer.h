@@ -563,13 +563,16 @@ public:
       parallel_kcontainer_add_bseq(bseq8_sub, 1);
 #elif defined(KDICT)
       //std::cout << j << "/" << length << "\tadding val 2: " << std::endl;; //<< std::string(py::str(*iter)) << std::endl;
-      //#if defined(PYTHON)
+      #if defined(PYTHON)
       py::gil_scoped_acquire acquire;
+      #endif
       std::advance(iter, 1);
+      #if defined(PYTHON)
       py::gil_scoped_release release;
+      #endif
 
       //std::cout << j << " casting" << std::endl;
-      parallel_kcontainer_add_bseq(bseq8_sub, (*iter).cast<T>());
+      parallel_kcontainer_add_bseq(bseq8_sub, iter->template cast<T>());
       //std::cout << "after cast insert" << std::endl;
       //#else
       //std::advance(iter, 1);
