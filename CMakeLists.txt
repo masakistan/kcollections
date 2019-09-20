@@ -56,18 +56,18 @@ set(CMAKE_CXX_STANDARD 14)
 
 add_library(Kset STATIC ${SOURCES} ${SET_SOURCES})
 set_target_properties(Kset PROPERTIES COMPILE_DEFINITIONS "KSET")
-add_dependencies(Kset project_jemalloc)
-target_link_libraries(Kset jemalloc)
+# add_dependencies(Kset project_jemalloc)
+# target_link_libraries(Kset jemalloc)
 
 add_library(Kdict STATIC ${SOURCES} ${DICT_SOURCES})
 set_target_properties(Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT")
-add_dependencies(Kdict project_jemalloc)
-target_link_libraries(Kdict jemalloc)
+# add_dependencies(Kdict project_jemalloc)
+# target_link_libraries(Kdict jemalloc)
 
 add_library(Kcounter STATIC ${SOURCES} ${COUNTER_SOURCES})
 set_target_properties(Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
-add_dependencies(Kcounter project_jemalloc)
-target_link_libraries(Kcounter jemalloc)
+# add_dependencies(Kcounter project_jemalloc)
+# target_link_libraries(Kcounter jemalloc)
 
 option(PYTHON "compile the python bindings")
 if (${PYTHON})
@@ -81,27 +81,27 @@ if (${PYTHON})
     set_target_properties( _Kset PROPERTIES COMPILE_DEFINITIONS "KSET" )
     target_link_libraries(_Kset PRIVATE pybind11::module)
     target_compile_definitions(_Kset PUBLIC "KSET" PUBLIC "PYTHON")
-    add_dependencies(_Kset project_jemalloc)
+    # add_dependencies(_Kset project_jemalloc)
 
     pybind11_add_module( _Kdict ${SOURCES} ${DICT_SOURCES} ${PYTHON_CXX_SOURCES})
     set_target_properties( _Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
     target_link_libraries(_Kdict PRIVATE pybind11::module)
     target_compile_definitions(_Kdict PUBLIC "KDICT" PUBLIC "PYTHON")
-    add_dependencies(_Kdict project_jemalloc)
+    # add_dependencies(_Kdict project_jemalloc)
 
     pybind11_add_module( _Kcounter ${SOURCES} ${COUNTER_SOURCES} ${PYTHON_CXX_SOURCES})
     set_target_properties( _Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER" )
     target_link_libraries(_Kcounter PRIVATE pybind11::module)
     target_compile_definitions(_Kcounter PUBLIC "KCOUNTER" PUBLIC "PYTHON")
-    add_dependencies(_Kcounter project_jemalloc)
+    # add_dependencies(_Kcounter project_jemalloc)
 endif()
 
 # Testing
 add_executable(counterbulktest "${SOURCE_DIR}/TestCounterBulk.cpp;")
 target_link_libraries(counterbulktest Threads::Threads Kcounter)
 set_target_properties(counterbulktest PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
-include_directories(counterbulktest "${install_dir}/include")
-add_dependencies(counterbulktest project_jemalloc)
+# include_directories(counterbulktest "${install_dir}/include")
+# add_dependencies(counterbulktest project_jemalloc)
 
 # Additinoal compiler flags
 message("compiler id ${CMAKE_CXX_COMPILER_ID}")
@@ -128,27 +128,29 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 # Jemalloc
-set(PROJECT_JEMALLOC_PATH ${CMAKE_BINARY_DIR}/jemalloc-5.1.0)
-ExternalProject_Add(project_jemalloc
-  URL https://github.com/jemalloc/jemalloc/releases/download/5.1.0/jemalloc-5.1.0.tar.bz2
-  URL_HASH MD5=1f47a5aff2d323c317dfa4cf23be1ce4
-  PREFIX ${PROJECT_JEMALLOC_PATH}
-  CONFIGURE_COMMAND ${PROJECT_JEMALLOC_PATH}/src/project_jemalloc/configure --prefix=${PROJECT_JEMALLOC_PATH}
-  BUILD_IN_SOURCE TRUE
-  BUILD_COMMAND ${MAKE})
-ExternalProject_Get_Property(project_jemalloc install_dir)
-add_library(jemalloc STATIC IMPORTED)
-add_library(jemalloc_shared SHARED IMPORTED)
-set_property(TARGET jemalloc PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_STATIC_LIBRARY_SUFFIX})
-set_property(TARGET jemalloc PROPERTY INTERFACE_LINK_LIBRARIES pthread dl)
-set_property(TARGET jemalloc_shared PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_SHARED_LIBRARY_SUFFIX})
+# set(PROJECT_JEMALLOC_PATH ${CMAKE_BINARY_DIR}/jemalloc-5.2.2)
+# ExternalProject_Add(project_jemalloc
+#   URL https://github.com/jemalloc/jemalloc/releases/download/5.2.1/jemalloc-5.2.1.tar.bz2
+#   URL_HASH MD5=3d41fbf006e6ebffd489bdb304d009ae
+#   PREFIX ${PROJECT_JEMALLOC_PATH}
+#   CONFIGURE_COMMAND ${PROJECT_JEMALLOC_PATH}/src/project_jemalloc/configure --prefix=${PROJECT_JEMALLOC_PATH}
+#   STEP_TARGETS build
+#   EXCLUDE_FROM_ALL TRUE
+#   BUILD_IN_SOURCE TRUE
+#   BUILD_COMMAND ${MAKE})
+# ExternalProject_Get_Property(project_jemalloc install_dir)
+# add_library(jemalloc STATIC IMPORTED)
+# add_library(jemalloc_shared SHARED IMPORTED)
+# set_property(TARGET jemalloc PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_STATIC_LIBRARY_SUFFIX})
+# set_property(TARGET jemalloc PROPERTY INTERFACE_LINK_LIBRARIES pthread dl)
+# set_property(TARGET jemalloc_shared PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_SHARED_LIBRARY_SUFFIX})
 
-include_directories(Kset "${install_dir}/include")
-include_directories(Kdict "${install_dir}/include")
-include_directories(Kcounter "${install_dir}/include")
+# include_directories(Kset "${install_dir}/include")
+# include_directories(Kdict "${install_dir}/include")
+# include_directories(Kcounter "${install_dir}/include")
 
-if (${PYTHON})
-  include_directories(_Kset "${install_dir}/include")
-  include_directories(_Kdict "${install_dir}/include")
-  include_directories(_Kcounter "${install_dir}/include")
-endif()
+# if (${PYTHON})
+#   include_directories(_Kset "${install_dir}/include")
+#   include_directories(_Kdict "${install_dir}/include")
+#   include_directories(_Kcounter "${install_dir}/include")
+# endif()
