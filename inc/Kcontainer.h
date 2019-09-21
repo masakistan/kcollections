@@ -28,7 +28,7 @@ template <class T>
 struct ThreadInfo{
   int thread_id;
 #if defined(KDICT) || defined(KCOUNTER)
-  std::function<T&(T&, T&)>* merge_func;
+  std::function<T(T&, T&)>* merge_func;
 #endif
 };
 
@@ -109,9 +109,9 @@ public:
     KcontainerIterator() {}
 
 #if defined(KDICT) || defined(KCOUNTER)
-    KcontainerIterator(Vertex<T>* v, int k, std::string prefix) : k(k)
+    KcontainerIterator(Vertex<T>* v, int k) : k(k)
 #else
-    KcontainerIterator(Vertex* v, int k, std::string prefix) : k(k)
+    KcontainerIterator(Vertex* v, int k) : k(k)
 #endif
     {
       // check if there is an uncompressed container to start
@@ -243,7 +243,7 @@ public:
   
 #if defined(KDICT) || defined(KCOUNTER)
   Kcontainer<T>::iterator begin() {
-    return Kcontainer<T>::iterator(v, k, std::string(""));
+    return Kcontainer<T>::iterator(v, k);
   }
   Kcontainer<T>::iterator end() {
     return Kcontainer<T>::iterator();
@@ -252,7 +252,7 @@ public:
   
 #else
   Kcontainer::iterator begin() {
-    return Kcontainer::iterator(v, k, std::string(""));
+    return Kcontainer::iterator(v, k);
   }
   Kcontainer::iterator end() {
     return Kcontainer::iterator();
@@ -306,7 +306,7 @@ public:
   }
 
 #if defined(KDICT) || defined(KCOUNTER)
-  void kcontainer_add(const char* kmer, T obj, std::function<T&(T&, T&)>& merge_func)
+  void kcontainer_add(const char* kmer, T obj, std::function<T(T&, T&)>& merge_func)
 #elif KSET
   void kcontainer_add(const char* kmer)
 #endif
@@ -339,13 +339,13 @@ public:
 
 #if defined(KDICT)
 #if defined(PYTHON)
-  void kcontainer_add_seq(const char* seq, uint32_t length, py::iterable& values, std::function<T&(T&, T&)> &f)
+  void kcontainer_add_seq(const char* seq, uint32_t length, py::iterable& values, std::function<T(T&, T&)> &f)
 #else
   template <typename Iterable>
   void kcontainer_add_seq(const char* seq, uint32_t length, Iterable& values, std::function<T(T, T)> &f)
 #endif
 #elif defined(KCOUNTER)
-  void kcontainer_add_seq(const char* seq, uint32_t length, std::function<T&(T&, T&)> &f)
+  void kcontainer_add_seq(const char* seq, uint32_t length, std::function<T(T&, T&)> &f)
 #else
   void kcontainer_add_seq(const char* seq, uint32_t length)
 #endif
@@ -413,7 +413,7 @@ public:
 #if defined(KSET)
   void parallel_kcontainer_add_init(int threads)
 #elif defined(KDICT) || defined(KCOUNTER)
-  void parallel_kcontainer_add_init(int threads, const std::function<T&(T&, T&)> &f)
+  void parallel_kcontainer_add_init(int threads, const std::function<T(T&, T&)> &f)
 #endif
   {
     tg->MAX_BIN_SIZE = 500;
@@ -481,7 +481,7 @@ public:
       tg->rsignal[i] = sem_open((appName + std::to_string(getpid()) + std::to_string(i)).c_str(), O_CREAT, 0600, 0);
       tg->bin_ids[i].thread_id = i;
 #if defined(KDICT) || defined(KCOUNTER)
-      tg->bin_ids[i].merge_func = new std::function<T&(T&, T&)>(f);
+      tg->bin_ids[i].merge_func = new std::function<T(T&, T&)>(f);
 #endif
 
       // NOTE: spin up worker threads
@@ -685,12 +685,15 @@ public:
 
 #if defined(PYTHON)
     auto iter = py::iter(values);
-    parallel_kcontainer_add_bseq(bseq8_sub, (*iter).cast<T>());
+    //auto handle_value = *iter;
+    //T value = handle_value.cast<T>();
+    auto value = iter->cast<T>();
 #else
     auto iter = values.begin();
     auto value = *iter;
-    parallel_kcontainer_add_bseq(bseq8_sub, value);
 #endif
+    parallel_kcontainer_add_bseq(bseq8_sub, value);
+
 #endif
 
     for(uint32_t j = tg->k; j < length; j++) {
@@ -726,11 +729,14 @@ public:
 
       //std::cout << j << " casting" << std::endl;
       #if defined(PYTHON)
-      parallel_kcontainer_add_bseq(bseq8_sub, iter->template cast<T>());
+      //handle_value = *iter;
+      //value = handle_value.cast<T>();
+      auto value = iter->cast<T>();
       #else
       value = *iter;
-      parallel_kcontainer_add_bseq(bseq8_sub, value);
       #endif
+
+      parallel_kcontainer_add_bseq(bseq8_sub, value);
 #endif
     }
     //std::cout << "done adding stuff" << std::endl;

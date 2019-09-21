@@ -9,7 +9,7 @@ class Kdict
 private:
   Kcontainer<T>* kc;
   int m_k;
-  std::function<T&(T&, T&)> merge_func;
+  std::function<T(T&, T&)> merge_func;
 public:
   Kdict(const int k) : m_k(k) {
     kc = new Kcontainer<T>(k);
@@ -20,7 +20,7 @@ public:
     delete kc;
   }
   
-  void set_merge_func(std::function<T&(T&, T&)> merge_func) {
+  void set_merge_func(std::function<T(T&, T&)> merge_func) {
     this->merge_func = merge_func;
   }     
   
@@ -126,5 +126,6 @@ public:
     return kc->end();
   }
 };
+
 template<class T>
 ThreadGlobals<T>* Kcontainer<T>::tg = (ThreadGlobals<T>*) calloc(1, sizeof(ThreadGlobals<T>));

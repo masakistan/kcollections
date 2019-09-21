@@ -1,8 +1,8 @@
 #if KDICT
 #include <vector>
 #include <set>
-#include <pybind11/stl.h>
 #include <pybind11/functional.h>
+#include <pybind11/stl.h>
 #include "Kdict.h"
 
 
@@ -71,14 +71,18 @@ void declare_kdict_member(py::module &m, const std::string &typestr) {
 
 template<typename T>
 void declare_kdict(py::module& m, const std::string& name) {
+  
   declare_kdict_member<T>(m, name);
   declare_kdict_member<std::vector<T>>(m, std::string("vector_") + name);
   declare_kdict_member<std::set<T>>(m, std::string("set_") + name);
   declare_kdict_member<std::list<T>>(m, std::string("list_") + name);
 }
 
+//PYBIND11_MAKE_OPAQUE(std::vector<int>);
+
 PYBIND11_MODULE( _Kdict, m )
 {
+
   declare_kdict<int>(m, "int");
   declare_kdict<float>(m, "float");
   // NOTE: we use char because std::vector<bool> does not return references to items
