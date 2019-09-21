@@ -4,7 +4,7 @@
 #include "helper.h"
 #include "globals.h"
 #include <pybind11/pybind11.h>
-#include <jemalloc/jemalloc.h>
+//#include <jemalloc/jemalloc.h>
 
 namespace py = pybind11;
 
@@ -45,5 +45,3 @@ int index_of( CC* cc, uint8_t* sfpx );
 Vertex* get_child_of( CC* cc, uint8_t* sfpx, int idx );
 int pref_index_from_hamming_weight( CC* cc, int clust_num );
 int clust_num_from_rank( CC* cc, int clust_pos );
-
-

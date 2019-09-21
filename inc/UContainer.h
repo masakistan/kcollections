@@ -8,7 +8,7 @@
 #include "globals.h"
 #include "helper.h"
 //#include <pybind11/pybind11.h>
-#include <jemalloc/jemalloc.h>
+//#include <jemalloc/jemalloc.h>
 
 //namespace py = pybind11;
 
@@ -24,7 +24,7 @@ private:
   size_t size;
 #endif
   uint8_t* suffixes;
-  
+
 public:
   UC() : suffixes(NULL) {
 #if defined(KSET)
@@ -85,7 +85,7 @@ void uc_insert(uint8_t* bseq, int k, int idx)
     }
 
     std::memcpy(&suffixes[suffix_idx], bseq, len);
-    
+
 #if defined(KDICT) || defined(KCOUNTER)
     objs.insert(objs.begin() + idx, obj);
 #else
@@ -103,7 +103,7 @@ void uc_insert(uint8_t* bseq, int k, int idx)
 
     return binary_search(suffixes, get_size(), calc_bk(k), bseq);
   }
-  
+
   void uc_remove(int bk, int idx) {
     int suffix_idx = idx * bk;
     int bytes_to_move = (get_size() - (idx + 1)) * bk;
@@ -137,7 +137,7 @@ void uc_insert(uint8_t* bseq, int k, int idx)
     int suffix_idx = bk * idx;
     return &suffixes[suffix_idx];
   }
-  
+
 #if defined(KDICT) || defined(KCOUNTER)
   T& get_obj(int obj_idx) {
     return objs[obj_idx];
@@ -152,4 +152,3 @@ void uc_insert(uint8_t* bseq, int k, int idx)
   }
 #endif
 };
-

@@ -7,7 +7,7 @@
 #include <functional>
 #include "UContainer.h"
 #include "globals.h"
-#include <jemalloc/jemalloc.h>
+//#include <jemalloc/jemalloc.h>
 #include "uint256_t.h"
 
 #if defined(PYTHON)
@@ -75,7 +75,7 @@ public:
 #else
   UC* get_uc() { return uc; }
 #endif
-  
+
   uint256_t get_pref_pres() { return pref_pres; }
   void set_pref_pres(uint256_t pref_pres) { this->pref_pres = pref_pres; }
   uint16_t get_vs_size() { return vs_size; }
@@ -86,10 +86,10 @@ public:
 #else
   void set_vs(Vertex** vs) { this->vs = vs; }
 #endif
-  
+
   void vertex_remove(uint8_t* bseq, int k) {
     uint8_t prefix = bseq[0];
-    
+
     if((pref_pres >> (unsigned) prefix) & 0x1) {
       int vidx = calc_vidx(pref_pres, prefix);
       vs[vidx]->vertex_remove(&bseq[1], k - 4);
@@ -106,17 +106,17 @@ public:
     throw pybind11::key_error( "Key not found!" );
 #endif
   }
-  
+
   uint64_t get_vertex_size()
   {
     uint64_t c = uc->get_size();
     for(int i = 0; i < vs_size; i++) {
       c += vs[i]->get_vertex_size();
     }
-    
+
     return c;
   }
-  
+
   bool vertex_contains(uint8_t* bseq, int k)
   {
     uint8_t prefix = bseq[0];
@@ -124,24 +124,24 @@ public:
       int vidx = calc_vidx(pref_pres, prefix);
       return vs[vidx]->vertex_contains(&bseq[1], k - 4);
     }
-    
+
     std::pair<bool, int> sres = uc->uc_find(k, bseq);
     if( sres.first ) {
       return true;
     }
-    
+
     return false;
   }
 
 #if defined(KDICT) || defined(KCOUNTER)
   T& vertex_get(uint8_t* bseq, int k) {
     uint8_t prefix = bseq[0];
-    
+
     if((pref_pres >> (unsigned) prefix) & 0x1) {
       int vidx = calc_vidx(pref_pres, prefix);
       return vs[vidx]->vertex_get(&bseq[1], k - 4);
     }
-    
+
     std::pair< bool, int> sres = uc->uc_find(k, bseq);
     int uc_idx = sres.second;
     if(sres.first) {
@@ -171,7 +171,7 @@ public:
 #endif
       return;
     }
-    
+
     // NOTE: if the key already exisrts, we need to update it somehow
     std::pair< bool, int > sres = uc->uc_find(k, bseq);
     int uc_idx = sres.second;
@@ -188,13 +188,13 @@ public:
 #endif
       return;
     }
-    
+
 #if defined(KDICT) || defined(KCOUNTER)
     uc->uc_insert(bseq, k, uc_idx, obj);
 #elif KSET
     uc->uc_insert(bseq, k, uc_idx);
 #endif
-    
+
     if(uc->get_size() == CAPACITY) {
 #if defined(KDICT) || defined(KCOUNTER)
       burst_uc(k, merge_func);
@@ -211,7 +211,7 @@ public:
 #endif
   {
     int suffix_size = calc_bk( k );
-    
+
     uint8_t* suffixes = uc->get_suffixes();
 #if defined(KDICT) || defined(KCOUNTER)
     std::vector<T> objs = uc->get_objs();
@@ -219,16 +219,16 @@ public:
     int idx;
     for(size_t i = 0; i < uc->get_size(); i++) {
       idx = i * suffix_size;
-      
+
       uint8_t* bseq = &suffixes[ idx ];
       uint8_t prefix = bseq[ 0 ];
       uint8_t* suffix = &bseq[ 1 ];
       uint8_t bits_to_shift = (unsigned) prefix;
       int vidx = calc_vidx(pref_pres, prefix);
-      
+
       // check if there is already a vertex that represents this prefix
       if(!((pref_pres >> (unsigned) bits_to_shift) & 0x1)) {
-	
+
 	if(vs == NULL) {
 #if defined(KDICT) || defined(KCOUNTER)
 	  vs = (Vertex<T>**) calloc(1, sizeof(Vertex<T>*));
@@ -254,7 +254,7 @@ public:
 #endif
 		       );
 	}
-	
+
 	pref_pres |= ((uint256_t) 0x1 << (unsigned) bits_to_shift);
 	// insert a vertex at vidx
 #if defined(KDICT) || defined(KCOUNTER)
@@ -262,20 +262,20 @@ public:
 #else
 	vs[vidx] = new Vertex();
 #endif
-	
+
 	// increment size
 	vs_size++;
       } else {
 	//std::cout << "\t" << vidx << "\tusing existing vertex" << std::endl;
       }
-      
+
 #if defined(KDICT) || defined(KCOUNTER)
       vs[vidx]->vertex_insert(suffix, k - 4, objs[ i ], merge_func);
 #elif defined(KSET)
       vs[vidx]->vertex_insert(suffix, k - 4);
 #endif
     }
-    
+
     delete uc;
 #if defined(KDICT) || defined(KCOUNTER)
     uc = new UC<T>();
@@ -284,4 +284,3 @@ public:
 #endif
   }
 };
-
