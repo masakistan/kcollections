@@ -57,6 +57,7 @@ set(kcollections_src
 
 option(PYTHON "compile the python bindings")
 if (${PYTHON})
+    message("compiling python bindings")
     # pybind11 library
     add_subdirectory(libs/pybind11-2.3.0)
     set(PYBIND11_PYTHON_VERSION ${PYTHON_VERSION})
@@ -78,6 +79,7 @@ if (${PYTHON})
     target_compile_definitions(_Kcounter PUBLIC "PYTHON" PUBLIC "KCOUNTER")
     # add_dependencies(_Kcounter project_jemalloc)
 else()
+    message("compiling other stuff")
     add_library(kcollections_set_objs OBJECT ${kcollections_src} "${SOURCE_DIR}/Kset.cc")
     target_compile_definitions(kcollections_set_objs PUBLIC "KSET")
 
@@ -105,6 +107,11 @@ else()
     set_target_properties(counterbulktest PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
     # include_directories(counterbulktest "${install_dir}/include")
     # add_dependencies(counterbulktest project_jemalloc)
+
+	# Testing Kdict
+    add_executable(dictbulktest "${SOURCE_DIR}/TestDictBulk.cpp" $<TARGET_OBJECTS:kcollections_dict_objs>)
+    target_link_libraries(dictbulktest Threads::Threads Kdict)
+    set_target_properties(dictbulktest PROPERTIES COMPILE_DEFINITIONS "KDICT")
 endif()
 
 # Additinoal compiler flags
@@ -115,6 +122,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
         if(APPLE)
             add_custom_command(TARGET counterbulktest POST_BUILD
+                COMMAND dsymutil dictbulktest
+                )
+             add_custom_command(TARGET counterbulktest POST_BUILD
                 COMMAND dsymutil counterbulktest
                 )
             message( "Detected Mac OS with clang, modifying exe with dsymutil for debugging." )

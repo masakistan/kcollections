@@ -9,18 +9,18 @@ class Kdict
 private:
   Kcontainer<T>* kc;
   int m_k;
-  std::function<T(T, T)> merge_func;
+  std::function<T&(T&, T&)> merge_func;
 public:
   Kdict(const int k) : m_k(k) {
     kc = new Kcontainer<T>(k);
-    merge_func = [] (T prev_val, T new_val)->T{ return new_val;};
+    merge_func = [] (T& prev_val, T& new_val)->T&{ return new_val;};
   }
   
   ~Kdict() {
     delete kc;
   }
   
-  void set_merge_func(std::function<T(T, T)> merge_func) {
+  void set_merge_func(std::function<T&(T&, T&)> merge_func) {
     this->merge_func = merge_func;
   }     
   

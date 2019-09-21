@@ -28,7 +28,7 @@ template <class T>
 struct ThreadInfo{
   int thread_id;
 #if defined(KDICT) || defined(KCOUNTER)
-  std::function<T(T, T)>* merge_func;
+  std::function<T&(T&, T&)>* merge_func;
 #endif
 };
 
@@ -306,7 +306,7 @@ public:
   }
 
 #if defined(KDICT) || defined(KCOUNTER)
-  void kcontainer_add(const char* kmer, T obj, std::function<T(T, T)>& merge_func)
+  void kcontainer_add(const char* kmer, T obj, std::function<T&(T&, T&)>& merge_func)
 #elif KSET
   void kcontainer_add(const char* kmer)
 #endif
@@ -339,13 +339,13 @@ public:
 
 #if defined(KDICT)
 #if defined(PYTHON)
-  void kcontainer_add_seq(const char* seq, uint32_t length, py::iterable& values, std::function<T(T, T)> &f)
+  void kcontainer_add_seq(const char* seq, uint32_t length, py::iterable& values, std::function<T&(T&, T&)> &f)
 #else
   template <typename Iterable>
   void kcontainer_add_seq(const char* seq, uint32_t length, Iterable& values, std::function<T(T, T)> &f)
 #endif
 #elif defined(KCOUNTER)
-  void kcontainer_add_seq(const char* seq, uint32_t length, std::function<T(T, T)> &f)
+  void kcontainer_add_seq(const char* seq, uint32_t length, std::function<T&(T&, T&)> &f)
 #else
   void kcontainer_add_seq(const char* seq, uint32_t length)
 #endif
@@ -413,7 +413,7 @@ public:
 #if defined(KSET)
   void parallel_kcontainer_add_init(int threads)
 #elif defined(KDICT) || defined(KCOUNTER)
-  void parallel_kcontainer_add_init(int threads, const std::function<T(T, T)> &f)
+  void parallel_kcontainer_add_init(int threads, const std::function<T&(T&, T&)> &f)
 #endif
   {
     tg->MAX_BIN_SIZE = 500;
@@ -481,7 +481,7 @@ public:
       tg->rsignal[i] = sem_open((appName + std::to_string(getpid()) + std::to_string(i)).c_str(), O_CREAT, 0600, 0);
       tg->bin_ids[i].thread_id = i;
 #if defined(KDICT) || defined(KCOUNTER)
-      tg->bin_ids[i].merge_func = new std::function<T(T, T)>(f);
+      tg->bin_ids[i].merge_func = new std::function<T&(T&, T&)>(f);
 #endif
 
       // NOTE: spin up worker threads
@@ -642,7 +642,8 @@ public:
 #elif defined(KDICT)
     parallel_kcontainer_add_bseq(pbseq, value);
 #elif defined(KCOUNTER)
-    parallel_kcontainer_add_bseq(pbseq, 1);
+    int count = 1;
+    parallel_kcontainer_add_bseq(pbseq, count);
 #endif
   }
 
@@ -678,18 +679,18 @@ public:
 #if defined(KSET)
     parallel_kcontainer_add_bseq(bseq8_sub);
 #elif defined(KCOUNTER)
-    parallel_kcontainer_add_bseq(bseq8_sub, 1);
+    int count = 1;
+    parallel_kcontainer_add_bseq(bseq8_sub, count);
 #elif defined(KDICT)
 
 #if defined(PYTHON)
     auto iter = py::iter(values);
-    //std::cout << "casting" << std::endl;
     parallel_kcontainer_add_bseq(bseq8_sub, (*iter).cast<T>());
 #else
     auto iter = values.begin();
-    parallel_kcontainer_add_bseq(bseq8_sub, *iter);
+    auto value = *iter;
+    parallel_kcontainer_add_bseq(bseq8_sub, value);
 #endif
-    //std::cout << "after cast insert" << std::endl;
 #endif
 
     for(uint32_t j = tg->k; j < length; j++) {
@@ -711,7 +712,8 @@ public:
       //std::cout << "about to add 2" << std::endl;
       parallel_kcontainer_add_bseq(bseq8_sub);
 #elif defined(KCOUNTER)
-      parallel_kcontainer_add_bseq(bseq8_sub, 1);
+      int count = 1;
+      parallel_kcontainer_add_bseq(bseq8_sub, count);
 #elif defined(KDICT)
       //std::cout << j << "/" << length << "\tadding val 2: " << std::endl;; //<< std::string(py::str(*iter)) << std::endl;
       #if defined(PYTHON)
@@ -723,12 +725,12 @@ public:
       #endif
 
       //std::cout << j << " casting" << std::endl;
+      #if defined(PYTHON)
       parallel_kcontainer_add_bseq(bseq8_sub, iter->template cast<T>());
-      //std::cout << "after cast insert" << std::endl;
-      //#else
-      //std::advance(iter, 1);
-      //parallel_kcontainer_add_bseq(bseq8_sub, *iter);
-      //#endif
+      #else
+      value = *iter;
+      parallel_kcontainer_add_bseq(bseq8_sub, value);
+      #endif
 #endif
     }
     //std::cout << "done adding stuff" << std::endl;
@@ -739,7 +741,7 @@ public:
 #if defined(KSET)
   void parallel_kcontainer_add_bseq(uint8_t* bseq)
 #elif defined(KDICT) || defined(KCOUNTER)
-  void parallel_kcontainer_add_bseq(uint8_t* bseq, T obj)
+  void parallel_kcontainer_add_bseq(uint8_t* bseq, T& obj)
 #endif
   {
     //std::cout << "adding bseq" << std::endl;
@@ -758,9 +760,7 @@ public:
 #if defined(KSET)
     (*tg->kmers)[bin][cur_wbin].push_back(bseq);
 #elif defined(KDICT) || defined(KCOUNTER)
-    //std::cout << "creating pair" << std::endl;
     std::pair<uint8_t*, T> data(bseq, obj);
-    //std::cout << "pair created" << std::endl;
     (*tg->kmers)[bin][cur_wbin].push_back(data);
 #endif
 

@@ -156,7 +156,7 @@ public:
 #endif
 
 #if defined(KDICT) || defined(KCOUNTER)
-  void vertex_insert(uint8_t* bseq, int k, T obj, std::function<T(T, T)>& merge_func)
+  void vertex_insert(uint8_t* bseq, int k, T obj, std::function<T&(T&, T&)>& merge_func)
 #elif KSET
   void vertex_insert(uint8_t* bseq, int k)
 #endif
@@ -205,7 +205,7 @@ public:
   }
 
 #if defined(KDICT) || defined(KCOUNTER)
-  void burst_uc(int k, std::function<T(T, T)>& merge_func)
+  void burst_uc(int k, std::function<T&(T&, T&)>& merge_func)
 #else
   void burst_uc(int k)
 #endif

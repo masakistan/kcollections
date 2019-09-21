@@ -6,3 +6,4 @@ kcollections.egg-info/
 *.dump
 *.so
 *.pyc
+*.dylib
