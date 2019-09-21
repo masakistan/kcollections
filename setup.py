@@ -29,14 +29,9 @@ class CMakeBuild(build_ext):
         extdir = os.path.abspath(
             os.path.dirname(self.get_ext_fullpath(ext.name))
         )
-        cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
+        cmake_args = ['-DPYTHON=ON',
+                      '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
                       '-DPYTHON_EXECUTABLE=' + sys.executable]
-
-        if sys.version_info[0] > 2:
-            cmake_args += ['-DPython3=ON']
-            print('Using Python version 3')
-        else:
-            print('Using Python version 2')
 
         if self.debug:
             cfg = 'Debug'
@@ -81,7 +76,7 @@ setup(
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     packages=['kcollections'],
-    ext_modules=[CMakeExtension('kcollections._Kdict'), CMakeExtension('kcollections._Kset')],
+    ext_modules=[CMakeExtension('kcollections._Kdict'), CMakeExtension('kcollections._Kset'), CMakeExtension('kcollections._Kcounter')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False
 )
