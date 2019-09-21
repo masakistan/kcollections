@@ -116,6 +116,15 @@ public:
     //std::cout << "parallel adding seq" << std::endl;
     kc->parallel_kcontainer_add_seq(seq, strlen(seq), values);
   }
+
+  typedef typename Kcontainer<T>::iterator iterator;
+  iterator begin() {
+    return kc->begin();
+  }
+
+  iterator end() {
+    return kc->end();
+  }
 };
 template<class T>
 ThreadGlobals<T>* Kcontainer<T>::tg = (ThreadGlobals<T>*) calloc(1, sizeof(ThreadGlobals<T>));

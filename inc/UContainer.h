@@ -139,7 +139,7 @@ void uc_insert(uint8_t* bseq, int k, int idx)
   }
 
 #if defined(KDICT) || defined(KCOUNTER)
-  T get_obj(int obj_idx) {
+  T& get_obj(int obj_idx) {
     return objs[obj_idx];
   }
 

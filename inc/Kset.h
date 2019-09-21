@@ -57,5 +57,13 @@ public:
   }
 
   void parallel_add_seq(const char* seq);
+
+  Kcontainer::iterator begin() {
+    return kc->begin();
+  }
+
+  Kcontainer::iterator end() {
+    return kc->end();
+  }
 };
 

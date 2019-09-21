@@ -38,6 +38,17 @@ int main(int argc, char* argv[]) {
   
   std::cout << "Kmer set contains " << kc->size() << " kmers" << std::endl;
 
+  int count = 0;
+  int total = kc->size();
+  
+  std::cout << "Printing all kmers!" << std::endl;
+  for(auto& it : *kc) {
+    if(*it.second > 7) {
+      std::cout << count << " / " << total << "\tkmer: " << it.first << ":\t" << *it.second << std::endl;
+    }
+    count += 1;
+  }
+  
   /*fh.open(file_path);
   if(fh.is_open()) {
     while(getline(fh, line)) {
@@ -46,6 +57,7 @@ int main(int argc, char* argv[]) {
     }
   }*/
 
+  std::cout << "\tDone printing all kmers!" << std::endl;
   std::cout << "Kmer set contains " << kc->size() << " kmers" << std::endl;
   delete kc;
 
