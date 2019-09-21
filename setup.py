@@ -76,7 +76,7 @@ setup(
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     packages=['kcollections'],
-    ext_modules=[CMakeExtension('kcollections._Kdict'), CMakeExtension('kcollections._Kset')],
+    ext_modules=[CMakeExtension('kcollections._Kdict'), CMakeExtension('kcollections._Kset'), CMakeExtension('kcollections._Kcounter')],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False
 )
