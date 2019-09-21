@@ -81,7 +81,9 @@ PYBIND11_MODULE( _Kdict, m )
 {
   declare_kdict<int>(m, "int");
   declare_kdict<float>(m, "float");
-  declare_kdict<bool>(m, "bool");
+  // NOTE: we use char because std::vector<bool> does not return references to items
+  // using char instead is a hack, should we change this?
+  declare_kdict<char>(m, "bool");
   declare_kdict<std::string>(m, "string");
   declare_kdict<py::object>(m, "object");
 

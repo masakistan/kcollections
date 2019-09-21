@@ -43,7 +43,9 @@ int main(int argc, char* argv[]) {
   
   std::cout << "Printing all kmers!" << std::endl;
   for(auto& it : *kc) {
-    std::cout << count << " / " << total << "\tkmer: " << it << std::endl;
+    if(*it.second > 7) {
+      std::cout << count << " / " << total << "\tkmer: " << it.first << ":\t" << *it.second << std::endl;
+    }
     count += 1;
   }
   

@@ -97,8 +97,14 @@ public:
     typedef std::input_iterator_tag iterator_category;    // iterator category
     typedef std::string value_type;           // value type
     typedef std::ptrdiff_t difference_type;           // difference type
+
+#if defined(KDICT) || defined(KCOUNTER)
+    typedef std::pair<std::string, T*>* pointer;
+    typedef std::pair<std::string, T*>& reference;
+#elif defined(KSET)
     typedef std::string* pointer;    // pointer
     typedef std::string& reference;           // reference
+#endif
 
     KcontainerIterator() {}
 
@@ -113,8 +119,12 @@ public:
       v_stack.push_back(v);
       uc_stack.push_back(0);
       cc_stack.push_back(0);
-      get_next();
+#if defined(KDICT) || defined(KCOUNTER)
+      kmer = std::pair<std::string, T*>(std::string(k, 'X'), NULL);
+#else
       kmer = std::string(k, 'X');
+#endif
+      get_next();
       //std::cout << "creating iterator!\t" << kmer << std::endl;
     }
     
@@ -160,10 +170,11 @@ public:
   private:
     
     int depth, k;
-    std::string kmer;
 #if defined(KDICT) || defined(KCOUNTER)
+    std::pair<std::string, T*> kmer;
     std::vector<Vertex<T>*> v_stack;
 #else
+    std::string kmer;
     std::vector<Vertex*> v_stack;
 #endif
     std::vector<int> uc_stack;
@@ -184,12 +195,21 @@ public:
       if(uc_idx < v_ptr->get_uc()->get_size()) {
 	// NOTE: remove last n characters
 	// NOTE: replace last n characters
+#if defined(KDICT) || defined(KCOUNTER)
+	kmer.first.replace(k - n, n, deserialize_kmer_to_string(n, v_ptr->get_uc()->get_suffix(n, uc_idx)));
+	kmer.second = &v_ptr->get_uc()->get_obj(uc_idx);
+#else
 	kmer.replace(k - n, n, deserialize_kmer_to_string(n, v_ptr->get_uc()->get_suffix(n, uc_idx)));
+#endif
 	uc_stack.back()++;
 	return;
       } else {
 	if(cc_idx < v_ptr->get_vs_size()) {
+#if defined(KDICT) || defined(KCOUNTER)
+	  kmer.first.replace(k - n, k - n + 4, kcontainer_get_child_suffix(v_ptr, cc_idx));
+#else
 	  kmer.replace(k - n, k - n + 4, kcontainer_get_child_suffix(v_ptr, cc_idx));
+#endif
 	  
 	  depth++;
 	  v_stack.push_back(v_ptr->get_vs()[cc_idx]);
@@ -206,7 +226,12 @@ public:
       uc_stack.pop_back();
 
       if(v_stack.size() == 0) {
+#if defined(KDICT) || defined(KCOUNTER)
+	kmer.first = std::string("");
+	kmer.second = NULL;
+#else
 	kmer = std::string("");
+#endif
 	return;
       }
       
@@ -297,13 +322,11 @@ public:
   }
 
 #if defined KDICT || defined KCOUNTER
-  T kcontainer_get(char* kmer)
+  T& kcontainer_get(char* kmer)
   {
     uint8_t* bseq = (uint8_t*) calloc(k, sizeof(uint8_t));
     serialize_kmer(kmer, k, bseq);
-#if defined(KDICT) || defined(KCOUNTER)
-    T res = v->vertex_get(bseq, k);
-#endif
+    T& res = v->vertex_get(bseq, k);
     free(bseq);
     return res;
   }
