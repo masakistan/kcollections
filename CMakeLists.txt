@@ -34,38 +34,44 @@ message("looking in ${CMAKE_MODULE_PATH}")
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
+set(CMAKE_CXX_STANDARD 14)
+
 # Add inc directories
 include_directories(inc)
 
 include_directories(libs/uint256_t)
 
 # Add src files
-string(APPEND SOURCES "${SOURCE_DIR}/MurmurHash3.cc;")
-string(APPEND SOURCES "${SOURCE_DIR}/UContainer.cc;")
-string(APPEND SOURCES "${SOURCE_DIR}/Vertex.cc;")
-string(APPEND SOURCES "${SOURCE_DIR}/Kcontainer.cc;")
-string(APPEND SOURCES "libs/uint256_t/uint128_t.cpp;")
-string(APPEND SOURCES "libs/uint256_t/uint256_t.cpp;")
+set(uint256_src
+  "libs/uint256_t/uint128_t.cpp"
+  "libs/uint256_t/uint256_t.cpp"
+  )
+add_library(uint256_objs OBJECT ${uint256_src})
 
-string(APPEND PYTHON_CXX_SOURCES "${SOURCE_DIR}/Kcollections.cc;")
-string(APPEND DICT_SOURCES "${SOURCE_DIR}/Kdict.cc;")
-string(APPEND SET_SOURCES "${SOURCE_DIR}/Kset.cc;")
-string(APPEND COUNTER_SOURCES "${SOURCE_DIR}/Kcounter.cc;")
+set(kcollections_src
+  "${SOURCE_DIR}/MurmurHash3.cc"
+  "${SOURCE_DIR}/UContainer.cc"
+  "${SOURCE_DIR}/Vertex.cc"
+  "${SOURCE_DIR}/Kcontainer.cc"
+ )
+add_library(kcollections_set_objs OBJECT ${kcollections_src} "${SOURCE_DIR}/Kset.cc")
+target_compile_definitions(kcollections_set_objs PUBLIC "KSET")
 
-set(CMAKE_CXX_STANDARD 14)
+add_library(kcollections_dict_objs OBJECT ${kcollections_src} "${SOURCE_DIR}/Kdict.cc")
+target_compile_definitions(kcollections_dict_objs PUBLIC "KDICT")
 
-add_library(Kset SHARED ${SOURCES} ${SET_SOURCES})
-set_target_properties(Kset PROPERTIES COMPILE_DEFINITIONS "KSET")
+add_library(kcollections_counter_objs OBJECT ${kcollections_src} "${SOURCE_DIR}/Kcounter.cc")
+target_compile_definitions(kcollections_counter_objs PUBLIC "KCOUNTER")
+
+add_library(Kset STATIC $<TARGET_OBJECTS:kcollections_set_objs> $<TARGET_OBJECTS:uint256_objs>)
 # add_dependencies(Kset project_jemalloc)
 # target_link_libraries(Kset jemalloc)
 
-add_library(Kdict SHARED ${SOURCES} ${DICT_SOURCES})
-set_target_properties(Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT")
+add_library(Kdict STATIC $<TARGET_OBJECTS:kcollections_dict_objs> $<TARGET_OBJECTS:uint256_objs>)
 # add_dependencies(Kdict project_jemalloc)
 # target_link_libraries(Kdict jemalloc)
 
-add_library(Kcounter SHARED ${SOURCES} ${COUNTER_SOURCES})
-set_target_properties(Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
+add_library(Kcounter STATIC $<TARGET_OBJECTS:kcollections_counter_objs> $<TARGET_OBJECTS:uint256_objs>)
 # add_dependencies(Kcounter project_jemalloc)
 # target_link_libraries(Kcounter jemalloc)
 
@@ -77,27 +83,31 @@ if (${PYTHON})
     include_directories(${PYTHON_INCLUDE_DIR})
     include_directories(libs/pybind11-2.3.0/include)
 
-    pybind11_add_module( _Kset ${SOURCES} ${SET_SOURCES} ${PYTHON_CXX_SOURCES})
-    set_target_properties( _Kset PROPERTIES COMPILE_DEFINITIONS "KSET" )
+
+    # add_library(python_cxx_objs OBJECT "${SOURCE_DIR}/Kcollections.cc")
+    # target_compile_definitions(python_cxx_objs PUBLIC "PYTHON")
+
+    pybind11_add_module(_Kset ${kcollections_src} "${SOURCE_DIR}/Kset.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})#$<TARGET_OBJECTS:kcollections_set_objs> $<TARGET_OBJECTS:python_cxx_objs>)
+    set_target_properties( _Kset PROPERTIES COMPILE_DEFINITIONS "KSET" COMPILE_DEFINITIONS "PYTHON")
     target_link_libraries(_Kset PRIVATE pybind11::module)
-    target_compile_definitions(_Kset PUBLIC "KSET" PUBLIC "PYTHON")
+    target_compile_definitions(_Kset PUBLIC "PYTHON" PUBLIC "KSET")
     # add_dependencies(_Kset project_jemalloc)
 
-    pybind11_add_module( _Kdict ${SOURCES} ${DICT_SOURCES} ${PYTHON_CXX_SOURCES})
-    set_target_properties( _Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" )
+    pybind11_add_module(_Kdict ${kcollections_src} "${SOURCE_DIR}/Kdict.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})#$<TARGET_OBJECTS:python_cxx_objs>)
+    # set_target_properties( _Kdict PROPERTIES COMPILE_DEFINITIONS "KDICT" "PYTHON")
     target_link_libraries(_Kdict PRIVATE pybind11::module)
-    target_compile_definitions(_Kdict PUBLIC "KDICT" PUBLIC "PYTHON")
+    target_compile_definitions(_Kdict PUBLIC "PYTHON" PUBLIC "KDICT")
     # add_dependencies(_Kdict project_jemalloc)
 
-    pybind11_add_module( _Kcounter ${SOURCES} ${COUNTER_SOURCES} ${PYTHON_CXX_SOURCES})
-    set_target_properties( _Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER" )
+    pybind11_add_module(_Kcounter ${kcollections_src} "${SOURCE_DIR}/Kcounter.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})#$<TARGET_OBJECTS:kcollections_counter_objs> $<TARGET_OBJECTS:python_cxx_objs>)
+    # set_target_properties( _Kcounter PROPERTIES COMPILE_DEFINITIONS "KCOUNTER" "PYTHON")
     target_link_libraries(_Kcounter PRIVATE pybind11::module)
-    target_compile_definitions(_Kcounter PUBLIC "KCOUNTER" PUBLIC "PYTHON")
+    target_compile_definitions(_Kcounter PUBLIC "PYTHON" PUBLIC "KCOUNTER")
     # add_dependencies(_Kcounter project_jemalloc)
 endif()
 
 # Testing
-add_executable(counterbulktest "${SOURCE_DIR}/TestCounterBulk.cpp;")
+add_executable(counterbulktest "${SOURCE_DIR}/TestCounterBulk.cpp" $<TARGET_OBJECTS:kcollections_counter_objs>)
 target_link_libraries(counterbulktest Threads::Threads Kcounter)
 set_target_properties(counterbulktest PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
 # include_directories(counterbulktest "${install_dir}/include")
