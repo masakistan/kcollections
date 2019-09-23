@@ -32,6 +32,7 @@ void declare_kdict_member(py::module &m, const std::string &typestr) {
 	    Takes two arguments, the kmer represented as a string and the object to set it to.
 	  )pbdoc")
     .def("__getitem__", &CClass::get, R"pbdoc()pbdoc")
+    .def("__iter__", [](CClass& v) { return py::make_iterator(v.begin(), v.end()); })
     .def("__contains__", &CClass::contains, R"pbdoc(
 	    Checks if a kmer is in Kdict
 

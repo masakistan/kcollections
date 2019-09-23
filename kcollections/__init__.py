@@ -8,19 +8,6 @@ def create_kdict(base):
         def __init__( self, k ):
             super(tkdict, self).__init__(k)
 
-        def __iter__( self ):
-            return self._get_kmers( self.get_root(), self.k )
-
-        def _get_kmers( self, v, k, prefix = '' ):
-            # get from UC
-            for i in range( self.get_uc_size( v ) ):
-                yield prefix + self.get_uc_kmer( v, k, i )
-
-            for i in range( self.get_vs_size( v ) ):
-                child_prefix = prefix + self.get_child_suffix( v, i )
-                for kmer in self._get_kmers( self.get_child_vertex( v, i ), k - 4, child_prefix ):
-                    yield kmer
-
         def __str__( self ):
             res = []
             for key, val in self.items():
@@ -31,20 +18,18 @@ def create_kdict(base):
             return self.__str__()
 
         def items( self ):
-            for kmer in self._get_kmers( self.get_root(), self.k ):
-                yield ( kmer, self[ kmer ] )
+            return self.__iter__()
 
         def iteritems( self ):
-            for kmer in self._get_kmers( self.get_root(), self.k ):
-                yield ( kmer, self[ kmer ] )
+            return self.__iter__()
 
         def keys( self ):
-            for kmer in self._get_kmers( self.get_root(), self.k ):
+            for kmer, val in self.__iter__():
                 yield kmer
 
         def values( self ):
-            for kmer in self._get_kmers( self.get_root(), self.k ):
-                yield self[ kmer ]
+            for kmer, val in self.__iter__():
+                yield val
 
         def copy( self ):
             new_kdict = Kdict( self.k )
@@ -107,19 +92,6 @@ class Kset( KsetParent ):
     def __init__( self, k ):
         super( Kset, self ).__init__( k )
 
-    def __iter__( self ):
-        return self._get_kmers( self.get_root(), self.k )
-
-    def _get_kmers( self, v, k, prefix = '' ):
-        # get from UC
-        for i in range( self.get_uc_size( v ) ):
-            yield prefix + self.get_uc_kmer( v, k, i )
-
-        for i in range( self.get_vs_size( v ) ):
-            child_prefix = prefix + self.get_child_suffix( v, i )
-            for kmer in self._get_kmers( self.get_child_vertex( v, i ), k - 4, child_prefix ):
-                yield kmer
-
     def __str__( self ):
         return '{' + ','.join( self ) + '}'
 
@@ -143,7 +115,7 @@ class Kset( KsetParent ):
             del self[ item ]
 
     def pop( self ):
-        kmer = next( self._get_kmers( self.get_root(), self.k ) )
+        kmer = next( self.__iter__())
         del self[ kmer ]
         return kmer
 
@@ -240,19 +212,6 @@ class Kcounter( KcounterParent ):
     def __init__( self, k ):
         super( Kcounter, self ).__init__( k )
 
-    def __iter__( self ):
-        return self._get_kmers( self.get_root(), self.k )
-
-    def _get_kmers( self, v, k, prefix = '' ):
-        # get from UC
-        for i in range( self.get_uc_size( v ) ):
-            yield prefix + self.get_uc_kmer( v, k, i )
-
-        for i in range( self.get_vs_size( v ) ):
-            child_prefix = prefix + self.get_child_suffix( v, i )
-            for kmer in self._get_kmers( self.get_child_vertex( v, i ), k - 4, child_prefix ):
-                yield kmer
-
     def __str__( self ):
         res = []
         for key, val in self.items():
@@ -263,20 +222,18 @@ class Kcounter( KcounterParent ):
         return self.__str__()
 
     def items( self ):
-        for kmer in self._get_kmers( self.get_root(), self.k ):
-            yield ( kmer, self[ kmer ] )
+        return self.__iter__()
 
     def iteritems( self ):
-        for kmer in self._get_kmers( self.get_root(), self.k ):
-            yield ( kmer, self[ kmer ] )
+        return self.__iter__()
 
     def keys( self ):
-        for kmer in self._get_kmers( self.get_root(), self.k ):
+        for kmer, val in self.__iter__():
             yield kmer
 
     def values( self ):
-        for kmer in self._get_kmers( self.get_root(), self.k ):
-            yield self[ kmer ]
+        for kmer, val in self.__iter__():
+            yield val
 
     def copy( self ):
         new_kcounter = Kcounter( self.k )

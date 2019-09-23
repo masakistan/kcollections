@@ -23,7 +23,7 @@ for i, seq in enumerate(seqs):
 kd.parallel_add_join()
 print('\t', len(kd), None)
 
-for kmer, val in kd.iteritems():
+for kmer, val in kd.items():
     if val > 7:
         print(kmer, val)
 

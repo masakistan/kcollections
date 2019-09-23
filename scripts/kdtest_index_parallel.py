@@ -24,6 +24,8 @@ for seq in seqs:
     kd.parallel_add_seq(seq, iter([[i] for i in range(len(seq))]))
 kd.parallel_add_join()
 
+print('kmer set contains:', len(kd), 'kmers')
+
 for kmer, val in kd.iteritems():
     if isinstance(val, list) and len(val) > 7:
         print(kmer, val)
