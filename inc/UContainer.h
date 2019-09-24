@@ -83,7 +83,6 @@ void uc_insert(uint8_t* bseq, int k, int idx, T& obj)
 void uc_insert(uint8_t* bseq, int k, int idx)
 #endif
 {
-  assert(this->k == k);
   int len = calc_bk(k);
   if(get_size() == 0) {
     suffixes = (uint8_t*) calloc(len, sizeof(uint8_t));
