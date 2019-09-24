@@ -20,38 +20,36 @@ template <class T>
 class Vertex {
 private:
 #if defined(KDICT) || defined(KCOUNTER)
-  Vertex<T>** vs;
+  //Vertex<T>** vs;
+  std::vector<Vertex<T>> vs;
 #else
-  Vertex** vs;
+  //Vertex** vs;
+  std::vector<Vertex> vs;
 #endif
   uint256_t pref_pres;
 #if defined(KDICT) || defined(KCOUNTER)
-  UC<T>* uc;
+  UC<T> uc;
 #else
-  UC* uc;
+  UC uc;
 #endif
-  uint16_t vs_size;
+  //uint16_t vs.size();
+  int k;
+  
 public:
-  Vertex() : vs(NULL), vs_size(0) {
+  Vertex(int k) : uc(k), k(k) {
     pref_pres = 0;
-#if defined(KDICT) || defined(KCOUNTER)
-    uc = new UC<T>();
-#else
-    uc = new UC();
-#endif
+  }
+
+  Vertex(const Vertex& in_v) :
+    k(in_v.k),
+    uc(in_v.uc),
+    vs(in_v.vs)
+  {
   }
 
   ~Vertex() {
-    delete uc;
     pref_pres = 0;
-
-    if(vs != NULL) {
-      for(uint16_t i = 0; i < vs_size; i++) {
-	delete vs[i];
-      }
-      free(vs);
-      vs_size = 0;
-    }
+    vs.clear();
   }
 
   int calc_vidx(uint256_t vertices, uint8_t bts) {
@@ -65,40 +63,33 @@ public:
   }
 
 #if defined(KDICT) || defined(KCOUNTER)
-  Vertex<T>** get_vs() { return vs; }
+  std::vector<Vertex<T>>& get_vs() { return vs; }
 #else
-  Vertex** get_vs() { return vs; }
+  std::vector<Vertex>& get_vs() { return vs; }
 #endif
 
 #if defined(KDICT) || defined(KCOUNTER)
-  UC<T>* get_uc() { return uc; }
+  UC<T>* get_uc() { return &uc; }
 #else
-  UC* get_uc() { return uc; }
+  UC* get_uc() { return &uc; }
 #endif
 
   uint256_t get_pref_pres() { return pref_pres; }
   void set_pref_pres(uint256_t pref_pres) { this->pref_pres = pref_pres; }
-  uint16_t get_vs_size() { return vs_size; }
-  void set_vs_size(uint16_t vs_size) { this->vs_size = vs_size; }
-
-#if defined(KDICT) || defined(KCOUNTER)
-  void set_vs(Vertex<T>** vs) { this->vs = vs; }
-#else
-  void set_vs(Vertex** vs) { this->vs = vs; }
-#endif
+  size_t get_vs_size() { return vs.size(); }
 
   void vertex_remove(uint8_t* bseq, int k) {
     uint8_t prefix = bseq[0];
 
     if((pref_pres >> (unsigned) prefix) & 0x1) {
       int vidx = calc_vidx(pref_pres, prefix);
-      vs[vidx]->vertex_remove(&bseq[1], k - 4);
+      vs[vidx].vertex_remove(&bseq[1], k - 4);
     }
 
-    std::pair< bool, int > sres = uc->uc_find(k, bseq);
+    std::pair< bool, int > sres = uc.uc_find(k, bseq);
     int uc_idx = sres.second;
     if(sres.first) {
-      uc->uc_remove(calc_bk(k), uc_idx);
+      uc.uc_remove(calc_bk(k), uc_idx);
       return;
     }
 
@@ -109,9 +100,9 @@ public:
 
   uint64_t get_vertex_size()
   {
-    uint64_t c = uc->get_size();
-    for(int i = 0; i < vs_size; i++) {
-      c += vs[i]->get_vertex_size();
+    uint64_t c = uc.get_size();
+    for(size_t i = 0; i < vs.size(); i++) {
+      c += vs[i].get_vertex_size();
     }
 
     return c;
@@ -122,10 +113,10 @@ public:
     uint8_t prefix = bseq[0];
     if((pref_pres >> (unsigned) prefix) & 0x1) {
       int vidx = calc_vidx(pref_pres, prefix);
-      return vs[vidx]->vertex_contains(&bseq[1], k - 4);
+      return vs[vidx].vertex_contains(&bseq[1], k - 4);
     }
 
-    std::pair<bool, int> sres = uc->uc_find(k, bseq);
+    std::pair<bool, int> sres = uc.uc_find(k, bseq);
     if( sres.first ) {
       return true;
     }
@@ -139,13 +130,13 @@ public:
 
     if((pref_pres >> (unsigned) prefix) & 0x1) {
       int vidx = calc_vidx(pref_pres, prefix);
-      return vs[vidx]->vertex_get(&bseq[1], k - 4);
+      return vs[vidx].vertex_get(&bseq[1], k - 4);
     }
 
-    std::pair< bool, int> sres = uc->uc_find(k, bseq);
+    std::pair< bool, int> sres = uc.uc_find(k, bseq);
     int uc_idx = sres.second;
     if(sres.first) {
-      return uc->get_obj(uc_idx);
+      return uc.get_obj(uc_idx);
     }
 
     // TODO: fix for kcounter, catch exception
@@ -156,7 +147,7 @@ public:
 #endif
 
 #if defined(KDICT) || defined(KCOUNTER)
-  void vertex_insert(uint8_t* bseq, int k, T obj, std::function<T(T&, T&)>& merge_func)
+  void vertex_insert(uint8_t* bseq, int k, T& obj, std::function<T(T&, T&)>& merge_func)
 #elif KSET
   void vertex_insert(uint8_t* bseq, int k)
 #endif
@@ -165,37 +156,40 @@ public:
     if((pref_pres >> (unsigned) prefix) & 0x1) {
       int vidx = calc_vidx(pref_pres, prefix);
 #if defined(KDICT) || defined(KCOUNTER)
-      vs[vidx]->vertex_insert(&bseq[1], k - 4, obj, merge_func);
+      vs[vidx].vertex_insert(&bseq[1], k - 4, obj, merge_func);
 #elif KSET
-      vs[vidx]->vertex_insert(&bseq[1], k - 4);
+      vs[vidx].vertex_insert(&bseq[1], k - 4);
 #endif
       return;
     }
 
     // NOTE: if the key already exisrts, we need to update it somehow
-    std::pair< bool, int > sres = uc->uc_find(k, bseq);
+    std::pair< bool, int > sres = uc.uc_find(k, bseq);
     int uc_idx = sres.second;
     if( sres.first ) {
       // replace object here
 #if defined(KDICT) || defined(KCOUNTER)
       if(merge_func != NULL) {
 	//std::cout << "merging objects!" << std::endl;
-	T merged_obj = merge_func(uc->get_obj(uc_idx), obj);
-	uc->set_obj(uc_idx, merged_obj);
+	//std::cout << "merging\t" << std::endl;
+	//std::cout << uc.get_obj(uc_idx) << std::endl;
+	//std::cout << obj << std::endl;
+	T merged_obj = merge_func(uc.get_obj(uc_idx), obj);
+	uc.set_obj(uc_idx, merged_obj);
       } else {
-	uc->set_obj(uc_idx, obj);
+	uc.set_obj(uc_idx, obj);
       }
 #endif
       return;
     }
 
 #if defined(KDICT) || defined(KCOUNTER)
-    uc->uc_insert(bseq, k, uc_idx, obj);
+    uc.uc_insert(bseq, k, uc_idx, obj);
 #elif KSET
-    uc->uc_insert(bseq, k, uc_idx);
+    uc.uc_insert(bseq, k, uc_idx);
 #endif
 
-    if(uc->get_size() == CAPACITY) {
+    if(uc.get_size() == CAPACITY) {
 #if defined(KDICT) || defined(KCOUNTER)
       burst_uc(k, merge_func);
 #else
@@ -210,14 +204,15 @@ public:
   void burst_uc(int k)
 #endif
   {
+    //std::cout << "bursting" << std::endl;
     int suffix_size = calc_bk( k );
 
-    uint8_t* suffixes = uc->get_suffixes();
+    uint8_t* suffixes = uc.get_suffixes();
 #if defined(KDICT) || defined(KCOUNTER)
-    std::vector<T> objs = uc->get_objs();
+    std::vector<T>& objs = uc.get_objs();
 #endif
     int idx;
-    for(size_t i = 0; i < uc->get_size(); i++) {
+    for(size_t i = 0; i < uc.get_size(); i++) {
       idx = i * suffix_size;
 
       uint8_t* bseq = &suffixes[ idx ];
@@ -228,59 +223,20 @@ public:
 
       // check if there is already a vertex that represents this prefix
       if(!((pref_pres >> (unsigned) bits_to_shift) & 0x1)) {
-
-	if(vs == NULL) {
-#if defined(KDICT) || defined(KCOUNTER)
-	  vs = (Vertex<T>**) calloc(1, sizeof(Vertex<T>*));
-#else
-	  vs = (Vertex**) calloc(1, sizeof(Vertex*));
-#endif
-	} else {
-#if defined(KDICT) || defined(KCOUNTER)
-	  vs = (Vertex<T>**) realloc(vs, (vs_size + 1) * sizeof(Vertex<T>*));
-#else
-	  vs = (Vertex**) realloc(vs, (vs_size + 1) * sizeof(Vertex*));
-#endif
-	}
-	// move any previous vertices if necessary
-	if(vidx < vs_size) {
-	  //std::cout << "moving " << vidx << " to " << vidx + 1 << " (size of array " << vs_size + 1 << ") moving " << (vs_size - vidx) << " total items" << std::endl;
-	  std::memmove(&vs[vidx + 1],
-		       &vs[vidx],
-#if defined(KDICT) || defined(KCOUNTER)
-		       (vs_size - vidx) * sizeof(Vertex<T>*)
-#else
-		       (vs_size - vidx) * sizeof(Vertex*)
-#endif
-		       );
-	}
-
 	pref_pres |= ((uint256_t) 0x1 << (unsigned) bits_to_shift);
-	// insert a vertex at vidx
-#if defined(KDICT) || defined(KCOUNTER)
-	vs[vidx] = new Vertex<T>();
-#else
-	vs[vidx] = new Vertex();
-#endif
-
-	// increment size
-	vs_size++;
+	vs.reserve(vs.size() + 1);
+	vs.insert(vs.begin() + vidx, Vertex(k - 4));
       } else {
 	//std::cout << "\t" << vidx << "\tusing existing vertex" << std::endl;
       }
 
 #if defined(KDICT) || defined(KCOUNTER)
-      vs[vidx]->vertex_insert(suffix, k - 4, objs[ i ], merge_func);
+      vs[vidx].vertex_insert(suffix, k - 4, objs[ i ], merge_func);
 #elif defined(KSET)
-      vs[vidx]->vertex_insert(suffix, k - 4);
+      vs[vidx].vertex_insert(suffix, k - 4);
 #endif
     }
 
-    delete uc;
-#if defined(KDICT) || defined(KCOUNTER)
-    uc = new UC<T>();
-#elif defined(KSET)
-    uc = new UC();
-#endif
+    uc.clear();
   }
 };

@@ -83,14 +83,14 @@ protected:
 public:
   Kcontainer(const int k) : k(k) {
 #if defined(KDICT) || defined(KCOUNTER)
-    v = new Vertex<T>();
+    v = new Vertex<T>(k);
 #else
-    v = new Vertex();
+    v = new Vertex(k);
 #endif
   }
 
   ~Kcontainer() {
-    delete v;
+    //delete v;
   }
   class KcontainerIterator {
   public:
@@ -212,7 +212,7 @@ public:
 #endif
 	  
 	  depth++;
-	  v_stack.push_back(v_ptr->get_vs()[cc_idx]);
+	  v_stack.push_back(&v_ptr->get_vs()[cc_idx]);
 	  cc_stack.back()++;
 	  cc_stack.push_back(0);
 	  uc_stack.push_back(0);
@@ -367,14 +367,17 @@ public:
 #if KSET
     v->vertex_insert(bseq8, k);
 #elif defined(KCOUNTER)
-    v->vertex_insert(bseq8, k, 1, f);
+    int count = 1;
+    v->vertex_insert(bseq8, k, count, f);
 #elif defined(KDICT)
 #if defined(PYTHON)
     auto iter = py::iter(values);
-    v->vertex_insert(bseq8, k, (*iter).cast<T>(), f);
+    auto value = (*iter).cast<T>();
+    v->vertex_insert(bseq8, k, value, f);
 #else
     auto iter = values.begin();
-    v->vertex_insert(bseq8, k, *iter, f);
+    auto value = *iter;
+    v->vertex_insert(bseq8, k, value, f);
 #endif
 #endif
 
@@ -396,13 +399,16 @@ public:
 #if KSET
       v->vertex_insert(bseq8, k);
 #elif defined(KCOUNTER)
-      v->vertex_insert(bseq8, k, 1, f);
+      count = 1;
+      v->vertex_insert(bseq8, k, count, f);
 #elif defined(KDICT)
 #if defined(PYTHON)
       std::advance(iter, 1);
-      v->vertex_insert(bseq8, k, (*iter).cast<T>(), f);
+      value = (*iter).cast<T>();
+      v->vertex_insert(bseq8, k, value, f);
 #else
-      v->vertex_insert(bseq8, k, *iter, f);
+      value = *iter;
+      v->vertex_insert(bseq8, k, value, f);
 #endif
 #endif
     }
@@ -473,9 +479,9 @@ public:
 
       }
 #if defined(KDICT) || defined(KCOUNTER)
-      tg->v[i] = new Vertex<T>();
+      tg->v[i] = new Vertex<T>(k);
 #else
-      tg->v[i] = new Vertex();
+      tg->v[i] = new Vertex(k);
 #endif
 
       tg->rsignal[i] = sem_open((appName + std::to_string(getpid()) + std::to_string(i)).c_str(), O_CREAT, 0600, 0);
@@ -514,12 +520,13 @@ public:
     }
 
 #if defined(KDICT) || defined(KCOUNTER)
-    v->set_vs((Vertex<T>**) calloc(total_vs, sizeof(Vertex<T>*)));
+    //v->set_vs((Vertex<T>**) calloc(total_vs, sizeof(Vertex<T>*)));
 #else
-    v->set_vs((Vertex**) calloc(total_vs, sizeof(Vertex*)));
+    //v->set_vs((Vertex**) calloc(total_vs, sizeof(Vertex*)));
 #endif
 
-    v->set_vs_size(total_vs);
+    //v->set_vs_size(total_vs);
+    v->get_vs().reserve(total_vs);
 
     // NOTE: clean up memory
     int idx = 0;
@@ -527,30 +534,29 @@ public:
       //std::cout << "thread: " << i << "\t" << v[i]->vs_size << std::endl;
 
 #if defined(KDICT) || defined(KCOUNTER)
-      Vertex<T>** v_vs = tg->v[i]->get_vs();
+      std::vector<Vertex<T>>& v_vs = tg->v[i]->get_vs();
 #else
-      Vertex** v_vs = tg->v[i]->get_vs();
+      std::vector<Vertex>& v_vs = tg->v[i]->get_vs();
 #endif
 
-      if(v_vs != NULL) {
-#if defined(KDICT) || defined(KCOUNTER)
-	std::memmove(&v->get_vs()[idx], tg->v[i]->get_vs(), tg->v[i]->get_vs_size() * sizeof(Vertex<T>*));
-#else
-	std::memmove(&v->get_vs()[idx], tg->v[i]->get_vs(), tg->v[i]->get_vs_size() * sizeof(Vertex*));
-#endif
+      if(v_vs.size() > 0) {
+	v->get_vs().insert(v->get_vs().end(), v_vs.begin(), v_vs.end());
 
 	v->set_pref_pres(v->get_pref_pres() | tg->v[i]->get_pref_pres());
 	idx += tg->v[i]->get_vs_size();
-	free(v_vs);
+	//v_vs.clear();
+	
+	//free(v_vs);
+	/*
 #if defined(KDICT) || defined(KCOUNTER)
 	tg->v[i]->set_vs((Vertex<T>**) NULL);
 #else
 	tg->v[i]->set_vs((Vertex**) NULL);
 #endif
-
+	*/
       }
 
-      delete tg->v[i];
+      //delete tg->v[i];
       free(tg->blocks[i]);
       (*tg->kmers)[i].clear();
 #if defined(KDICT) || defined(KCOUNTER)
@@ -606,6 +612,7 @@ public:
 	tg->v[bin]->vertex_insert(i, tg->k);
 	free(i);
 #elif defined(KDICT) || defined(KCOUNTER)
+	//std::cout << deserialize_kmer_to_string(tg->k, i.first) << std::endl;
 	tg->v[bin]->vertex_insert(i.first, tg->k, i.second, *ti->merge_func);
 	free(i.first);
 #endif
@@ -747,7 +754,7 @@ public:
 #if defined(KSET)
   void parallel_kcontainer_add_bseq(uint8_t* bseq)
 #elif defined(KDICT) || defined(KCOUNTER)
-  void parallel_kcontainer_add_bseq(uint8_t* bseq, T& obj)
+  void parallel_kcontainer_add_bseq(uint8_t* bseq, T obj)
 #endif
   {
     //std::cout << "adding bseq" << std::endl;

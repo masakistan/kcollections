@@ -24,46 +24,68 @@ private:
   size_t size;
 #endif
   uint8_t* suffixes;
+  int k;
 
 public:
-  UC() : suffixes(NULL) {
+  UC(int k) : suffixes(NULL), k(k) {
 #if defined(KSET)
     size = 0;
 #endif
   }
 
-  ~UC() {
-    if(suffixes != NULL) {
-      free(suffixes);
+  UC(const UC& in_uc) {
 #if defined(KDICT) || defined(KCOUNTER)
+    objs = std::vector<T>(in_uc.objs);
+    //objs = std::vector<int>(in_uc.objs.size(), 1); //in_uc.objs;
+#else
+    size = in_uc.size;
+#endif
+    
+    k = in_uc.k;
+    if(get_size() > 0) {
+      int len = calc_bk(k);
+      //std::cout << len << "\t" << get_size() << std::endl;
+      suffixes = (uint8_t*) malloc(
+				   sizeof(uint8_t) * len * get_size()
+				   );
+      memcpy(
+	     suffixes,
+	     in_uc.suffixes,
+	     sizeof(uint8_t) * len * get_size()
+	     );
+    } else {
+      //std::cout << "setting suffixes to null" << std::endl;
+      suffixes = NULL;
+    }
+  }
+
+  ~UC() {
+    clear();
+  }
+
+  void clear() {
+    if(get_size() > 0) {
+      free(suffixes);
+      suffixes = NULL;
+#if defined(KDICT) || defined(KCOUNTER)
+      //objs = std::vector<T>();
       objs.clear();
+      objs.shrink_to_fit();
 #else
       size = 0;
 #endif
     }
   }
 
-  /*
-  void print(int k) {
-    int len = calc_bk(k);
-    int idx;
-    for(size_t i = 0; i < get_size(); i++) {
-      idx = i * len;
-      char* dseq = deserialize_kmer(k, len, suffixes[idx]);
-      std::cout << "kmer: " << dseq << std::endl;
-      free(dseq);
-    }
-  }
-  */
-
 #if defined(KDICT) || defined(KCOUNTER)
-void uc_insert(uint8_t* bseq, int k, int idx, T obj)
+void uc_insert(uint8_t* bseq, int k, int idx, T& obj)
 #else
 void uc_insert(uint8_t* bseq, int k, int idx)
 #endif
 {
+  assert(this->k == k);
   int len = calc_bk(k);
-  if(suffixes == NULL) {
+  if(get_size() == 0) {
     suffixes = (uint8_t*) calloc(len, sizeof(uint8_t));
   }
   else {
@@ -87,7 +109,15 @@ void uc_insert(uint8_t* bseq, int k, int idx)
     std::memcpy(&suffixes[suffix_idx], bseq, len);
 
 #if defined(KDICT) || defined(KCOUNTER)
+    //objs = std::vector<int>(objs.size(), 1);
+    objs.reserve(get_size() + 1);
+
+
+    //std::cout << objs.capacity() << std::endl;
+    //std::cout << "inserting at " << idx << "\t" << obj << "\t" << CAPACITY<< std::endl;
+    //assert(idx < objs.capacity());
     objs.insert(objs.begin() + idx, obj);
+    //objs.push_back(T(obj));
 #else
     size++;
 #endif
@@ -97,7 +127,7 @@ void uc_insert(uint8_t* bseq, int k, int idx)
 }
 
   std::pair< bool, int > uc_find(int k, uint8_t* bseq) {
-    if(suffixes == NULL) {
+    if(get_size() == 0) {
       return std::make_pair(false, get_size());
     }
 
@@ -114,6 +144,7 @@ void uc_insert(uint8_t* bseq, int k, int idx)
 		 );
 #if defined(KDICT) || defined(KCOUNTER)
     objs.erase(objs.begin() + idx);
+    objs.shrink_to_fit();
 #else
     size--;
 #endif

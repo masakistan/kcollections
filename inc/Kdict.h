@@ -84,7 +84,7 @@ public:
   
   Vertex<T>* get_child_vertex( Vertex<T>* v, int idx )
   {
-    return v->get_vs()[idx];
+    return &v->get_vs()[idx];
   }
   
   std::string get_child_suffix( Vertex<T>* v, int idx )

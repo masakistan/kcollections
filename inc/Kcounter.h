@@ -54,7 +54,7 @@ public:
   int get_vs_size( Vertex<int>* v ){ return v->get_vs_size(); }
   Vertex<int>* get_child_vertex( Vertex<int>* v, int idx )
   {
-    return v->get_vs()[idx];
+    return &v->get_vs()[idx];
   }
   std::string get_child_suffix( Vertex<int>* v, int idx )
   {
