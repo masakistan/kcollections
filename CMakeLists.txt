@@ -147,7 +147,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
  # Jemalloc
- set(PROJECT_JEMALLOC_PATH ${CMAKE_BINARY_DIR}/jemalloc-5.2.2)
+ set(PROJECT_JEMALLOC_PATH ${CMAKE_BINARY_DIR}/jemalloc-5.2.1)
  ExternalProject_Add(project_jemalloc
    URL https://github.com/jemalloc/jemalloc/releases/download/5.2.1/jemalloc-5.2.1.tar.bz2
    URL_HASH MD5=3d41fbf006e6ebffd489bdb304d009ae
