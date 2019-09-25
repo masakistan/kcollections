@@ -6,6 +6,11 @@ extern "C" {
 #include <cstring>
 #include <algorithm>
 
+/*
+The program expects 1 argument, the kmer size.
+The genome sequence is passed in on stdin with each genome on a new line.
+Given a genome in FASTA format, pass it to `sed "/^>.*$/d" | tr -d '\n' | ./run_bft 9`
+ */
 int main(int argc, char* argv[]) {
     if(argc < 2) {
         std::cout << "Error: missing arguments of kmer size." << std::endl;
@@ -20,6 +25,7 @@ int main(int argc, char* argv[]) {
         for(int i = 0; i < numKmers; i++) {
             std::string kmer = seq.substr(i, kmerSize);
             std::replace(kmer.begin(), kmer.end(), 'N', 'A');
+            std::replace(kmer.begin(), kmer.end(), 'n', 'a');
             // std::cout << kmer << std::endl;
             kmers[i] = new char[kmerSize];
             strcpy(kmers[i], kmer.c_str());
