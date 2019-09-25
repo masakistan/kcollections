@@ -37,7 +37,7 @@ public:
   int get_vs_size( Vertex* v ){ return v->get_vs_size(); }
   Vertex* get_child_vertex( Vertex* v, int idx )
   {
-    return v->get_vs()[idx];
+    return &v->get_vs()[idx];
   }
 
   std::string get_child_suffix(Vertex* v, int idx)
@@ -48,7 +48,8 @@ public:
 
   void parallel_add_init(int threads) {
     kc->parallel_kcontainer_add_init(threads);
-  };
+  }
+  
   void parallel_add(const char* kmer) {
     kc->parallel_kcontainer_add(kmer);
   }

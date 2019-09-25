@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include "Vertex.h"
 #include "helper.h"
-//#include <jemalloc/jemalloc.h>
+#include <jemalloc/jemalloc.h>
 #include <math.h>
 #include <functional>
 
@@ -83,15 +83,18 @@ protected:
 public:
   Kcontainer(const int k) : k(k) {
 #if defined(KDICT) || defined(KCOUNTER)
-    v = new Vertex<T>();
+    //v = new Vertex<T>();
 #else
-    v = new Vertex();
+    //v = new Vertex();
 #endif
+    std::cout << "vertex size: " << sizeof(v) << std::endl;
   }
 
   ~Kcontainer() {
-    delete v;
+    //delete v;
+    free(tg);
   }
+
   class KcontainerIterator {
   public:
     typedef std::input_iterator_tag iterator_category;    // iterator category
@@ -109,14 +112,14 @@ public:
     KcontainerIterator() {}
 
 #if defined(KDICT) || defined(KCOUNTER)
-    KcontainerIterator(Vertex<T>* v, int k) : k(k)
+    KcontainerIterator(Vertex<T>& v, int k) : k(k)
 #else
-    KcontainerIterator(Vertex* v, int k) : k(k)
+    KcontainerIterator(Vertex& v, int k) : k(k)
 #endif
     {
       // check if there is an uncompressed container to start
       depth = 0;
-      v_stack.push_back(v);
+      v_stack.push_back(&v);
       uc_stack.push_back(0);
       cc_stack.push_back(0);
 #if defined(KDICT) || defined(KCOUNTER)
@@ -192,7 +195,7 @@ public:
 
       int n = k - (depth * 4);
       
-      if(uc_idx < v_ptr->get_uc()->get_size()) {
+      if((size_t) uc_idx < v_ptr->get_uc()->get_size()) {
 	// NOTE: remove last n characters
 	// NOTE: replace last n characters
 #if defined(KDICT) || defined(KCOUNTER)
@@ -212,7 +215,7 @@ public:
 #endif
 	  
 	  depth++;
-	  v_stack.push_back(v_ptr->get_vs()[cc_idx]);
+	  v_stack.push_back(&v_ptr->get_vs()[cc_idx]);
 	  cc_stack.back()++;
 	  cc_stack.push_back(0);
 	  uc_stack.push_back(0);
@@ -248,7 +251,7 @@ public:
   Kcontainer<T>::iterator end() {
     return Kcontainer<T>::iterator();
   }
-  Vertex<T>* get_v() { return v; }
+  Vertex<T>* get_v() { return &v; }
   
 #else
   Kcontainer::iterator begin() {
@@ -257,7 +260,7 @@ public:
   Kcontainer::iterator end() {
     return Kcontainer::iterator();
   }
-  Vertex* get_v() { return v; }
+  Vertex* get_v() { return &v; }
 #endif
 
 #if defined(KDICT) || defined(KCOUNTER)
@@ -292,7 +295,7 @@ public:
   {
     uint8_t* bseq = (uint8_t*) calloc(k, sizeof(uint8_t));
     serialize_kmer(kmer, k, bseq);
-    bool res = v->vertex_contains(bseq, k);
+    bool res = v.vertex_contains(bseq, k);
     free(bseq);
     return res;
   }
@@ -301,7 +304,7 @@ public:
   {
     uint8_t* bseq = (uint8_t*) calloc(k, sizeof(uint8_t));
     serialize_kmer(kmer, k, bseq);
-    v->vertex_remove(bseq, k);
+    v.vertex_remove(bseq, k);
     free(bseq);
   }
 
@@ -314,9 +317,9 @@ public:
     uint8_t* bseq = (uint8_t*) calloc(k, sizeof(uint8_t));
     serialize_kmer(kmer, k, bseq);
 #if defined(KDICT) || defined(KCOUNTER)
-    v->vertex_insert(bseq, k, obj, merge_func);
+    v.vertex_insert(bseq, k, obj, merge_func);
 #elif KSET
-    v->vertex_insert(bseq, k);
+    v.vertex_insert(bseq, k);
 #endif
     free(bseq);
   }
@@ -326,7 +329,7 @@ public:
   {
     uint8_t* bseq = (uint8_t*) calloc(k, sizeof(uint8_t));
     serialize_kmer(kmer, k, bseq);
-    T& res = v->vertex_get(bseq, k);
+    T& res = v.vertex_get(bseq, k);
     free(bseq);
     return res;
   }
@@ -334,7 +337,7 @@ public:
 
   uint64_t kcontainer_size()
   {
-    return v->get_vertex_size();
+    return v.get_vertex_size();
   }
 
 #if defined(KDICT)
@@ -365,16 +368,16 @@ public:
     serialize_kmer(seq, k, bseq8);
 
 #if KSET
-    v->vertex_insert(bseq8, k);
+    v.vertex_insert(bseq8, k);
 #elif defined(KCOUNTER)
-    v->vertex_insert(bseq8, k, 1, f);
+    v.vertex_insert(bseq8, k, 1, f);
 #elif defined(KDICT)
 #if defined(PYTHON)
     auto iter = py::iter(values);
-    v->vertex_insert(bseq8, k, (*iter).cast<T>(), f);
+    v.vertex_insert(bseq8, k, (*iter).cast<T>(), f);
 #else
     auto iter = values.begin();
-    v->vertex_insert(bseq8, k, *iter, f);
+    v.vertex_insert(bseq8, k, *iter, f);
 #endif
 #endif
 
@@ -394,15 +397,15 @@ public:
 
       serialize_position(j, bk - 1, last_index, bseq8, seq);
 #if KSET
-      v->vertex_insert(bseq8, k);
+      v.vertex_insert(bseq8, k);
 #elif defined(KCOUNTER)
-      v->vertex_insert(bseq8, k, 1, f);
+      v.vertex_insert(bseq8, k, 1, f);
 #elif defined(KDICT)
 #if defined(PYTHON)
       std::advance(iter, 1);
-      v->vertex_insert(bseq8, k, (*iter).cast<T>(), f);
+      v.vertex_insert(bseq8, k, (*iter).cast<T>(), f);
 #else
-      v->vertex_insert(bseq8, k, *iter, f);
+      v.vertex_insert(bseq8, k, *iter, f);
 #endif
 #endif
     }
@@ -514,12 +517,12 @@ public:
     }
 
 #if defined(KDICT) || defined(KCOUNTER)
-    v->set_vs((Vertex<T>**) calloc(total_vs, sizeof(Vertex<T>*)));
+    v.set_vs((Vertex<T>*) calloc(total_vs, sizeof(Vertex<T>)));
 #else
-    v->set_vs((Vertex**) calloc(total_vs, sizeof(Vertex*)));
+    v.set_vs((Vertex*) calloc(total_vs, sizeof(Vertex)));
 #endif
 
-    v->set_vs_size(total_vs);
+    v.set_vs_size(total_vs);
 
     // NOTE: clean up memory
     int idx = 0;
@@ -527,25 +530,25 @@ public:
       //std::cout << "thread: " << i << "\t" << v[i]->vs_size << std::endl;
 
 #if defined(KDICT) || defined(KCOUNTER)
-      Vertex<T>** v_vs = tg->v[i]->get_vs();
+      Vertex<T>* v_vs = tg->v[i]->get_vs();
 #else
-      Vertex** v_vs = tg->v[i]->get_vs();
+      Vertex* v_vs = tg->v[i]->get_vs();
 #endif
 
       if(v_vs != NULL) {
 #if defined(KDICT) || defined(KCOUNTER)
-	std::memmove(&v->get_vs()[idx], tg->v[i]->get_vs(), tg->v[i]->get_vs_size() * sizeof(Vertex<T>*));
+	std::memmove(&v.get_vs()[idx], tg->v[i]->get_vs(), tg->v[i]->get_vs_size() * sizeof(Vertex<T>));
 #else
-	std::memmove(&v->get_vs()[idx], tg->v[i]->get_vs(), tg->v[i]->get_vs_size() * sizeof(Vertex*));
+	std::memmove(&v.get_vs()[idx], tg->v[i]->get_vs(), tg->v[i]->get_vs_size() * sizeof(Vertex));
 #endif
 
-	v->set_pref_pres(v->get_pref_pres() | tg->v[i]->get_pref_pres());
+	v.set_pref_pres(v.get_pref_pres() | tg->v[i]->get_pref_pres());
 	idx += tg->v[i]->get_vs_size();
 	free(v_vs);
 #if defined(KDICT) || defined(KCOUNTER)
-	tg->v[i]->set_vs((Vertex<T>**) NULL);
+	tg->v[i]->set_vs((Vertex<T>*) NULL);
 #else
-	tg->v[i]->set_vs((Vertex**) NULL);
+	tg->v[i]->set_vs((Vertex*) NULL);
 #endif
 
       }
@@ -787,9 +790,9 @@ private:
   int k;
   
 #if defined(KDICT) || defined(KCOUNTER)
-  Vertex<T>* v;
+  Vertex<T> v;
 #else
-  Vertex* v;
+  Vertex v;
 #endif
 };
 

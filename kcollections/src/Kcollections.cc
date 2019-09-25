@@ -74,9 +74,9 @@ template<typename T>
 void declare_kdict(py::module& m, const std::string& name) {
   
   declare_kdict_member<T>(m, name);
-  declare_kdict_member<std::vector<T>>(m, std::string("vector_") + name);
-  declare_kdict_member<std::set<T>>(m, std::string("set_") + name);
-  declare_kdict_member<std::list<T>>(m, std::string("list_") + name);
+  //declare_kdict_member<std::vector<T>>(m, std::string("vector_") + name);
+  //declare_kdict_member<std::set<T>>(m, std::string("set_") + name);
+  //declare_kdict_member<std::list<T>>(m, std::string("list_") + name);
 }
 
 //PYBIND11_MAKE_OPAQUE(std::vector<int>);
@@ -85,15 +85,15 @@ PYBIND11_MODULE( _Kdict, m )
 {
 
   declare_kdict<int>(m, "int");
-  declare_kdict<float>(m, "float");
+  //declare_kdict<float>(m, "float");
   // NOTE: we use char because std::vector<bool> does not return references to items
   // using char instead is a hack, should we change this?
-  declare_kdict<char>(m, "bool");
-  declare_kdict<std::string>(m, "string");
-  declare_kdict<py::object>(m, "object");
+  //declare_kdict<char>(m, "bool");
+  //declare_kdict<std::string>(m, "string");
+  //declare_kdict<py::object>(m, "object");
 
   //declare_kdict_member<py::list>(m, "pylist");
-  declare_kdict_member<std::vector<std::vector<int>>>(m, "list_list");
+  //declare_kdict_member<std::vector<std::vector<int>>>(m, "list_list");
 }
 
 #elif KCOUNTER

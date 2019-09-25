@@ -8,7 +8,7 @@
 #include "globals.h"
 #include "helper.h"
 //#include <pybind11/pybind11.h>
-//#include <jemalloc/jemalloc.h>
+#include <jemalloc/jemalloc.h>
 
 //namespace py = pybind11;
 
@@ -18,12 +18,12 @@ template <class T>
 
 class UC {
 private:
+  uint8_t* suffixes;
 #if defined(KDICT) || defined(KCOUNTER)
   std::vector<T> objs;
 #else
   size_t size;
 #endif
-  uint8_t* suffixes;
 
 public:
   UC() : suffixes(NULL) {
@@ -33,8 +33,14 @@ public:
   }
 
   ~UC() {
+    clear();
+  }
+
+  void clear() {
     if(suffixes != NULL) {
+      //std::cout << "clear!" << std::endl;
       free(suffixes);
+      suffixes = NULL;
 #if defined(KDICT) || defined(KCOUNTER)
       objs.clear();
 #else
@@ -42,19 +48,6 @@ public:
 #endif
     }
   }
-
-  /*
-  void print(int k) {
-    int len = calc_bk(k);
-    int idx;
-    for(size_t i = 0; i < get_size(); i++) {
-      idx = i * len;
-      char* dseq = deserialize_kmer(k, len, suffixes[idx]);
-      std::cout << "kmer: " << dseq << std::endl;
-      free(dseq);
-    }
-  }
-  */
 
 #if defined(KDICT) || defined(KCOUNTER)
 void uc_insert(uint8_t* bseq, int k, int idx, T obj)
@@ -87,6 +80,7 @@ void uc_insert(uint8_t* bseq, int k, int idx)
     std::memcpy(&suffixes[suffix_idx], bseq, len);
 
 #if defined(KDICT) || defined(KCOUNTER)
+    objs.reserve(objs.size() + 1);
     objs.insert(objs.begin() + idx, obj);
 #else
     size++;
