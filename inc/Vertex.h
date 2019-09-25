@@ -7,7 +7,7 @@
 #include <functional>
 #include "UContainer.h"
 #include "globals.h"
-#include <jemalloc/jemalloc.h>
+//#include <jemalloc/jemalloc.h>
 #include "uint256_t.h"
 
 #if defined(PYTHON)
