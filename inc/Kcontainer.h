@@ -87,7 +87,7 @@ public:
 #else
     //v = new Vertex();
 #endif
-    std::cout << "vertex size: " << sizeof(v) << std::endl;
+    //std::cout << "vertex size: " << sizeof(v) << std::endl;
   }
 
   ~Kcontainer() {
