@@ -42,7 +42,7 @@ public:
     #if defined(KDICT) || defined(KCOUNTER)
     objs = std::move(o.objs);
     #else
-    size = std::exchange(o.size, 0);
+    std::swap(o.size, size);
     #endif
   }
 

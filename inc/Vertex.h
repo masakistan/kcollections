@@ -48,8 +48,8 @@ public:
     vs = o.vs;
     o.vs = NULL;
     
-    vs_size = std::exchange(o.vs_size, 0);
-    pref_pres = std::exchange(o.pref_pres, 0);
+    std::swap(o.vs_size, vs_size);
+    std::swap(o.pref_pres, pref_pres);
   }
 
   void clear() {
