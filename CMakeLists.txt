@@ -112,6 +112,11 @@ else()
     add_executable(dictbulktest "${SOURCE_DIR}/TestDictBulk.cpp" $<TARGET_OBJECTS:kcollections_dict_objs>)
     target_link_libraries(dictbulktest Threads::Threads Kdict)
     set_target_properties(dictbulktest PROPERTIES COMPILE_DEFINITIONS "KDICT")
+	
+	# Testing Kset
+    add_executable(setbulktest "${SOURCE_DIR}/TestSetBulk.cpp" $<TARGET_OBJECTS:kcollections_set_objs>)
+    target_link_libraries(setbulktest Threads::Threads Kset)
+    set_target_properties(setbulktest PROPERTIES COMPILE_DEFINITIONS "KSET")
 endif()
 
 # Additinoal compiler flags
@@ -140,31 +145,3 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio C++
 endif()
-
-# Jemalloc
-# set(PROJECT_JEMALLOC_PATH ${CMAKE_BINARY_DIR}/jemalloc-5.2.2)
-# ExternalProject_Add(project_jemalloc
-#   URL https://github.com/jemalloc/jemalloc/releases/download/5.2.1/jemalloc-5.2.1.tar.bz2
-#   URL_HASH MD5=3d41fbf006e6ebffd489bdb304d009ae
-#   PREFIX ${PROJECT_JEMALLOC_PATH}
-#   CONFIGURE_COMMAND ${PROJECT_JEMALLOC_PATH}/src/project_jemalloc/configure --prefix=${PROJECT_JEMALLOC_PATH}
-#   STEP_TARGETS build
-#   EXCLUDE_FROM_ALL TRUE
-#   BUILD_IN_SOURCE TRUE
-#   BUILD_COMMAND ${MAKE})
-# ExternalProject_Get_Property(project_jemalloc install_dir)
-# add_library(jemalloc STATIC IMPORTED)
-# add_library(jemalloc_shared SHARED IMPORTED)
-# set_property(TARGET jemalloc PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_STATIC_LIBRARY_SUFFIX})
-# set_property(TARGET jemalloc PROPERTY INTERFACE_LINK_LIBRARIES pthread dl)
-# set_property(TARGET jemalloc_shared PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libjemalloc${CMAKE_SHARED_LIBRARY_SUFFIX})
-
-# include_directories(Kset "${install_dir}/include")
-# include_directories(Kdict "${install_dir}/include")
-# include_directories(Kcounter "${install_dir}/include")
-
-# if (${PYTHON})
-#   include_directories(_Kset "${install_dir}/include")
-#   include_directories(_Kdict "${install_dir}/include")
-#   include_directories(_Kcounter "${install_dir}/include")
-# endif()
