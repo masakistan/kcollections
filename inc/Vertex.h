@@ -34,13 +34,22 @@ private:
 
   uint16_t vs_size;
 public:
-  Vertex() : vs(NULL), vs_size(0) {
-    pref_pres = 0;
+  Vertex() : vs(NULL), vs_size(0), pref_pres(0) {
     //std::cout << "uc: " << sizeof(uc) << std::endl;
   }
 
   ~Vertex() {
     clear();
+  }
+
+  Vertex& operator=(Vertex&& o) {
+    uc = std::move(o.uc);
+    
+    vs = o.vs;
+    o.vs = NULL;
+    
+    vs_size = std::exchange(o.vs_size, 0);
+    pref_pres = std::exchange(o.pref_pres, 0);
   }
 
   void clear() {
@@ -53,7 +62,7 @@ public:
       for(uint16_t i = 0; i < vs_size; i++) {
 	vs[i].clear();
       }
-      free(vs);
+      delete[] vs;
       vs = NULL;
       vs_size = 0;
     }
@@ -210,6 +219,35 @@ public:
   }
 
 #if defined(KDICT) || defined(KCOUNTER)
+  void realloc_vertex_array(uint16_t insert_at = 0)
+#else
+  void realloc_vertex_array(uint16_t insert_at = 0)
+#endif
+  {
+#if defined(KDICT) || defined(KCOUNTER)
+    Vertex<T>* vs_temp = new Vertex<T>[vs_size + 1];
+#else
+    Vertex* vs_temp = new Vertex[vs_size + 1];
+#endif
+    uint16_t insert_idx = 0, orig_idx = 0;
+    for(; orig_idx < vs_size; insert_idx++, orig_idx++) {
+      if(orig_idx == insert_at) {
+	//std::cout << "skipping: " << orig_idx << std::endl;
+	insert_idx++;
+      }
+      
+      vs_temp[insert_idx] = std::move(vs[orig_idx]);
+    }
+
+    if(vs != NULL) {
+      delete[] vs;
+    }
+
+    vs = vs_temp;
+    vs_size++;
+  }
+
+#if defined(KDICT) || defined(KCOUNTER)
   void burst_uc(int k, std::function<T(T&, T&)>& merge_func)
 #else
   void burst_uc(int k)
@@ -230,47 +268,12 @@ public:
       uint8_t prefix = bseq[ 0 ];
       uint8_t* suffix = &bseq[ 1 ];
       uint8_t bits_to_shift = (unsigned) prefix;
-      int vidx = calc_vidx(pref_pres, prefix);
+      uint16_t vidx = calc_vidx(pref_pres, prefix);
 
       // check if there is already a vertex that represents this prefix
       if(!((pref_pres >> (unsigned) bits_to_shift) & 0x1)) {
-
-	if(vs == NULL) {
-#if defined(KDICT) || defined(KCOUNTER)
-	  vs = (Vertex<T>*) calloc(1, sizeof(Vertex<T>));
-#else
-	  vs = (Vertex*) calloc(1, sizeof(Vertex));
-#endif
-	} else {
-#if defined(KDICT) || defined(KCOUNTER)
-	  vs = (Vertex<T>*) realloc(vs, (vs_size + 1) * sizeof(Vertex<T>));
-#else
-	  vs = (Vertex*) realloc(vs, (vs_size + 1) * sizeof(Vertex));
-#endif
-	}
-	// move any previous vertices if necessary
-	if(vidx < vs_size) {
-	  //std::cout << "moving " << vidx << " to " << vidx + 1 << " (size of array " << vs_size + 1 << ") moving " << (vs_size - vidx) << " total items" << std::endl;
-	  std::memmove(&vs[vidx + 1],
-		       &vs[vidx],
-#if defined(KDICT) || defined(KCOUNTER)
-		       (vs_size - vidx) * sizeof(Vertex<T>)
-#else
-		       (vs_size - vidx) * sizeof(Vertex)
-#endif
-		       );
-	}
-
+	realloc_vertex_array(vidx);
 	pref_pres |= ((uint256_t) 0x1 << (unsigned) bits_to_shift);
-	// insert a vertex at vidx
-#if defined(KDICT) || defined(KCOUNTER)
-	vs[vidx] = Vertex<T>();
-#else
-	vs[vidx] = Vertex();
-#endif
-
-	// increment size
-	vs_size++;
       } else {
 	//std::cout << "\t" << vidx << "\tusing existing vertex" << std::endl;
       }
@@ -283,13 +286,5 @@ public:
     }
 
     uc.clear();
-    /*
-    delete uc;
-#if defined(KDICT) || defined(KCOUNTER)
-    uc = new UC<T>();
-#elif defined(KSET)
-    uc = new UC();
-#endif
-    */
   }
 };

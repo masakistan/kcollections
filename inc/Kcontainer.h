@@ -517,9 +517,9 @@ public:
     }
 
 #if defined(KDICT) || defined(KCOUNTER)
-    v.set_vs((Vertex<T>*) calloc(total_vs, sizeof(Vertex<T>)));
+    v.set_vs(new Vertex<T>[total_vs]);
 #else
-    v.set_vs((Vertex*) calloc(total_vs, sizeof(Vertex)));
+    v.set_vs(new Vertex[total_vs]);
 #endif
 
     v.set_vs_size(total_vs);
@@ -530,21 +530,20 @@ public:
       //std::cout << "thread: " << i << "\t" << v[i]->vs_size << std::endl;
 
 #if defined(KDICT) || defined(KCOUNTER)
-      Vertex<T>* v_vs = tg->v[i]->get_vs();
+      Vertex<T>* thread_vs = tg->v[i]->get_vs();
 #else
-      Vertex* v_vs = tg->v[i]->get_vs();
+      Vertex* thread_vs = tg->v[i]->get_vs();
 #endif
+      uint16_t thread_vs_size = tg->v[i]->get_vs_size();
 
-      if(v_vs != NULL) {
-#if defined(KDICT) || defined(KCOUNTER)
-	std::memmove(&v.get_vs()[idx], tg->v[i]->get_vs(), tg->v[i]->get_vs_size() * sizeof(Vertex<T>));
-#else
-	std::memmove(&v.get_vs()[idx], tg->v[i]->get_vs(), tg->v[i]->get_vs_size() * sizeof(Vertex));
-#endif
+      if(thread_vs != NULL) {
+	for(uint16_t vs_idx = 0; vs_idx < thread_vs_size; vs_idx++) {
+	  v.get_vs()[idx + vs_idx] = std::move(thread_vs[vs_idx]);
+	}
 
 	v.set_pref_pres(v.get_pref_pres() | tg->v[i]->get_pref_pres());
-	idx += tg->v[i]->get_vs_size();
-	free(v_vs);
+	idx += thread_vs_size;
+	delete[] thread_vs;
 #if defined(KDICT) || defined(KCOUNTER)
 	tg->v[i]->set_vs((Vertex<T>*) NULL);
 #else

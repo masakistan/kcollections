@@ -36,6 +36,16 @@ public:
     clear();
   }
 
+  UC& operator=(UC&& o) {
+    suffixes = o.suffixes;
+    o.suffixes = NULL;
+    #if defined(KDICT) || defined(KCOUNTER)
+    objs = std::move(o.objs);
+    #else
+    size = std::exchange(o.size, 0);
+    #endif
+  }
+
   void clear() {
     if(suffixes != NULL) {
       //std::cout << "clear!" << std::endl;
