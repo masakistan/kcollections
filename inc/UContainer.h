@@ -44,6 +44,7 @@ public:
     #else
     std::swap(o.size, size);
     #endif
+    return *this;
   }
 
   void clear() {

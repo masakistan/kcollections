@@ -34,7 +34,7 @@ private:
 
   uint16_t vs_size;
 public:
-  Vertex() : vs(NULL), vs_size(0), pref_pres(0) {
+  Vertex() : vs(NULL), pref_pres(0), vs_size(0) {
     //std::cout << "uc: " << sizeof(uc) << std::endl;
   }
 
@@ -50,6 +50,7 @@ public:
     
     std::swap(o.vs_size, vs_size);
     std::swap(o.pref_pres, pref_pres);
+    return *this;
   }
 
   void clear() {
