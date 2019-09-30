@@ -219,11 +219,7 @@ public:
     }
   }
 
-#if defined(KDICT) || defined(KCOUNTER)
   void realloc_vertex_array(uint16_t insert_at = 0)
-#else
-  void realloc_vertex_array(uint16_t insert_at = 0)
-#endif
   {
 #if defined(KDICT) || defined(KCOUNTER)
     Vertex<T>* vs_temp = new Vertex<T>[vs_size + 1];
