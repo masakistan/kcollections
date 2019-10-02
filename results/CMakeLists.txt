@@ -3,7 +3,8 @@ include(ExternalProject)
 
 project(run_bft)
 
-add_executable(run_bft "run_bft.cxx")
+add_executable(bft_kmers "run_bft_kmers.cxx")
+add_executable(bft_genome "run_bft_genome.cxx")
 
 ExternalProject_Add(project_bft
   GIT_REPOSITORY https://github.com/Colelyman/BloomFilterTrie
@@ -22,5 +23,7 @@ set_property(TARGET judy PROPERTY IMPORTED_LOCATION ${JUDY_PATH})
 #target_link_libraries(bft judy)
 include_directories(${BFT_PATH}/include)
 
-add_dependencies(run_bft project_bft)
-target_link_libraries(run_bft bft judy)
+add_dependencies(bft_kmers project_bft)
+add_dependencies(bft_genome project_bft)
+target_link_libraries(bft_kmers bft judy)
+target_link_libraries(bft_genome bft judy)
