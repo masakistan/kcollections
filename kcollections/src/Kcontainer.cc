@@ -324,32 +324,34 @@ void parallel_kcontainer_add_seq(Kcontainer* kd, const char* seq, uint32_t lengt
 
 void filter_vertices(Vertex* v, int bk) {
   // NOTE: iterate over suffixes
-  std::list<uint8_t>::iterator countIter;
-  std::list<uint32_t>::iterator coordIter;
 
-  for(int i = 0; i < v->uc.size; i++) {
+  for(size_t i = 0; i < v->uc.size; i++) {
     PgData* kdata = &v->uc.data[i];
     int gidx = 0;
-    countIter = kdata->counts->begin();
-    coordIter = kdata->coords->begin();
+    int suffix_idx = bk * i;
 
-    while(countIter != kdata->counts->end()) {
+    //std::cout << "checking: " << deserialize_kmer(bk * 4, bk, &v->uc.suffixes[suffix_idx]) << "\t" << (int) kdata->size << std::endl;
+
+    for(size_t j = 0; j < kdata->second->size();) {
+	
       // NOTE: get gidx
       gidx = next_set_bit(&kdata->genomes, gidx, 32);
 
-      if(*countIter == 2) {
-        countIter = kdata->counts->erase(countIter);
-        coordIter = kdata->coords->erase(coordIter);
+      if(kdata->second->at(j)) {
+	//std::cout << "\tremoving from: " << gidx << std::endl;
+	kdata->coords->erase(kdata->coords->begin() + j);
+	kdata->first->erase(kdata->first->begin() + j);
+	kdata->second->erase(kdata->second->begin() + j);
         kdata->genomes &= ~(0x1 << gidx);
       } else {
-        countIter++;
-        coordIter++;
+	j++;
       }
       gidx++;
     }
 
-    if(kdata->counts->size() == 1) {
-      int suffix_idx = bk * i;
+    if(kdata->second->size() < 2) {
+      //std::cout << "\tremove kmer" << std::endl;
+      
       v->uc.size -= 1;
       memmove(
               &v->uc.suffixes[suffix_idx],

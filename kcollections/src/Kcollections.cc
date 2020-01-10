@@ -134,55 +134,55 @@ PYBIND11_MODULE( _Kset, m )
     m.def("testbit32", &testbit32);
     
     py::class_<PgData>(m, "PgData")
-            .def_readwrite("coords", &PgData::coords, py::return_value_policy::reference)
-            .def_readwrite("genomes", &PgData::genomes, py::return_value_policy::reference)
-            .def_readwrite("counts", &PgData::counts, py::return_value_policy::reference)
-            .def_readwrite("vidx", &PgData::vidx, py::return_value_policy::reference)
-            .def_readwrite("orientation", &PgData::orientation, py::return_value_policy::reference)
-            .def_readwrite("size", &PgData::size, py::return_value_policy::reference);
-
+      .def_readwrite("coords", &PgData::coords, py::return_value_policy::reference)
+      .def_readwrite("genomes", &PgData::genomes, py::return_value_policy::reference)
+      //.def_readwrite("counts", &PgData::counts, py::return_value_policy::reference)
+      .def_readwrite("vidx", &PgData::vidx, py::return_value_policy::reference)
+      .def_readwrite("orientation", &PgData::orientation, py::return_value_policy::reference)
+      .def_readwrite("size", &PgData::size, py::return_value_policy::reference);
+    
     py::class_<Kset>(m, "Kset")
-        .def(py::init<const int>())
-        /*.def("add", &Kset::add, R"pbdoc(
-            Add a kmer to Kset
-
-            Takes one argument, the kmer represented as a string
-          )pbdoc")*/
-        .def("__getitem__", &Kset::get, R"pbdoc()pbdoc", py::return_value_policy::reference)
-        .def("__contains__", &Kset::contains, R"pbdoc(
+      .def(py::init<const int>())
+      /*.def("add", &Kset::add, R"pbdoc(
+	Add a kmer to Kset
+	
+	Takes one argument, the kmer represented as a string
+	)pbdoc")*/
+      .def("__getitem__", &Kset::get, R"pbdoc()pbdoc", py::return_value_policy::reference)
+      .def("__contains__", &Kset::contains, R"pbdoc(
             Checks if a kmer is in Kset
 
             Takes one argument, the kmer represented as a string and returns
             True if kmer is present in Kset or False if it is not present in Kset
           )pbdoc")
-        .def("clear", &Kset::clear, R"pbdoc(
+      .def("clear", &Kset::clear, R"pbdoc(
             Clears the Kset
           )pbdoc")
-        .def("__len__", &Kset::size, R"pbdoc(
+      .def("__len__", &Kset::size, R"pbdoc(
             Returns the number of kmers in Kset
           )pbdoc")
-        .def("__delitem__", &Kset::remove, R"pbdoc(
+      .def("__delitem__", &Kset::remove, R"pbdoc(
             Removes a kmer from Kset
 
             Takes one argument, the kmer represented as a string and removes it
             from the Kset
           )pbdoc")
-        .def("get_uc_kmer", &Kset::get_uc_kmer)
-        .def("get_uc_size", &Kset::get_uc_size)
-        .def("get_root", &Kset::get_root, py::return_value_policy::reference)
-        .def("get_vs_size", &Kset::get_vs_size )
-        .def("get_child_vertex", &Kset::get_child_vertex, py::return_value_policy::reference )
-        .def("get_child_suffix", &Kset::get_child_suffix )
-        //.def("add_seq", &Kset::add_seq)
-        .def("parallel_add_init", &Kset::parallel_add_init)
-        .def("parallel_add", &Kset::parallel_add)
-        .def("parallel_add_seq", &Kset::parallel_add_seq)
-        .def("parallel_add_join", &Kset::parallel_add_join)
-        .def_property_readonly("k", &Kset::get_k);
-
+      .def("get_uc_kmer", &Kset::get_uc_kmer)
+      .def("get_uc_size", &Kset::get_uc_size)
+      .def("get_root", &Kset::get_root, py::return_value_policy::reference)
+      .def("get_vs_size", &Kset::get_vs_size )
+      .def("get_child_vertex", &Kset::get_child_vertex, py::return_value_policy::reference )
+      .def("get_child_suffix", &Kset::get_child_suffix )
+      //.def("add_seq", &Kset::add_seq)
+      .def("parallel_add_init", &Kset::parallel_add_init)
+      .def("parallel_add", &Kset::parallel_add)
+      .def("parallel_add_seq", &Kset::parallel_add_seq)
+      .def("parallel_add_join", &Kset::parallel_add_join)
+      .def_property_readonly("k", &Kset::get_k);
+    
     py::class_<Vertex>(m, "Vertex")
-        .def_readonly( "vs_size", &Vertex::vs_size)
-        .def_readonly( "uc", &Vertex::uc );
+      .def_readonly( "vs_size", &Vertex::vs_size)
+      .def_readonly( "uc", &Vertex::uc );
 }
 #endif
 

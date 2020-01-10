@@ -208,17 +208,23 @@ void vertex_insert( Vertex* v, uint8_t* bseq, int k, int depth, count_dtype coun
         std::tuple<uint16_t, uint32_t, bool, uint8_t*>* cdata = (std::tuple<uint16_t, uint32_t, bool, uint8_t*>*) data;
         uint16_t gidx = std::get<0>(*cdata);
         if(kvals->genomes & 0x1 << gidx) {
-            if((unsigned) kvals->counts->back() == 1) {
+	  /*
+	    if((unsigned) kvals->counts->back() == 1) {
                 kvals->counts->back() = 2;
             }
+	  */
+	  //std::cout << kvals->second->size() << std::endl;
+	  kvals->second->back() = true;
         } else {
-            kvals->genomes |= 0x1 << gidx;
-            kvals->counts->push_back(1);
-            uint32_t pos = std::get<1>(*cdata);
-            bool reverse = std::get<2>(*cdata);
-            kvals->coords->push_back(pos);
-            kvals->orientation |= reverse << kvals->size;
-            kvals->size += 1;
+	  kvals->genomes |= 0x1 << gidx;
+	  //kvals->counts->push_back(1);
+	  kvals->first->push_back(true);
+	  kvals->second->push_back(false);
+	  uint32_t pos = std::get<1>(*cdata);
+	  bool reverse = std::get<2>(*cdata);
+	  kvals->coords->push_back(pos);
+	  kvals->orientation |= reverse << kvals->size;
+	  kvals->size += 1;
         }
         return;
     }
