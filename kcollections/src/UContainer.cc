@@ -116,22 +116,23 @@ void uc_insert( UC* uc, uint8_t* bseq, int k, int depth, int idx, count_dtype co
             uc->data[idx].genomes |= 1 << gidx;
             uc->data[idx].orientation |= reverse;
 
+            uc->data[idx].first |= 1 << gidx;
             //uc->data[idx].counts = (uint8_t*) calloc(1, sizeof(uint8_t));
             //uc->data[idx].counts = new std::list<uint8_t>();
             //uc->data[idx].counts->push_back(1);
 
-	    uc->data[idx].first = new std::vector<bool>();
-	    uc->data[idx].first->push_back(true);
+	    //uc->data[idx].first = new std::vector<bool>();
+	    //uc->data[idx].first->push_back(true);
 	    
-	    uc->data[idx].second = new std::vector<bool>();
-	    uc->data[idx].second->push_back(false);
+	    //uc->data[idx].second = new std::vector<bool>();
+	    //uc->data[idx].second->push_back(false);
 	    
 
             //uc->data[idx].coords = (uint32_t*) calloc(1, sizeof(uint32_t));
             uc->data[idx].coords = new std::vector<uint32_t>();
             uc->data[idx].coords->push_back(pos);
 
-            uc->data[idx].size = 1;
+            //uc->data[idx].size = 1;
         }
 
 #if KDICT

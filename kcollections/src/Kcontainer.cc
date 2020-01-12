@@ -332,24 +332,26 @@ void filter_vertices(Vertex* v, int bk) {
 
     //std::cout << "checking: " << deserialize_kmer(bk * 4, bk, &v->uc.suffixes[suffix_idx]) << "\t" << (int) kdata->size << std::endl;
 
-    for(size_t j = 0; j < kdata->second->size();) {
+    for(size_t j = 0; j < kdata->coords->size();) {
 	
       // NOTE: get gidx
       gidx = next_set_bit(&kdata->genomes, gidx, 32);
 
-      if(kdata->second->at(j)) {
+      if(kdata->second & 0x1 << gidx) {
 	//std::cout << "\tremoving from: " << gidx << std::endl;
 	kdata->coords->erase(kdata->coords->begin() + j);
-	kdata->first->erase(kdata->first->begin() + j);
-	kdata->second->erase(kdata->second->begin() + j);
+	//kdata->first->erase(kdata->first->begin() + j);
+	//kdata->second->erase(kdata->second->begin() + j);
         kdata->genomes &= ~(0x1 << gidx);
+        kdata->first &= ~(0x1 << gidx);
+        kdata->second &= ~(0x1 << gidx);
       } else {
 	j++;
       }
       gidx++;
     }
 
-    if(kdata->second->size() < 2) {
+    if(kdata->coords->size() < 2) {
       //std::cout << "\tremove kmer" << std::endl;
       
       v->uc.size -= 1;
