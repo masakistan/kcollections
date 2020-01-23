@@ -24,7 +24,7 @@ Alternatively, you can build from source.
 ### Build from source
 Prerequisites include:
 
-  - [jemalloc](http://jemalloc.net/)
+  - [CMake](https://cmake.org/)
   - [pybind11](https://github.com/pybind/pybind11)
 
 These prerequisites are included or retrieved automatically using the `cmake` or `setup.py` build tools.
@@ -40,6 +40,19 @@ python3 setup.py install
 
 # python 2
 python2 setup.py install
+```
+
+Additionally, if you would like to access the functions from a C++ program, you can build static libraries with the following steps:
+
+``` bash
+git clone https://github.com/masakistan/kcollections.git
+cd kcollections
+
+mkdir build
+cd build
+
+cmake ..
+make
 ```
 
 ## Example Usage
