@@ -1,6 +1,8 @@
 # kcollections
 [![Build Status](https://travis-ci.com/masakistan/kcollections.svg?token=oruFeF6Jkw9aGsjG6xUW&branch=master)](https://travis-ci.com/masakistan/kcollections)
 
+A fast and efficient library for storing k-mers in python.
+
 ## About
 `kcollections` is a python-like `dict` and `set` that efficiently store kmers as keys or elements of the collection.
 It is designed for building/prototyping Bioinformatics tools that rely on kmers but where the included `dict` and `set` consume too much memory for use.
