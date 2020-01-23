@@ -67,17 +67,14 @@ if (${PYTHON})
     pybind11_add_module(_Kset ${kcollections_src} "${SOURCE_DIR}/Kset.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})
     target_link_libraries(_Kset PRIVATE pybind11::module)
     target_compile_definitions(_Kset PUBLIC "PYTHON" PUBLIC "KSET")
-    # add_dependencies(_Kset project_jemalloc)
 
-    pybind11_add_module(_Kdict ${kcollections_src} "${SOURCE_DIR}/Kdict.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})#$<TARGET_OBJECTS:python_cxx_objs>)
+    pybind11_add_module(_Kdict ${kcollections_src} "${SOURCE_DIR}/Kdict.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})
     target_link_libraries(_Kdict PRIVATE pybind11::module)
     target_compile_definitions(_Kdict PUBLIC "PYTHON" PUBLIC "KDICT")
-    # add_dependencies(_Kdict project_jemalloc)
 
-    pybind11_add_module(_Kcounter ${kcollections_src} "${SOURCE_DIR}/Kcounter.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})#$<TARGET_OBJECTS:kcollections_counter_objs> $<TARGET_OBJECTS:python_cxx_objs>)
+    pybind11_add_module(_Kcounter ${kcollections_src} "${SOURCE_DIR}/Kcounter.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})
     target_link_libraries(_Kcounter PRIVATE pybind11::module)
     target_compile_definitions(_Kcounter PUBLIC "PYTHON" PUBLIC "KCOUNTER")
-    # add_dependencies(_Kcounter project_jemalloc)
 else()
     message("compiling other stuff")
     add_library(kcollections_set_objs OBJECT ${kcollections_src} "${SOURCE_DIR}/Kset.cc")
@@ -90,36 +87,28 @@ else()
     target_compile_definitions(kcollections_counter_objs PUBLIC "KCOUNTER")
 
     add_library(Kset STATIC $<TARGET_OBJECTS:kcollections_set_objs> $<TARGET_OBJECTS:uint256_objs>)
-    # add_dependencies(Kset project_jemalloc)
-    # target_link_libraries(Kset jemalloc)
 
     add_library(Kdict STATIC $<TARGET_OBJECTS:kcollections_dict_objs> $<TARGET_OBJECTS:uint256_objs>)
-    # add_dependencies(Kdict project_jemalloc)
-    # target_link_libraries(Kdict jemalloc)
 
     add_library(Kcounter STATIC $<TARGET_OBJECTS:kcollections_counter_objs> $<TARGET_OBJECTS:uint256_objs>)
-    # add_dependencies(Kcounter project_jemalloc)
-    # target_link_libraries(Kcounter jemalloc)
 
     # Testing
     add_executable(counterbulktest "${SOURCE_DIR}/TestCounterBulk.cpp" $<TARGET_OBJECTS:kcollections_counter_objs>)
     target_link_libraries(counterbulktest Threads::Threads Kcounter)
     set_target_properties(counterbulktest PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
-    # include_directories(counterbulktest "${install_dir}/include")
-    # add_dependencies(counterbulktest project_jemalloc)
 
 	# Testing Kdict
     add_executable(dictbulktest "${SOURCE_DIR}/TestDictBulk.cpp" $<TARGET_OBJECTS:kcollections_dict_objs>)
     target_link_libraries(dictbulktest Threads::Threads Kdict)
     set_target_properties(dictbulktest PROPERTIES COMPILE_DEFINITIONS "KDICT")
-	
+
 	# Testing Kset
     add_executable(setbulktest "${SOURCE_DIR}/TestSetBulk.cpp" $<TARGET_OBJECTS:kcollections_set_objs>)
     target_link_libraries(setbulktest Threads::Threads Kset)
     set_target_properties(setbulktest PROPERTIES COMPILE_DEFINITIONS "KSET")
 endif()
 
-# Additinoal compiler flags
+# Additional compiler flags
 message("compiler id ${CMAKE_CXX_COMPILER_ID}")
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
