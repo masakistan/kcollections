@@ -1,6 +1,8 @@
 # kcollections
 [![Build Status](https://travis-ci.com/masakistan/kcollections.svg?token=oruFeF6Jkw9aGsjG6xUW&branch=master)](https://travis-ci.com/masakistan/kcollections)
 
+A fast and efficient library for storing k-mers in python.
+
 ## About
 `kcollections` is a python-like `dict` and `set` that efficiently store kmers as keys or elements of the collection.
 It is designed for building/prototyping Bioinformatics tools that rely on kmers but where the included `dict` and `set` consume too much memory for use.
@@ -22,7 +24,7 @@ Alternatively, you can build from source.
 ### Build from source
 Prerequisites include:
 
-  - [jemalloc](http://jemalloc.net/)
+  - [CMake](https://cmake.org/)
   - [pybind11](https://github.com/pybind/pybind11)
 
 These prerequisites are included or retrieved automatically using the `cmake` or `setup.py` build tools.
@@ -38,6 +40,19 @@ python3 setup.py install
 
 # python 2
 python2 setup.py install
+```
+
+Additionally, if you would like to access the functions from a C++ program, you can build static libraries with the following steps:
+
+``` bash
+git clone https://github.com/masakistan/kcollections.git
+cd kcollections
+
+mkdir build
+cd build
+
+cmake ..
+make
 ```
 
 ## Example Usage
