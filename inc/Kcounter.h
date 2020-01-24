@@ -12,7 +12,7 @@ private:
 						prev_val += new_val;
 						return prev_val;
 					       };
-  std::function<int(int&, int&)>overwrite_merge_func = [] (T& prev_val, T& new_val)->T&{ return new_val;};
+  std::function<int(int&, int&)>overwrite_merge_func = [] (int& prev_val, int& new_val)->int&{ return new_val;};
 public:
   Kcounter( const int k );
   ~Kcounter();
