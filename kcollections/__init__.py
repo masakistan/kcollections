@@ -218,16 +218,6 @@ class Kcounter( KcounterParent ):
             res.append( key + ':' + str( val ) )
         return '{' + ','.join( res ) + '}'
 
-    #def __getitem__(self, kmer):
-    #    try:
-    #        super(Kcounter, self).__getitem__(kmer)
-    #    except KeyError:
-    #        return 0
-
-    #def __iadd__(self, val):
-    #    old_val = self.__getitem__()
-    #    self.__setitem__(old_val + val)
-        
     def __repr__( self ):
         return self.__str__()
 
