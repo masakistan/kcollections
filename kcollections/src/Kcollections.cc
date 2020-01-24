@@ -120,6 +120,7 @@ PYBIND11_MODULE( _Kcounter, m ) {
 	    Takes two arguments, the kmer represented as a string and an int associated with the kmer.
 	  )pbdoc")
       .def("__getitem__", &Kcounter::get, R"pbdoc()pbdoc")
+      .def("__iter__", [](Kcounter& v) { return py::make_iterator(v.begin(), v.end()); })
       .def("__contains__", &Kcounter::contains, R"pbdoc(
 	    Checks if a kmer is in Kcounter
 
@@ -176,6 +177,7 @@ PYBIND11_MODULE( _Kset, m )
     
     py::class_<Kset>(m, "Kset")
       .def(py::init<const int>())
+      .def("__iter__", [](Kset& v) { return py::make_iterator(v.begin(), v.end()); })
       .def("add", &Kset::add, R"pbdoc(
 	    Add a kmer to Kset
 

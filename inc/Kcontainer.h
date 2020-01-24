@@ -325,11 +325,19 @@ public:
   }
 
 #if defined KDICT || defined KCOUNTER
+#if defined KDICT
   T& kcontainer_get(char* kmer)
+#elif defined KCOUNTER
+  T kcontainer_get(char* kmer)
+#endif
   {
     uint8_t* bseq = (uint8_t*) calloc(k, sizeof(uint8_t));
     serialize_kmer(kmer, k, bseq);
+#if defined KDICT
     T& res = v.vertex_get(bseq, k);
+#elif defined KCOUNTER
+    T res = v.vertex_get(bseq, k);
+#endif
     free(bseq);
     return res;
   }

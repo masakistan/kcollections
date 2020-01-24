@@ -149,7 +149,11 @@ public:
   }
 
 #if defined(KDICT) || defined(KCOUNTER)
+#if defined(KDICT)
   T& vertex_get(uint8_t* bseq, int k) {
+#elif defined(KCOUNTER)
+  T vertex_get(uint8_t* bseq, int k) {
+#endif
     uint8_t prefix = bseq[0];
 
     if((pref_pres >> (unsigned) prefix) & 0x1) {
@@ -164,8 +168,18 @@ public:
     }
 
     // TODO: fix for kcounter, catch exception
+
 #if defined(PYTHON)
+#if defined(KCOUNTER)
+    //int default_count = 0;
+    //return default_count;
+    //this->vertex_insert(bseq[0], k, default_count);
+    //return this->vertex_get(bseq, k);
+    return 0;
+#elif defined(KDICT)
+   
     throw pybind11::key_error( "Key not in dictionary!" );
+#endif
 #endif
   }
 #endif

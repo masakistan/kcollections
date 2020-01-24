@@ -9,8 +9,8 @@ private:
   Kcontainer<int>* kc;
   int m_k;
   std::function<int(int&, int&)> merge_func = [] (int& prev_val, int& new_val)->int&{
-						 prev_val += new_val;
-						 return prev_val;
+						//prev_val += new_val;
+						 return new_val;
 					       };
 public:
   Kcounter( const int k );
