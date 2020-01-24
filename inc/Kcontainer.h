@@ -294,8 +294,13 @@ public:
   bool kcontainer_contains(const char* kmer)
   {
     uint8_t* bseq = (uint8_t*) calloc(k, sizeof(uint8_t));
-    serialize_kmer(kmer, k, bseq);
-    bool res = v.vertex_contains(bseq, k);
+    int ret = serialize_kmer(kmer, k, bseq);
+    bool res = false;
+    if(ret != -1) {
+      free(bseq);
+      throw std::runtime_error("Could not serialize kmer, ambiguity bases present.");
+    }
+    res = v.vertex_contains(bseq, k);
     free(bseq);
     return res;
   }
@@ -303,7 +308,11 @@ public:
   void kcontainer_remove(const char* kmer)
   {
     uint8_t* bseq = (uint8_t*) calloc(k, sizeof(uint8_t));
-    serialize_kmer(kmer, k, bseq);
+    int ret = serialize_kmer(kmer, k, bseq);
+    if(ret != -1) {
+      free(bseq);
+      throw std::runtime_error("Could not serialize kmer, ambiguity bases present.");
+    }
     v.vertex_remove(bseq, k);
     free(bseq);
   }
@@ -315,7 +324,12 @@ public:
 #endif
   {
     uint8_t* bseq = (uint8_t*) calloc(k, sizeof(uint8_t));
-    serialize_kmer(kmer, k, bseq);
+    int ret = serialize_kmer(kmer, k, bseq);
+    if(ret != -1) {
+      free(bseq);
+      throw std::runtime_error("Could not serialize kmer, ambiguity bases present.");
+    }
+    
 #if defined(KDICT) || defined(KCOUNTER)
     v.vertex_insert(bseq, k, obj, merge_func);
 #elif KSET
@@ -332,7 +346,11 @@ public:
 #endif
   {
     uint8_t* bseq = (uint8_t*) calloc(k, sizeof(uint8_t));
-    serialize_kmer(kmer, k, bseq);
+    int ret = serialize_kmer(kmer, k, bseq);
+    if(ret != -1) {
+      free(bseq);
+      throw std::runtime_error("Could not serialize kmer, ambiguity bases present.");
+    }
 #if defined KDICT
     T& res = v.vertex_get(bseq, k);
 #elif defined KCOUNTER
@@ -373,7 +391,12 @@ public:
     uint8_t last_index = (k - 1) % 4;
 
     // serialize the first kmer
-    serialize_kmer(seq, k, bseq8);
+    int ret = serialize_kmer(seq, k, bseq8);
+    int start = 0;
+    while(ret != -1 && start + ret + k < length) {
+      start += ret + 1;
+      ret = serialize_kmer(&seq[start], k, bseq8);
+    }
 
 #if KSET
     v.vertex_insert(bseq8, k);
@@ -389,21 +412,32 @@ public:
 #endif
 #endif
 
-    //std::cout << strlen(seq) << std::endl;
-    for(uint32_t j = k; j < length; j++) {
-      //std::cout << j << "\t" << seq[j] << std::endl;
-      // shift all the bits over
-      //bseq8[0] <<= 2;
+    for(uint32_t j = start + k; j < length; j++) {
       bseq64[0] >>= 2;
-      //std::cout << "shifting\t" << deserialize_kmer(k, bseq8) << std::endl;
-      //for(int i = 1; i < bk; i++) {
       for(int i = 1; i < size64; i++) {
 	bseq64[i - 1] |= (bseq64[i] << 62);
 	bseq64[i] >>= 2;
-	//std::cout << "shifting\t" << deserialize_kmer(k, bseq8) << std::endl;
       }
 
-      serialize_position(j, bk - 1, last_index, bseq8, seq);
+      ret = serialize_position(j, bk - 1, last_index, bseq8, seq);
+
+      if(ret != -1) {
+	start = j - k;
+	ret = k;
+
+	while(ret != -1 && start + ret + k < length) {
+	  // NOTE: can't big shift part of it since a lot of could be wrong
+	  start += ret + 1;
+	  ret = serialize_kmer(&seq[start], k, bseq8);
+	}
+
+	if(ret != -1) {
+	  break;
+	}
+
+	j = start + k;
+      }
+      
 #if KSET
       v.vertex_insert(bseq8, k);
 #elif defined(KCOUNTER)
@@ -646,7 +680,11 @@ public:
 #endif
   {
     uint8_t* pbseq = (uint8_t*) calloc(tg->bk, sizeof(uint8_t));
-    serialize_kmer(kmer, k, pbseq);
+    int ret = serialize_kmer(kmer, k, pbseq);
+    if(ret != -1) {
+      free(pbseq);
+      throw std::runtime_error("Could not serialize kmer, ambiguity bases present.");
+    }
 #if defined(KSET)
     parallel_kcontainer_add_bseq(pbseq);
 #elif defined(KDICT)
@@ -682,7 +720,13 @@ public:
     uint8_t last_index = (tg->k - 1) % 4;
 
     // serialize the first kmer
-    serialize_kmer(seq, tg->k, bseq8);
+    int ret = serialize_kmer(seq, k, bseq8);
+    int start = 0;
+    while(ret != -1 && start + ret + k < length) {
+      start += ret + 1;
+      ret = serialize_kmer(&seq[start], k, bseq8);
+    }
+
     for(i = 0; i < size64; i++) {
       bseq64_sub[i] = bseq64[i];
     }
@@ -713,7 +757,26 @@ public:
         bseq64[i] >>= 2;
       }
 
-      serialize_position(j, tg->bk - 1, last_index, bseq8, seq);
+      ret = serialize_position(j, tg->bk - 1, last_index, bseq8, seq);
+
+      if(ret != -1) {
+	start = j - k;
+	ret = k;
+
+	while(ret != -1 && start + ret + k < length) {
+	  // NOTE: can't big shift part of it since a lot of could be wrong
+	  start += ret + 1;
+	  ret = serialize_kmer(&seq[start], k, bseq8);
+	}
+
+	if(ret != -1) {
+	  break;
+	}
+
+	j = start + k;
+      }
+
+ 
       //std::cout << "inserting: " << deserialize_kmer(k, bseq8) << std::endl;
       bseq64_sub = (uint64_t*) calloc(size64, sizeof(uint64_t));
       bseq8_sub = (uint8_t*) bseq64_sub;
