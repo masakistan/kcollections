@@ -21,7 +21,7 @@ void Kcounter::clear()
 void Kcounter::insert(char* kmer, count_dtype count)
 {
   CHECK_KMER_LENGTH(kmer, m_k, "Kcounter");
-  kc->kcontainer_add(kmer, count, merge_func );
+  kc->kcontainer_add(kmer, count, overwrite_merge_func );
 }
 
 count_dtype Kcounter::get(char* kmer)

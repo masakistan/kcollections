@@ -10,10 +10,12 @@ private:
   Kcontainer<T>* kc;
   int m_k;
   std::function<T(T&, T&)> merge_func;
+  std::function<T(T&, T&)> overwrite_merge_func;
 public:
   Kdict(const int k) : m_k(k) {
     kc = new Kcontainer<T>(k);
     merge_func = [] (T& prev_val, T& new_val)->T&{ return new_val;};
+    overwrite_merge_func = [] (T& prev_val, T& new_val)->T&{ return new_val;};
   }
   
   ~Kdict() {
@@ -26,7 +28,7 @@ public:
   
   void add(char* kmer, T& obj) {
     CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
-    kc->kcontainer_add(kmer, obj, merge_func);
+    kc->kcontainer_add(kmer, obj, overwrite_merge_func);
   }
   
   bool contains(char* kmer) {
