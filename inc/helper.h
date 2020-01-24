@@ -92,15 +92,15 @@ static int serialize_position(int kmerPos, int arrPos, int bitPos, uint8_t* bseq
 
 static int serialize_kmer( const char* kmer, int k, uint8_t* bseq )
 {
-    for(int pos = 0; pos < k; pos++)
-    {
-      long long ret = serialize_position(pos, pos / 4, pos % 4, bseq, kmer);
-      if(ret != -1) {
-	return pos;
-      }
+  for(int pos = 0; pos < k; pos++)
+  {
+    int ret = serialize_position(pos, pos / 4, pos % 4, bseq, kmer);
+    if(ret != -1) {
+      return pos;
     }
-
-    return -1;
+  }
+  
+  return -1;
 }
 
 static char* deserialize_kmer( int k, uint8_t* bseq )
