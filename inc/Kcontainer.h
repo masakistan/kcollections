@@ -286,7 +286,7 @@ public:
     bool res = false;
     if(ret != -1) {
       free(bseq);
-      throw std::runtime_error("Contains op: Could not serialize kmer, ambiguity bases present.");
+      throw std::invalid_argument("Contains op: Could not serialize kmer, ambiguity bases present.");
     }
     res = v.vertex_contains(bseq, k);
     free(bseq);
@@ -299,7 +299,7 @@ public:
     int ret = serialize_kmer(kmer, k, bseq);
     if(ret != -1) {
       free(bseq);
-      throw std::runtime_error("Remove op: Could not serialize kmer, ambiguity bases present.");
+      throw std::invalid_argument("Remove op: Could not serialize kmer, ambiguity bases present.");
     }
     v.vertex_remove(bseq, k);
     free(bseq);
@@ -315,7 +315,7 @@ public:
     int ret = serialize_kmer(kmer, k, bseq);
     if(ret != -1) {
       free(bseq);
-      throw std::runtime_error("Add op: Could not serialize kmer, ambiguity bases present.");
+      throw std::invalid_argument("Add op: Could not serialize kmer, ambiguity bases present.");
     }
     
 #if defined(KDICT) || defined(KCOUNTER)
@@ -696,7 +696,7 @@ public:
     int ret = serialize_kmer(kmer, k, pbseq);
     if(ret != -1) {
       free(pbseq);
-      throw std::runtime_error("Parallel add op: Could not serialize kmer, ambiguity bases present.");
+      throw std::invalid_argument("Parallel add op: Could not serialize kmer, ambiguity bases present.");
     }
 #if defined(KSET)
     parallel_kcontainer_add_bseq(pbseq);
