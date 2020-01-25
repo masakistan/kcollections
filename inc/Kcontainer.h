@@ -25,17 +25,6 @@ namespace py = pybind11;
 template <class T>
 #endif
 
-struct ThreadInfo{
-  int thread_id;
-#if defined(KDICT) || defined(KCOUNTER)
-  std::function<T(T&, T&)>* merge_func;
-#endif
-};
-
-#if defined(KDICT) || defined(KCOUNTER)
-template <class T>
-#endif
-
 struct ThreadGlobals {
 #if defined(KSET)
   std::vector<std::vector<std::vector<uint8_t*>>>* kmers;
@@ -44,6 +33,7 @@ struct ThreadGlobals {
 #endif
 
 #if defined(KDICT) || defined(KCOUNTER)
+  std::function<T(T&, T&)>* merge_func;
   Vertex<T>** v;
 #else
   Vertex** v;
@@ -54,17 +44,23 @@ struct ThreadGlobals {
   sem_t** rsignal;
   int bk, k, nthreads;
   pthread_t* p_threads;
-  //int* bin_ids;
-#if defined(KDICT) || defined(KCOUNTER)
-  ThreadInfo<T>* bin_ids;
-#else
-  ThreadInfo* bin_ids;
-#endif
   int* wbin;
   int* rbin;
   int work_queues;
   int bits_to_shift;
   size_t MAX_BIN_SIZE;
+};
+
+#if defined(KDICT) || defined(KCOUNTER)
+template <class T>
+#endif
+struct ThreadInfo{
+  int thread_id;
+#if defined(KDICT) || defined(KCOUNTER)
+  ThreadGlobals<T>* tg;
+#else
+  ThreadGlobals* tg;
+#endif
 };
 
 
@@ -73,26 +69,19 @@ template <class T>
 #endif
 class Kcontainer {
 
-protected:
-#if defined(KDICT) || defined(KCOUNTER)
-  static ThreadGlobals<T>* tg;
-#elif defined(KSET)
-  static ThreadGlobals* tg;
-#endif
-
 public:
   Kcontainer(const int k) : k(k) {
-#if defined(KDICT) || defined(KCOUNTER)
-    //v = new Vertex<T>();
-#else
-    //v = new Vertex();
-#endif
-    //std::cout << "vertex size: " << sizeof(v) << std::endl;
+    tg = NULL;
+    ti = NULL;
   }
 
   ~Kcontainer() {
-    //delete v;
-    free(tg);
+    if(ti != NULL) {
+      free(ti);
+    }
+    if(tg != NULL) {
+      free(tg);
+    }
   }
 
   class KcontainerIterator {
@@ -171,7 +160,6 @@ public:
     }
     
   private:
-    
     int depth, k;
 #if defined(KDICT) || defined(KCOUNTER)
     std::pair<std::string, T*> kmer;
@@ -298,7 +286,7 @@ public:
     bool res = false;
     if(ret != -1) {
       free(bseq);
-      throw std::runtime_error("Could not serialize kmer, ambiguity bases present.");
+      throw std::runtime_error("Contains op: Could not serialize kmer, ambiguity bases present.");
     }
     res = v.vertex_contains(bseq, k);
     free(bseq);
@@ -311,7 +299,7 @@ public:
     int ret = serialize_kmer(kmer, k, bseq);
     if(ret != -1) {
       free(bseq);
-      throw std::runtime_error("Could not serialize kmer, ambiguity bases present.");
+      throw std::runtime_error("Remove op: Could not serialize kmer, ambiguity bases present.");
     }
     v.vertex_remove(bseq, k);
     free(bseq);
@@ -327,7 +315,7 @@ public:
     int ret = serialize_kmer(kmer, k, bseq);
     if(ret != -1) {
       free(bseq);
-      throw std::runtime_error("Could not serialize kmer, ambiguity bases present.");
+      throw std::runtime_error("Add op: Could not serialize kmer, ambiguity bases present.");
     }
     
 #if defined(KDICT) || defined(KCOUNTER)
@@ -340,17 +328,17 @@ public:
 
 #if defined KDICT || defined KCOUNTER
 #if defined KDICT
-  T& kcontainer_get(char* kmer)
+  T& kcontainer_get(const char* kmer)
 #elif defined KCOUNTER
-  T kcontainer_get(char* kmer)
+  T kcontainer_get(const char* kmer)
 #endif
   {
     uint8_t* bseq = (uint8_t*) calloc(k, sizeof(uint8_t));
     int ret = serialize_kmer(kmer, k, bseq);
     if(ret != -1) {
       free(bseq);
-      throw std::runtime_error("Could not serialize kmer, ambiguity bases present.");
-    }
+      throw std::invalid_argument("Get op: Could not serialize kmer, ambiguity bases present.");
+    } else {
 #if defined KDICT
     T& res = v.vertex_get(bseq, k);
 #elif defined KCOUNTER
@@ -358,6 +346,7 @@ public:
 #endif
     free(bseq);
     return res;
+    }
   }
 #endif
 
@@ -422,12 +411,13 @@ public:
       ret = serialize_position(j, bk - 1, last_index, bseq8, seq);
 
       if(ret != -1) {
-	start = j - k;
-	ret = k;
+	start = j - k + 1;
+	ret = k - 1;
 
 	while(ret != -1 && start + ret + k < length) {
 	  // NOTE: can't big shift part of it since a lot of could be wrong
 	  start += ret + 1;
+	  memset(bseq64, 0, sizeof(uint64_t) * size64);
 	  ret = serialize_kmer(&seq[start], k, bseq8);
 	}
 
@@ -435,7 +425,7 @@ public:
 	  break;
 	}
 
-	j = start + k;
+	j = start + k - 1;
       }
       
 #if KSET
@@ -455,12 +445,8 @@ public:
     free(bseq64);
   }
 
-#if defined(KSET)
-  void parallel_kcontainer_add_init(int threads)
-#elif defined(KDICT) || defined(KCOUNTER)
-  void parallel_kcontainer_add_init(int threads, const std::function<T(T&, T&)> &f)
-#endif
-  {
+
+  void tg_init(int threads) {
     tg->MAX_BIN_SIZE = 500;
     tg->work_queues = 10;
 
@@ -480,12 +466,6 @@ public:
     tg->rsignal = (sem_t**) calloc(threads, sizeof(sem_t*));
     tg->p_threads = (pthread_t*) calloc(threads, sizeof(pthread_t));
 
-#if defined(KDICT) || defined(KCOUNTER)
-    tg->bin_ids = (ThreadInfo<T>*) calloc(threads, sizeof(ThreadInfo<T>));
-#else
-    tg->bin_ids = (ThreadInfo*) calloc(threads, sizeof(ThreadInfo));
-#endif
-
     tg->wbin = (int*) calloc(threads, sizeof(int));
     tg->rbin = (int*) calloc(threads, sizeof(int));
 
@@ -493,9 +473,9 @@ public:
     std::string appName = "kcollections";
 
 #if defined(KDICT) || defined(KCOUNTER)
-    tg->kmers = (std::vector<std::vector<std::vector<std::pair<uint8_t*, T>>>>*) calloc(threads, sizeof(std::vector<std::vector<std::vector<uint8_t*, T>>>*));
+    tg->kmers = new std::vector<std::vector<std::vector<std::pair<uint8_t*, T>>>>();
 #elif defined(KSET)
-    tg->kmers = (std::vector<std::vector<std::vector<uint8_t*>>>*) calloc(threads, sizeof(std::vector<std::vector<std::vector<uint8_t*>>>*));
+    tg->kmers = new std::vector<std::vector<std::vector<uint8_t*>>>();
 #endif
     // NOTE: initialize per thread variables
     // NOTE: initialize mutexes
@@ -524,13 +504,44 @@ public:
 #endif
 
       tg->rsignal[i] = sem_open((appName + std::to_string(getpid()) + std::to_string(i)).c_str(), O_CREAT, 0600, 0);
-      tg->bin_ids[i].thread_id = i;
-#if defined(KDICT) || defined(KCOUNTER)
-      tg->bin_ids[i].merge_func = new std::function<T(T&, T&)>(f);
+    }
+  }
+
+  void ti_init(int threads) {
+    for(int i = 0; i < threads; i++) {
+      ti[i].thread_id = i;
+      ti[i].tg = tg;
+    }
+  }
+    
+
+#if defined(KSET)
+  void parallel_kcontainer_add_init(int threads)
+#elif defined(KDICT) || defined(KCOUNTER)
+  void parallel_kcontainer_add_init(int threads, const std::function<T(T&, T&)> &f)
+#endif
+  {
+#if defined(KDICT)
+    ti = (ThreadInfo<T>*) calloc(threads, sizeof(ThreadInfo<T>));
+    tg = (ThreadGlobals<T>*) calloc(1, sizeof(ThreadGlobals<T>));
+    tg->merge_func = new std::function<T(T&, T&)>(f);
+#elif defined(KCOUNTER)
+    ti = (ThreadInfo<T>*) calloc(threads, sizeof(ThreadInfo<T>));
+    tg = (ThreadGlobals<T>*) calloc(1, sizeof(ThreadGlobals<T>));
+    tg->merge_func = new std::function<T(T&, T&)>(f);
+#else
+    ti = (ThreadInfo*) calloc(threads, sizeof(ThreadInfo));
+    tg = (ThreadGlobals*) calloc(1, sizeof(ThreadGlobals));
 #endif
 
+
+    tg_init(threads);
+    ti_init(threads);
+
+
+    for(int i = 0; i < threads; i++) {
       // NOTE: spin up worker threads
-      pthread_create(&tg->p_threads[i], NULL, parallel_kcontainer_add_consumer, &tg->bin_ids[i]);
+      pthread_create(&tg->p_threads[i], NULL, parallel_kcontainer_add_consumer, &ti[i]);
     }
   }
 
@@ -597,78 +608,80 @@ public:
       delete tg->v[i];
       free(tg->blocks[i]);
       (*tg->kmers)[i].clear();
-#if defined(KDICT) || defined(KCOUNTER)
-      delete tg->bin_ids[i].merge_func;
-#endif
     }
-
-    //std::cout << "cleaning" << std::endl;
 
     free(tg->v);
     free(tg->signal_b);
     free(tg->rsignal);
     free(tg->p_threads);
-    free(tg->bin_ids);
     free(tg->wbin);
     free(tg->rbin);
     free(tg->blocks);
-
     tg->kmers->clear();
+    delete tg->kmers;
+#if defined(KDICT) || defined(KCOUNTER)
+    delete tg->merge_func;
+#endif
 
-    // NOTE: merge all vertices together
+    free(tg);
+    free(ti);
+
+    tg = NULL;
+    ti = NULL;
   }
 
   static void* parallel_kcontainer_add_consumer(void* bin_ptr) {
     //int bin = *((int*) bin_ptr);
 #if defined(KDICT) || defined(KCOUNTER)
-    ThreadInfo<T>* ti = (ThreadInfo<T>*) bin_ptr;
+    ThreadInfo<T>* cti = (ThreadInfo<T>*) bin_ptr;
+    ThreadGlobals<T>* ctg = cti->tg;
 #else
-    ThreadInfo* ti = (ThreadInfo*) bin_ptr;
+    ThreadInfo* cti = (ThreadInfo*) bin_ptr;
+    ThreadGlobals* ctg = cti->tg;
 #endif
 
-    int bin = ti->thread_id;
+    int bin = cti->thread_id;
     int cur_rbin;
 
     while(true) {
-      sem_wait(tg->rsignal[bin]);
-      cur_rbin = tg->rbin[bin];
-      pthread_mutex_lock(&tg->blocks[bin][cur_rbin]);
+      sem_wait(ctg->rsignal[bin]);
+      cur_rbin = ctg->rbin[bin];
+      pthread_mutex_lock(&ctg->blocks[bin][cur_rbin]);
 
       // NOTE: release mutex
 
       // NOTE: if the list is empty we're done
-      if((*tg->kmers)[bin][cur_rbin].size() == 0) {
-	pthread_mutex_unlock(&tg->blocks[bin][cur_rbin]);
+      if((*ctg->kmers)[bin][cur_rbin].size() == 0) {
+	pthread_mutex_unlock(&ctg->blocks[bin][cur_rbin]);
 	break;
       }
 
       // NOTE: insert all kmers
       int kmer_idx = 0;
-      for(auto i : (*tg->kmers)[bin][cur_rbin]) {
+      for(auto i : (*ctg->kmers)[bin][cur_rbin]) {
 	kmer_idx++;
 #if KSET
-	tg->v[bin]->vertex_insert(i, tg->k);
+	ctg->v[bin]->vertex_insert(i, ctg->k);
 	free(i);
 #elif defined(KDICT) || defined(KCOUNTER)
-	tg->v[bin]->vertex_insert(i.first, tg->k, i.second, *ti->merge_func);
+	ctg->v[bin]->vertex_insert(i.first, ctg->k, i.second, *ctg->merge_func);
 	free(i.first);
 #endif
       }
 
       // NOTE: clear the vector
-      (*tg->kmers)[bin][cur_rbin].clear();
-      pthread_mutex_unlock(&tg->blocks[bin][cur_rbin]);
-      tg->rbin[bin]++;
-      if(tg->rbin[bin] == tg->work_queues) {
-	tg->rbin[bin] = 0;
+      (*ctg->kmers)[bin][cur_rbin].clear();
+      pthread_mutex_unlock(&ctg->blocks[bin][cur_rbin]);
+      ctg->rbin[bin]++;
+      if(ctg->rbin[bin] == ctg->work_queues) {
+	ctg->rbin[bin] = 0;
       }
     }
 #if defined(KDICT) || defined(KCOUNTER)
-    tg->v[bin]->burst_uc(tg->k, *ti->merge_func);
+    ctg->v[bin]->burst_uc(ctg->k, *ctg->merge_func);
 #else
-    tg->v[bin]->burst_uc(tg->k);
+    ctg->v[bin]->burst_uc(ctg->k);
 #endif
-    //delete v[bin]->get_uc();
 
     return NULL;
   }
@@ -683,7 +696,7 @@ public:
     int ret = serialize_kmer(kmer, k, pbseq);
     if(ret != -1) {
       free(pbseq);
-      throw std::runtime_error("Could not serialize kmer, ambiguity bases present.");
+      throw std::runtime_error("Parallel add op: Could not serialize kmer, ambiguity bases present.");
     }
 #if defined(KSET)
     parallel_kcontainer_add_bseq(pbseq);
@@ -739,8 +752,6 @@ public:
 
 #if defined(PYTHON)
     auto iter = py::iter(values);
-    //auto handle_value = *iter;
-    //T value = handle_value.cast<T>();
     auto value = iter->cast<T>();
 #else
     auto iter = values.begin();
@@ -750,7 +761,7 @@ public:
 
 #endif
 
-    for(uint32_t j = tg->k; j < length; j++) {
+    for(uint32_t j = start + tg->k; j < length; j++) {
       bseq64[0] >>= 2;
       for(int i = 1; i < size64; i++) {
         bseq64[i - 1] |= (bseq64[i] << 62);
@@ -760,12 +771,13 @@ public:
       ret = serialize_position(j, tg->bk - 1, last_index, bseq8, seq);
 
       if(ret != -1) {
-	start = j - k;
-	ret = k;
+	start = j - k + 1;
+	ret = k - 1;
 
 	while(ret != -1 && start + ret + k < length) {
 	  // NOTE: can't big shift part of it since a lot of could be wrong
 	  start += ret + 1;
+	  memset(bseq64, 0, sizeof(uint64_t) * size64);
 	  ret = serialize_kmer(&seq[start], k, bseq8);
 	}
 
@@ -773,9 +785,8 @@ public:
 	  break;
 	}
 
-	j = start + k;
+	j = start + k - 1;
       }
-
  
       //std::cout << "inserting: " << deserialize_kmer(k, bseq8) << std::endl;
       bseq64_sub = (uint64_t*) calloc(size64, sizeof(uint64_t));
@@ -861,7 +872,11 @@ private:
   
 #if defined(KDICT) || defined(KCOUNTER)
   Vertex<T> v;
+  ThreadInfo<T>* ti;
+  ThreadGlobals<T>* tg;
 #else
+  ThreadInfo* ti;
+  ThreadGlobals* tg;
   Vertex v;
 #endif
 };

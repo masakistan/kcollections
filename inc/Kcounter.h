@@ -16,13 +16,13 @@ private:
 public:
   Kcounter( const int k );
   ~Kcounter();
-  void insert( char* kmer, count_dtype count );
-  bool contains( char* kmer );
+  void insert( const char* kmer, count_dtype count );
+  bool contains( const char* kmer );
   void clear();
   uint64_t size();
-  void remove( char* kmer );
+  void remove( const char* kmer );
   void add_seq(const char* seq);
-  count_dtype get( char* kmer );
+  count_dtype get( const char* kmer );
   int get_k() { return m_k; }
   Kcontainer<int>* get_kc() { return kc; }
   void parallel_add_init(int threads) {
@@ -70,5 +70,4 @@ public:
     return kc->end();
   }
 };
-template<class T>
-ThreadGlobals<T>* Kcontainer<T>::tg = (ThreadGlobals<T>*) calloc(1, sizeof(ThreadGlobals<T>));
+
