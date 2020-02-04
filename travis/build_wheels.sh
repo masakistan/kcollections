@@ -4,7 +4,7 @@ set -e -x
 
 # Install a system package required by our library
 yum install zlib-devel -y
-yum install boost-devel
+yum install boost-devel -y
 
 curl -o cmake.tar.gz https://cmake.org/files/v3.12/cmake-3.12.4.tar.gz
 tar xf cmake.tar.gz
