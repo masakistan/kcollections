@@ -1,6 +1,10 @@
 #pragma once
 
+#include <fstream>
 #include <functional>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+
 #include "Kcontainer.h"
 
 template <class T>
@@ -12,6 +16,10 @@ private:
   std::function<T(T&, T&)> merge_func;
   std::function<T(T&, T&)> overwrite_merge_func;
 public:
+  Kdict(){
+    merge_func = [] (T& prev_val, T& new_val)->T&{ return new_val;};
+    overwrite_merge_func = [] (T& prev_val, T& new_val)->T&{ return new_val;};
+  }
   Kdict(const int k) : m_k(k) {
     kc = new Kcontainer<T>(k);
     merge_func = [] (T& prev_val, T& new_val)->T&{ return new_val;};
@@ -21,6 +29,42 @@ public:
   ~Kdict() {
     delete kc;
   }
+
+  template<class Archive>
+  void save(Archive& ar, const unsigned int version) const {
+    ar & m_k;
+    ar & *kc;
+  }
+
+  template<class Archive>
+  void load(Archive& ar, const unsigned int version) {
+    ar & m_k;
+    CDEPTH = calc_bk(m_k);
+
+    kc = new Kcontainer<T>(m_k);
+    ar & *kc;
+  }
+
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
+
+  void write(const char* opath) {
+    CDEPTH = calc_bk(get_k());
+    std::ofstream ofs(opath);
+
+    boost::archive::binary_oarchive oa(ofs);
+    oa << *this;
+    CDEPTH = -1;
+  }
+
+  void read(const char* ipath) {
+    std::ifstream ifs(ipath);
+
+    boost::archive::binary_iarchive ia(ifs);
+    ia >> *this;
+
+    CDEPTH = -1;
+  }
+
   
   void set_merge_func(std::function<T(T&, T&)> merge_func) {
     this->merge_func = merge_func;

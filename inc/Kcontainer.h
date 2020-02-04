@@ -84,6 +84,12 @@ public:
     }
   }
 
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version) {
+    ar & k;
+    ar & v;
+  }
+
   class KcontainerIterator {
   public:
     typedef std::input_iterator_tag iterator_category;    // iterator category

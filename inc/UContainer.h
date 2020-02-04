@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 
+#include <boost/serialization/split_member.hpp>
+
 #include "globals.h"
 #include "helper.h"
 //#include <pybind11/pybind11.h>
@@ -13,8 +15,32 @@
 //namespace py = pybind11;
 
 #if defined(KDICT) || defined(KCOUNTER)
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/set.hpp>
+#include <boost/serialization/list.hpp>
+#endif
+
+#if defined(KDICT) && defined(PYTHON)
+#include <pybind11/pybind11.h>
+
+namespace py = pybind11;
+
+namespace boost {
+namespace serialization {
+
+template<class Archive>
+void serialize(Archive&ar, py::object& obj, const unsigned int version) {
+  ar & obj;
+}
+
+} // namespace serialization
+} // namespace boost
+#endif
+
+#if defined(KDICT) || defined(KCOUNTER)
 template <class T>
 #endif
+
 
 class UC {
 private:
@@ -35,6 +61,45 @@ public:
   ~UC() {
     clear();
   }
+
+  template<class Archive>
+  void save(Archive& ar, const unsigned int version) const {
+#if defined(KSET)
+    ar & size;
+
+    for(size_t i = 0; i < size * CDEPTH; i++) {
+      //std::cout << "save: " << i << "\t" << deserialize_kmer(4, &suffixes[i]) << std::endl;
+      ar & suffixes[i];
+    }
+#else
+    ar & objs;
+    for(size_t i = 0; i < objs.size() * CDEPTH; i++) {
+      //std::cout << "save: " << i << "\t" << deserialize_kmer(CDEPTH * 4, &suffixes[(CDEPTH * 4) * i]) << std::endl;
+      ar & suffixes[i];
+    }
+#endif
+  }
+
+  template<class Archive>
+  void load(Archive& ar, const unsigned int version) {
+#if defined(KSET)
+    ar & size;
+    suffixes = (uint8_t*) calloc(size * CDEPTH, sizeof(uint8_t));
+
+    for(size_t i = 0; i < size * CDEPTH; i++) {
+      ar & suffixes[i];
+    }
+#else
+    ar & objs;
+    suffixes = (uint8_t*) calloc(objs.size() * CDEPTH, sizeof(uint8_t));
+    for(size_t i = 0; i < objs.size() * CDEPTH; i++) {
+      ar & suffixes[i];
+    }
+#endif
+  }
+
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
+
 
   UC& operator=(UC&& o) {
     suffixes = o.suffixes;

@@ -26,6 +26,8 @@ void declare_kdict_member(py::module &m, const std::string &typestr) {
   
   py::class_<CClass>(m, pyclass_name.c_str(), py::buffer_protocol(), py::dynamic_attr())
     .def(py::init<const int>())
+    .def("write", &CClass::write, R"pbdoc(Write a kset to disk)pbdoc")
+    .def("read", &CClass::read, R"pbdoc(Read a kset from disk)pbdoc")
     .def("__setitem__", &CClass::add, R"pbdoc(
 	    Add a kmer to Kdict
 
@@ -83,7 +85,6 @@ void declare_kdict(py::module& m, const std::string& name) {
 
 PYBIND11_MODULE( _Kdict, m )
 {
-
   declare_kdict<int>(m, "int");
   declare_kdict<float>(m, "float");
   // NOTE: we use char because std::vector<bool> does not return references to items
@@ -114,12 +115,16 @@ PYBIND11_MODULE( _Kcounter, m ) {
     
     py::class_<Kcounter>(m, "Kcounter")
       .def(py::init<const int>())
+      .def("write", &Kcounter::write, R"pbdoc(Write a kset to disk)pbdoc")
+      .def("read", &Kcounter::read, R"pbdoc(Read a kset from disk)pbdoc")
       .def("__setitem__", &Kcounter::insert, R"pbdoc(
 	    Add a kmer to Kcounter
 
 	    Takes two arguments, the kmer represented as a string and an int associated with the kmer.
 	  )pbdoc")
       .def("__getitem__", &Kcounter::get, R"pbdoc()pbdoc")
+      .def("items", [](Kcounter& v) { return py::make_iterator(v.begin(), v.end()); })
+      .def("iteritems", [](Kcounter& v) { return py::make_iterator(v.begin(), v.end()); })
       .def("__iter__", [](Kcounter& v) { return py::make_iterator(v.begin(), v.end()); })
       .def("__contains__", &Kcounter::contains, R"pbdoc(
 	    Checks if a kmer is in Kcounter
@@ -177,6 +182,8 @@ PYBIND11_MODULE( _Kset, m )
     
     py::class_<Kset>(m, "Kset")
       .def(py::init<const int>())
+      .def("write", &Kset::write, R"pbdoc(Write a kset to disk)pbdoc")
+      .def("read", &Kset::read, R"pbdoc(Read a kset from disk)pbdoc")
       .def("__iter__", [](Kset& v) { return py::make_iterator(v.begin(), v.end()); })
       .def("add", &Kset::add, R"pbdoc(
 	    Add a kmer to Kset
