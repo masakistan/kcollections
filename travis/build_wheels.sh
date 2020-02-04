@@ -4,6 +4,8 @@ set -e -x
 
 # Install a system package required by our library
 yum install zlib-devel -y
+yum install python-devel -y
+yum install python3-devel -y
 #yum install boost-devel -y
 
 echo "installing boost"
