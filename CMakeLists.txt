@@ -35,6 +35,8 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 set(CMAKE_CXX_STANDARD 14)
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Add inc directories
 include_directories(inc)
@@ -59,10 +61,10 @@ option(PYTHON "compile the python bindings")
 if (${PYTHON})
     message("compiling python bindings")
     # pybind11 library
-    add_subdirectory(libs/pybind11-2.3.0)
+    add_subdirectory(libs/pybind11-2.4.3)
     set(PYBIND11_PYTHON_VERSION ${PYTHON_VERSION})
     include_directories(${PYTHON_INCLUDE_DIR})
-    include_directories(libs/pybind11-2.3.0/include)
+    include_directories(libs/pybind11-2.4.3/include)
 
     pybind11_add_module(_Kset ${kcollections_src} "${SOURCE_DIR}/Kset.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})
     target_link_libraries(_Kset PRIVATE pybind11::module)
@@ -96,6 +98,11 @@ else()
     add_executable(counterbulktest "${SOURCE_DIR}/TestCounterBulk.cpp" $<TARGET_OBJECTS:kcollections_counter_objs>)
     target_link_libraries(counterbulktest Threads::Threads Kcounter)
     set_target_properties(counterbulktest PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
+
+	# Testing kcounter serial
+    add_executable(counterserialtest "${SOURCE_DIR}/TestCounterSerial.cpp" $<TARGET_OBJECTS:kcollections_counter_objs>)
+    target_link_libraries(counterserialtest Threads::Threads Kcounter)
+    set_target_properties(counterserialtest PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
 
 	# Testing Kdict
     add_executable(dictbulktest "${SOURCE_DIR}/TestDictBulk.cpp" $<TARGET_OBJECTS:kcollections_dict_objs>)

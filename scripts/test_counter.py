@@ -13,9 +13,10 @@ def get_kmers(seq, k=KMER_SIZE):
     for i in range(len(seq) - k + 1):
         kmer = str(seq[i:i + k])
         nucleotides = set(kmer)
+        ambiguous = False
         if len(nucleotides.intersection(set('RYWSMKHBVDN'))) > 0:
-            continue
-        yield kmer
+            ambiguous = True
+        yield ambiguous, kmer
 
 
 def test_kcounter(sequence):
@@ -23,23 +24,24 @@ def test_kcounter(sequence):
     counter = Counter()
     with open(sequence, 'r') as seq_fh:
         for record in SeqIO.parse(seq_fh, 'fasta'):
-            for kmer in get_kmers(record.seq):
-                kcounter[kmer] += 1
-                counter[kmer] += 1
+            for ambiguous, kmer in get_kmers(record.seq):
+                if not ambiguous:
+                    counter[kmer] += 1
+                    kcounter[kmer] += 1
 
     for kmer, count in counter.items():
         if kmer not in kcounter:
-            print('ERROR:', kmer, 'present in Counter, but not in Kcounter')
+            print('ERROR: kmer present in Counter, but not in Kcounter')
             continue
         if kcounter[kmer] != count:
-            print('ERROR:', kmer, 'count mismatch, Counter count:', count, 'Kcounter count:', kcounter[kmer])
+            print('ERROR: count mismatch, Counter count:', count, 'Kcounter count:', kcounter[kmer])
 
     for kmer, count in kcounter.items():
         if kmer not in counter:
-            print('ERROR:', kmer, 'present in Kcounter, but not in Counter')
+            print('ERROR: kmer present in Kcounter, but not in Counter')
             continue
         if counter[kmer] != count:
-            print('ERROR:', kmer,'count mismatch, Kcounter count:', count, 'Counter count:', counter[kmer])
+            print('ERROR: count mismatch, Kcounter count:', count, 'Counter count:', counter[kmer])
 
 
 if __name__ == '__main__':
