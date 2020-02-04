@@ -539,19 +539,6 @@ public:
     ti = (ThreadInfo*) calloc(threads, sizeof(ThreadInfo));
     tg = (ThreadGlobals*) calloc(1, sizeof(ThreadGlobals));
 #endif
-  {
-#if defined(KDICT)
-    ti = (ThreadInfo<T>*) calloc(threads, sizeof(ThreadInfo<T>));
-    tg = (ThreadGlobals<T>*) calloc(1, sizeof(ThreadGlobals<T>));
-    tg->merge_func = new std::function<T(T&, T&)>(f);
-#elif defined(KCOUNTER)
-    ti = (ThreadInfo<T>*) calloc(threads, sizeof(ThreadInfo<T>));
-    tg = (ThreadGlobals<T>*) calloc(1, sizeof(ThreadGlobals<T>));
-    tg->merge_func = new std::function<T(T&, T&)>(f);
-#else
-    ti = (ThreadInfo*) calloc(threads, sizeof(ThreadInfo));
-    tg = (ThreadGlobals*) calloc(1, sizeof(ThreadGlobals));
-#endif
 
     tg_init(threads);
     ti_init(threads);
