@@ -1,13 +1,29 @@
-matrix:
+jobs:
   include:
   - sudo: required
     services:
       - docker
     env:
       - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=py27
+  - sudo: required
+    services:
+      - docker
+    env:
       - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=py34
+  - sudo: required
+    services:
+      - docker
+    env:
       - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=py35
+  - sudo: required
+    services:
+      - docker
+    env:
       - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=py36
+  - sudo: required
+    services:
+      - docker
+    env:
       - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=py37
   - os: osx
     osx_image: xcode10.1
