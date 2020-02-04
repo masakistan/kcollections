@@ -13,7 +13,7 @@ curl -L -o boost.tar.gz https://sourceforge.net/projects/boost/files/boost/1.72.
 tar xf boost.tar.gz
 cd boost_1_72_0
 
-./bootstrap.sh --prefix=/usr && \
+./bootstrap.sh --with-libraries=serialization --prefix=/usr && \
     ./b2 stage -j1 threading=multi link=shared
 
 ./b2 install threading=multi link=shared && \
