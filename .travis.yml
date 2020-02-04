@@ -4,27 +4,27 @@ jobs:
     services:
       - docker
     env:
-      - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=py27
+      - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=27
   - sudo: required
     services:
       - docker
     env:
-      - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=py34
+      - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=34
   - sudo: required
     services:
       - docker
     env:
-      - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=py35
+      - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=35
   - sudo: required
     services:
       - docker
     env:
-      - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=py36
+      - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=36
   - sudo: required
     services:
       - docker
     env:
-      - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=py37
+      - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=37
   - os: osx
     osx_image: xcode10.1
     language: generic
@@ -81,19 +81,19 @@ install:
 script:
 - if [ $TRAVIS_OS_NAME == "linux" ];
   then
-    if [ $TOXENV == "py27" ];
+    if [ $TOXENV == "27" ];
     then
       docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
-    elif [ $TOXENV == "py34" ];
+    elif [ $TOXENV == "34" ];
     then
       docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
-    elif [ $TOXENV == "py35" ];
+    elif [ $TOXENV == "35" ];
     then
       docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
-    elif [ $TOXENV == "py36" ];
+    elif [ $TOXENV == "36" ];
     then
       docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
-    elif [ $TOXENV == "py37" ];
+    elif [ $TOXENV == "37" ];
     then
       docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
     fi
