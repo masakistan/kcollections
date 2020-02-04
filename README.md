@@ -24,10 +24,9 @@ Alternatively, you can build from source.
 ### Build from source
 Prerequisites include:
 
-  - [CMake](https://cmake.org/)
-  - [pybind11](https://github.com/pybind/pybind11)
-
-These prerequisites are included or retrieved automatically using the `cmake` or `setup.py` build tools.
+  - [CMake](https://cmake.org/), must be installed manually in order to build the code.
+  - [uint256_t](https://github.com/calccrypto/uint256_t), included in the repository.
+  - [pybind11](https://github.com/pybind/pybind11), included in the repository.
 
 To build and install the python module from source:
 
@@ -37,9 +36,13 @@ cd kcollections
 
 # python 3
 python3 setup.py install
+# or
+pip3 install .
 
 # python 2
 python2 setup.py install
+# or
+pip2 install .
 ```
 
 Additionally, if you would like to access the functions from a C++ program, you can build static libraries with the following steps:

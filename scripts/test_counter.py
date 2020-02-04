@@ -45,10 +45,10 @@ def test_kcounter(sequence):
 
 
 if __name__ == '__main__':
-   parser = argparse.ArgumentParser(description='Test Kcounter.')
-   parser.add_argument('sequence', type=str, default='./source.fa',
-                       help='Path to a sequence file to test on')
+    parser = argparse.ArgumentParser(description='Test Kcounter.')
+    parser.add_argument('sequence', type=str, default='./source.fa',
+                        help='Path to a sequence file to test on')
 
-   args = parser.parse_args()
+    args = parser.parse_args()
 
-   test_kcounter(args.sequence)
+    test_kcounter(args.sequence)
