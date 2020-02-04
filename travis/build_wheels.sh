@@ -5,8 +5,6 @@ set -e -x
 # Install a system package required by our library
 yum install zlib-devel -y
 yum install python-devel -y
-yum install python3-devel -y
-#yum install boost-devel -y
 
 echo "installing boost"
 curl -L -o boost.tar.gz https://sourceforge.net/projects/boost/files/boost/1.72.0/boost_1_72_0.tar.gz/download
@@ -32,10 +30,10 @@ echo "checking /io"
 pwd
 ls
 
+export PYBIN=$1
+
 # Compile wheels
-for PYBIN in /opt/python/*/bin; do
-    "${PYBIN}/python" /io/setup.py bdist_wheel sdist
-done
+"${PYBIN}/python" /io/setup.py bdist_wheel sdist
 cp /io/dist/*.tar.gz /io/wheelhouse
 echo "checking /io/wheelhouse"
 ls /io/wheelhouse
@@ -46,7 +44,5 @@ for whl in /io/dist/*.whl; do
 done
 
 # Install packages and test
-for PYBIN in /opt/python/*/bin/; do
-    "${PYBIN}/pip" install kcollections --no-index -f /io/wheelhouse
-    (cd "$HOME"; "${PYBIN}/python" -c 'from kcollections import Kset, Kcounter, Kdict_int, Kdict_float, Kdict_string')
-done
+"${PYBIN}/pip" install kcollections --no-index -f /io/wheelhouse
+(cd "$HOME"; "${PYBIN}/python" -c 'from kcollections import Kset, Kcounter, Kdict_int, Kdict_float, Kdict_string')
