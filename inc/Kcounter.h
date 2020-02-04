@@ -55,7 +55,7 @@ public:
 
     CDEPTH = -1;
   }
-
+  
   void insert( const char* kmer, count_dtype count );
   bool contains( const char* kmer );
   void clear();

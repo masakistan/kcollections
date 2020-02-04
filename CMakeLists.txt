@@ -28,8 +28,8 @@ find_package(Boost ${BOOST_REQUESTED_VERSION} REQUIRED COMPONENTS serialization)
 message("boost libs: ${Boost_LIBRARIES} ${Boost_INCLUDE_DIRS}")
 
 # The version number.
-set (Kdict_VERSION_MAJOR 0)
-set (Kdict_VERSION_MINOR 1)
+set (Kdict_VERSION_MAJOR 1)
+set (Kdict_VERSION_MINOR 0)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
