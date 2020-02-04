@@ -4,7 +4,19 @@ set -e -x
 
 # Install a system package required by our library
 yum install zlib-devel -y
-yum install boost-devel -y
+#yum install boost-devel -y
+
+echo "installing boost"
+curl -L -o boost.tar.gz https://sourceforge.net/projects/boost/files/boost/1.72.0/boost_1_72_0.tar.gz/download
+tar xf boost.tar.gz
+cd boost_1_72_0
+
+./bootstrap.sh --prefix=/usr && \
+    ./b2 stage -j1 threading=multi link=shared
+
+./b2 install threading=multi link=shared && \
+    ln -svf detail/sha1.hpp /usr/include/boost/uuid/sha1.hpp
+echo "done installing boost"
 
 curl -o cmake.tar.gz https://cmake.org/files/v3.12/cmake-3.12.4.tar.gz
 tar xf cmake.tar.gz
