@@ -49,4 +49,3 @@ void Kset::parallel_add_seq(const char* seq) {
   kc->parallel_kcontainer_add_seq(seq, strlen(seq));
 }
 
-ThreadGlobals* Kcontainer::tg = (ThreadGlobals*) calloc(1, sizeof(ThreadGlobals));

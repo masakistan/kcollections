@@ -129,5 +129,3 @@ public:
   }
 };
 
-template<class T>
-ThreadGlobals<T>* Kcontainer<T>::tg = (ThreadGlobals<T>*) calloc(1, sizeof(ThreadGlobals<T>));

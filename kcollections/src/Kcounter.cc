@@ -18,19 +18,21 @@ void Kcounter::clear()
   kc = new Kcontainer<int>(m_k);
 }
 
-void Kcounter::insert(char* kmer, count_dtype count)
+void Kcounter::insert(const char* kmer, count_dtype count)
 {
+  //std::cout << "insert " << kmer << std::endl;
   CHECK_KMER_LENGTH(kmer, m_k, "Kcounter");
   kc->kcontainer_add(kmer, count, overwrite_merge_func );
 }
 
-count_dtype Kcounter::get(char* kmer)
+count_dtype Kcounter::get(const char* kmer)
 {
+  //std::cout << "get " << kmer << std::endl;
   CHECK_KMER_LENGTH(kmer, m_k, "Kcounter");
   return kc->kcontainer_get(kmer);
 }
 
-bool Kcounter::contains(char* kmer)
+bool Kcounter::contains(const char* kmer)
 {
   CHECK_KMER_LENGTH(kmer, m_k, "Kcounter");
   return kc->kcontainer_contains(kmer);
@@ -41,7 +43,7 @@ uint64_t Kcounter::size()
   return kc->kcontainer_size();
 }
 
-void Kcounter::remove(char* kmer)
+void Kcounter::remove(const char* kmer)
 {
   CHECK_KMER_LENGTH(kmer, m_k, "Kcounter");
   kc->kcontainer_remove(kmer);

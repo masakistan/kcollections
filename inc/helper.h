@@ -71,7 +71,7 @@ static const uint8_t MASK_INSERT[ 4 ][ 4 ] = {
 static const char COMP_TO_ASCII[4] = {'A', 'C', 'G', 'T'};
 
 
-static void serialize_position(uint32_t kmerPos, int arrPos, int bitPos, uint8_t* bseq, const char* kmer) {
+static int serialize_position(int kmerPos, int arrPos, int bitPos, uint8_t* bseq, const char* kmer) {
     switch( kmer[kmerPos] )
     {
         case 'a': break;
@@ -83,17 +83,24 @@ static void serialize_position(uint32_t kmerPos, int arrPos, int bitPos, uint8_t
         case 't': bseq[ arrPos ] |= MASK_INSERT[ 3 ][ bitPos ]; break;
         case 'T': bseq[ arrPos ] |= MASK_INSERT[ 3 ][ bitPos ]; break;
         default:
-            bseq[ arrPos ] |= MASK_INSERT[ rand() % 4 ][ bitPos ]; break;
-            //throw std::runtime_error( "Could not serialize kmer." );
+	  //bseq[ arrPos ] |= MASK_INSERT[ rand() % 4 ][ bitPos ]; break;
+	  //throw std::runtime_error("Could not serialize kmer.");
+	  return kmerPos;
     }
+    return -1;
 }
 
-static void serialize_kmer( const char* kmer, int k, uint8_t* bseq )
+static int serialize_kmer( const char* kmer, int k, uint8_t* bseq )
 {
-    for( int pos = 0; pos < k; pos++ )
-    {
-        serialize_position(pos, pos / 4, pos % 4, bseq, kmer);
+  for(int pos = 0; pos < k; pos++)
+  {
+    int ret = serialize_position(pos, pos / 4, pos % 4, bseq, kmer);
+    if(ret != -1) {
+      return pos;
     }
+  }
+  
+  return -1;
 }
 
 static char* deserialize_kmer( int k, uint8_t* bseq )
