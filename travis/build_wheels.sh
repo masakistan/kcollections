@@ -30,7 +30,7 @@ echo "checking /io"
 pwd
 ls
 
-export PYBIN=/opt/python/cp"$1"-cp"$1"mu/bin
+export PYBIN=/opt/python/cp"$1"-cp"$1"m/bin
 
 # Compile wheels
 "${PYBIN}/python" /io/setup.py bdist_wheel sdist
