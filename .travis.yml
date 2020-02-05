@@ -111,6 +111,7 @@ install:
       then
         pyenv install 3.7.6;
 	pyenv global 3.7.6;
+      fi
       which python;
       python --version;
       echo "building for python 3 ...";
