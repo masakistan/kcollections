@@ -66,89 +66,89 @@ jobs:
       env:
         - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=37
 before_install:
-- if [ $TRAVIS_OS_NAME == "linux" ];
-  then
-    pip install --user --upgrade twine;
-  fi
+  - if [ $TRAVIS_OS_NAME == "linux" ];
+    then
+      pip install --user --upgrade twine;
+    fi
 install:
-- if [ $TRAVIS_OS_NAME == "linux" ];
-  then
-    mkdir dist wheelhouse
-    echo "building linux...";
-    docker pull $DOCKER_IMAGE;
-  else
-    echo "mac os";
-    if [ $TOXENV == "py27" ];
+  - if [ $TRAVIS_OS_NAME == "linux" ];
     then
-      which python;
-      python --version;
-      echo "building for python 2 ...";
-      python2 -m pip install --upgrade setuptools wheel;
-      python2 -m pip install --upgrade twine;
-      python2 setup.py bdist_wheel;
-      ls dist;
-      mkdir wheelhouse;
-      cp dist/* wheelhouse;
-      pip2 install --user dist/*.whl;
+      mkdir dist wheelhouse
+      echo "building linux...";
+      docker pull $DOCKER_IMAGE;
     else
-      if [ $TOXENV == "py34" ];
+      echo "mac os";
+      if [ $TOXENV == "py27" ];
       then
-        pyenv install 3.4.10;
-        pyenv global 3.4.10;
-      elif [ $TOXENV == "py35" ];
-      then
-        pyenv install 3.5.9;
-        pyenv global 3.5.9;
-      elif [ $TOXENV == "py36" ];
-      then
-        pyenv install 3.6.10;
-        pyenv global 3.6.10;
-      elif [ $TOXENV == "py37" ];
-      then
-        pyenv install 3.7.6;
-        pyenv global 3.7.6;
+        which python;
+        python --version;
+        echo "building for python 2 ...";
+        python2 -m pip install --upgrade setuptools wheel;
+        python2 -m pip install --upgrade twine;
+        python2 setup.py bdist_wheel;
+        ls dist;
+        mkdir wheelhouse;
+        cp dist/* wheelhouse;
+        pip2 install --user dist/*.whl;
+      else
+        if [ $TOXENV == "py34" ];
+        then
+          pyenv install 3.4.10;
+          pyenv global 3.4.10;
+        elif [ $TOXENV == "py35" ];
+        then
+          pyenv install 3.5.9;
+          pyenv global 3.5.9;
+        elif [ $TOXENV == "py36" ];
+        then
+          pyenv install 3.6.10;
+          pyenv global 3.6.10;
+        elif [ $TOXENV == "py37" ];
+        then
+          pyenv install 3.7.6;
+          pyenv global 3.7.6;
+        fi
+        which python;
+        python --version;
+        echo "building for python 3 ...";
+        python3 -m pip install --upgrade setuptools wheel;
+        python3 -m pip install --upgrade twine;
+        python3 setup.py bdist_wheel;
+        ls dist;
+        mkdir wheelhouse;
+        cp dist/* wheelhouse;
+        pip3 install --user dist/*.whl;
       fi
-      which python;
-      python --version;
-      echo "building for python 3 ...";
-      python3 -m pip install --upgrade setuptools wheel;
-      python3 -m pip install --upgrade twine;
-      python3 setup.py bdist_wheel;
-      ls dist;
-      mkdir wheelhouse;
-      cp dist/* wheelhouse;
-      pip3 install --user dist/*.whl;
     fi
-  fi
 script:
-- if [ $TRAVIS_OS_NAME == "linux" ];
-  then
-    if [ $TOXENV == "27" ];
+  - if [ $TRAVIS_OS_NAME == "linux" ];
     then
-      docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
-    elif [ $TOXENV == "34" ];
-    then
-      docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
-    elif [ $TOXENV == "35" ];
-    then
-      docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
-    elif [ $TOXENV == "36" ];
-    then
-      docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
-    elif [ $TOXENV == "37" ];
-    then
-      docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
-    fi
-  else
-    if [ $TOXENV == "py27" ];
-    then
-      echo "testing python 2";
-      (cd "$HOME"; python2 -c 'from kcollections import Kset, Kdict_int, Kcounter');
+      if [ $TOXENV == "27" ];
+      then
+        docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
+      elif [ $TOXENV == "34" ];
+      then
+        docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
+      elif [ $TOXENV == "35" ];
+      then
+        docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
+      elif [ $TOXENV == "36" ];
+      then
+        docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
+      elif [ $TOXENV == "37" ];
+      then
+        docker run --rm -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build_wheels.sh "$TOXENV";
+      fi
     else
-      echo "testing python 3";
-      (cd "$HOME"; python3 -c 'from kcollections import Kset, Kdict_int, Kcounter');
+      if [ $TOXENV == "py27" ];
+      then
+        echo "testing python 2";
+        (cd "$HOME"; python2 -c 'from kcollections import Kset, Kdict_int, Kcounter');
+      else
+        echo "testing python 3";
+        (cd "$HOME"; python3 -c 'from kcollections import Kset, Kdict_int, Kcounter');
+      fi
     fi
-  fi
 deploy:
   skip_cleanup: true
   provider: script
