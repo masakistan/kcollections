@@ -74,6 +74,7 @@ before_install:
 install:
   - echo "$TRAVIS_OS_NAME";
   - |
+    pyenv install --list;
     if [ $TRAVIS_OS_NAME = "linux" ];
     then
       echo "linux";
