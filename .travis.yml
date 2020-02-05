@@ -98,19 +98,19 @@ install:
       if [ $TOXENV == "py34" ];
       then
         pyenv install 3.4.10;
-	pyenv global 3.4.10;
+	    pyenv global 3.4.10;
       elif [ $TOXENV == "py35" ];
       then
         pyenv install 3.5.9;
-	pyenv global 3.5.9;
+	    pyenv global 3.5.9;
       elif [ $TOXENV == "py36" ];
       then
         pyenv install 3.6.10;
-	pyenv global 3.6.10;
+	    pyenv global 3.6.10;
       elif [ $TOXENV == "py37" ];
       then
         pyenv install 3.7.6;
-	pyenv global 3.7.6;
+	    pyenv global 3.7.6;
       fi
       which python;
       python --version;
