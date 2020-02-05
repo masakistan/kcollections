@@ -81,7 +81,6 @@ install:
       docker pull $DOCKER_IMAGE;
     else
       echo "mac os";
-      fi
     fi
 script:
   - if [ $TRAVIS_OS_NAME == "linux" ];
