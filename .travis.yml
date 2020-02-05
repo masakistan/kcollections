@@ -66,12 +66,13 @@ jobs:
       env:
         - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 TOXENV=37
 before_install:
-  - if [ $TRAVIS_OS_NAME == "linux" ];
+  - echo "$TRAVIS_OS_NAME";
+    if [ $TRAVIS_OS_NAME == "linux" ];
     then
       pip install --user --upgrade twine;
     fi
 install:
-  - echo $TRAVIS_OS_NAME;
+  - echo "$TRAVIS_OS_NAME";
     if [ $TRAVIS_OS_NAME == "linux" ];
     then
       echo "linux";
