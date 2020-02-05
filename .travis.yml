@@ -83,8 +83,6 @@ install:
       echo "mac os";
       echo "$TOXENV";
       if [ $TOXENV == "py27" ]; then
-        which python;
-        python --version;
         echo "building for python 2 ...";
         python2 -m pip install --upgrade setuptools wheel;
         python2 -m pip install --upgrade twine;
