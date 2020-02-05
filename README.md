@@ -1,7 +1,7 @@
 # kcollections
 [![Build Status](https://travis-ci.com/masakistan/kcollections.svg?token=oruFeF6Jkw9aGsjG6xUW&branch=master)](https://travis-ci.com/masakistan/kcollections)
 
-A fast and efficient library for storing k-mers in python.
+A fast and efficient library for storing k-mers in c++ and python.
 
 ## About
 `kcollections` is a python-like `dict` and `set` that efficiently store kmers as keys or elements of the collection.
@@ -25,6 +25,7 @@ Alternatively, you can build from source.
 Prerequisites include:
 
   - [CMake](https://cmake.org/), must be installed manually in order to build the code.
+  - [boost](https://www.boost.org/), at least version 1.65.1
   - [uint256_t](https://github.com/calccrypto/uint256_t), included in the repository.
   - [pybind11](https://github.com/pybind/pybind11), included in the repository.
 
@@ -62,7 +63,7 @@ make
 
 ### Using Kset
 
-#### Serial Insertion
+#### Serial Insertion, writing/reading to/from disk
 Kmers can be added one at a time with `add`, but the fastest way to add kmers to a set is
 to add a DNA sequence using `add_seq`.
 
@@ -81,6 +82,14 @@ assert 'AAACTGTCTTCCTTTATTTGTTCAGGG' in ks
 # iteration
 for kmer in ks:
     print kmer
+
+ks.write("data.bs")
+del ks
+
+# sometime later
+
+ks = Kcollections.Kset()
+ks.read("data.bs")
 ```
 
 #### Parallel Insertion
@@ -123,7 +132,7 @@ print len(ks)
 #### Serial Insertion
 ```python
 import kcollections
-kd = kcollections.Kdict(27)
+kd = kcollections.Kdict(str, 27)
 
 # insertion and value assignment
 kd['AAACTGTCTTCCTTTATTTGTTCAGGG'] = 'banana'
@@ -146,7 +155,7 @@ This merge function simply keeps the newest value associated with the kmer.
 More examples of merging functions with `Kdict` can be found [here](kdict_merging.md).
 
 ```python
-kd = kcollections.Kdict(27)
+kd = kcollections.Kdict(int, 27)
 kd.parallel_add_init(4)
 kd.set_merge_func(lambda prev_val, new_val: new_val)
 kd.parallel_add_seq(dna, generate_idx(len(dna)))

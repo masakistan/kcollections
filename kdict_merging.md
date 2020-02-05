@@ -11,7 +11,7 @@ import kcollections
 kd = kcollections.Kdict(int, 4)
 ```
 
-This example initializes a `Kdict` with values that are lists of ints.
+The following example initializes a `Kdict` with values that are lists of ints.
 
 ```python
 import kcollections
@@ -36,7 +36,7 @@ This is not interesting but given a different merging function more interesting 
 ## Examples
 
 ### Default Merging Function
-This example uses the default mergining function.
+This example uses the default mergining function which simply overwrites the previous value.
 It stores the last index of each kmer in the dna string.
 
 ```python
@@ -46,7 +46,7 @@ dna = 'ACTGGTACTG'
 kd = kcollections.Kdict(int, 4)
 
 kd.parallel_add_init(4)
-kd.parallel_add_seq(dna, [1 for _ in range(len(dna))])
+kd.parallel_add_seq(dna, [i for i in range(len(dna))])
 kd.parallel_add_join()
 
 for kmer, val in kd.iteritems():
@@ -128,9 +128,9 @@ TGGT [2]
 
 ## PyObject Values and the GIL
 
-`pybind11` provides automatic type conversion for many types and we have implemented several cases but there may be instances where you want to use a custom python object or an object that we have not provided explicit support for.
-To use `Kdict` for an unsupported type, initialize it with `object` as the value type for the dictionary.
-Using `object` as the value type will cause `Kdict` to acquire the Global Interpreter Lock (GIL) when performing operations.
+`pybind11` provides automatic type conversion for many types and we have implemented several cases but there may be instances where you want to use a custom object.
+While it is possible to create a `Kdict` with an `py::object` value, we suggest that you implement a custom class in C++.
+Using `object` as the value type will cause `Kdict` to acquire the Global Interpreter Lock (GIL) when performing operations which negates all speedup from parallelization.
 The use of the GIL makes parallel operatoins (essentially) sequential removing any benefit of parallel operation.
 
 ## List of Available Value Types
@@ -138,13 +138,9 @@ A type of `(list, int)` will create a list of ints as the value
 
 - `int`
 - `float`
-- `string`
-- `object`
+- `str`
+- `bool`
 - `(list, int)`
 - `(list, float)`
-- `(list, string)`
-- `(list, object)`
-- `(set, int)`
-- `(set, float)`
-- `(set, string)`
-- `(set, object)`
+- `(list, str)`
+- `(list, bool)`
