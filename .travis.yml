@@ -70,11 +70,6 @@ before_install:
   - if [ $TRAVIS_OS_NAME == "linux" ];
     then
       pip install --user --upgrade twine;
-    else
-      export PYENV_ROOT="$HOME/.pyenv;
-      export PATH="$PYENV_ROOT/bin:$PATH;
-      echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bash_profile;
-      source activate ~/.bash_profile;
     fi
 install:
   - echo "$TRAVIS_OS_NAME";
