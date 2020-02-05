@@ -73,7 +73,7 @@ before_install:
     fi
 install:
   - echo "$TRAVIS_OS_NAME";
-  - if [ $TRAVIS_OS_NAME == "linux" ];
+  - if [ $TRAVIS_OS_NAME = "linux" ];
     then
       echo "linux";
       mkdir dist wheelhouse;
@@ -116,7 +116,7 @@ install:
       fi
     fi
 script:
-  - if [ $TRAVIS_OS_NAME == "linux" ];
+  - if [ $TRAVIS_OS_NAME = "linux" ];
     then
       if [ $TOXENV = "27" ];
       then
