@@ -5,10 +5,31 @@
 #endif
 
 #include <functional>
+
+#include <boost/serialization/split_member.hpp>
+
 #include "UContainer.h"
 #include "globals.h"
 //#include <jemalloc/jemalloc.h>
 #include "uint256_t.h"
+#include "uint128_t.h"
+
+namespace boost {
+namespace serialization {
+template<class Archive>
+void serialize(Archive& ar, uint256_t& obj, const unsigned int version) {
+  ar & obj.UPPER;
+  ar & obj.LOWER;
+}
+
+template<class Archive>
+void serialize(Archive& ar, uint128_t& obj, const unsigned int version) {
+  ar & obj.UPPER;
+  ar & obj.LOWER;
+}
+
+} // namespace serialization
+} // namespace boost
 
 #if defined(PYTHON)
 namespace py = pybind11;
@@ -35,12 +56,46 @@ private:
   uint16_t vs_size;
 public:
   Vertex() : vs(NULL), pref_pres(0), vs_size(0) {
-    //std::cout << "uc: " << sizeof(uc) << std::endl;
   }
 
   ~Vertex() {
     clear();
   }
+
+  template<class Archive>
+  void save(Archive& ar, const unsigned int version) const {
+    ar & vs_size;
+    ar & pref_pres;
+    ar & uc;
+
+    CDEPTH -= 1;
+    for(size_t i = 0; i < vs_size; i++) {
+      ar & vs[i];
+    }
+    CDEPTH += 1;
+  }
+
+ 
+  template<class Archive>
+  void load(Archive& ar, const unsigned int version) {
+    ar & vs_size;
+    ar & pref_pres;
+    ar & uc;
+
+#if defined(KDICT) || defined(KCOUNTER)
+    vs = new Vertex<T>[vs_size];
+#else
+    vs = new Vertex[vs_size];
+#endif
+
+    CDEPTH -= 1;
+    for(size_t i = 0; i < vs_size; i++) {
+      ar & vs[i];
+    }
+    CDEPTH += 1;
+  }
+
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
 
   Vertex& operator=(Vertex&& o) {
     uc = std::move(o.uc);

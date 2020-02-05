@@ -20,6 +20,13 @@ endif()
 
 project(kcollections)
 
+# BOOST :(
+#set(BOOST_REQUESTED_VERSION 1.72.0)
+#set(BOOST_ROOT_DIR ${CMAKE_SOURCE_DIR}/libs/boost-${BOOST_REQUESTED_VERSION})
+#list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+find_package(Boost ${BOOST_REQUESTED_VERSION} REQUIRED COMPONENTS serialization)
+message("boost libs: ${Boost_LIBRARIES} ${Boost_INCLUDE_DIRS}")
+
 # The version number.
 set (Kdict_VERSION_MAJOR 1)
 set (Kdict_VERSION_MINOR 0)
@@ -51,7 +58,7 @@ set(uint256_src
 add_library(uint256_objs OBJECT ${uint256_src})
 
 set(kcollections_src
-  "${SOURCE_DIR}/MurmurHash3.cc"
+  "${SOURCE_DIR}/globals.cpp"
   "${SOURCE_DIR}/UContainer.cc"
   "${SOURCE_DIR}/Vertex.cc"
   "${SOURCE_DIR}/Kcontainer.cc"
@@ -67,15 +74,15 @@ if (${PYTHON})
     include_directories(libs/pybind11-2.4.3/include)
 
     pybind11_add_module(_Kset ${kcollections_src} "${SOURCE_DIR}/Kset.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})
-    target_link_libraries(_Kset PRIVATE pybind11::module)
+    target_link_libraries(_Kset PRIVATE pybind11::module boost_serialization)
     target_compile_definitions(_Kset PUBLIC "PYTHON" PUBLIC "KSET")
 
     pybind11_add_module(_Kdict ${kcollections_src} "${SOURCE_DIR}/Kdict.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})
-    target_link_libraries(_Kdict PRIVATE pybind11::module)
+    target_link_libraries(_Kdict PRIVATE pybind11::module boost_serialization)
     target_compile_definitions(_Kdict PUBLIC "PYTHON" PUBLIC "KDICT")
 
     pybind11_add_module(_Kcounter ${kcollections_src} "${SOURCE_DIR}/Kcounter.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})
-    target_link_libraries(_Kcounter PRIVATE pybind11::module)
+    target_link_libraries(_Kcounter PRIVATE pybind11::module boost_serialization)
     target_compile_definitions(_Kcounter PUBLIC "PYTHON" PUBLIC "KCOUNTER")
 else()
     message("compiling other stuff")
@@ -89,10 +96,13 @@ else()
     target_compile_definitions(kcollections_counter_objs PUBLIC "KCOUNTER")
 
     add_library(Kset STATIC $<TARGET_OBJECTS:kcollections_set_objs> $<TARGET_OBJECTS:uint256_objs>)
+	target_link_libraries(Kset boost_serialization)
 
     add_library(Kdict STATIC $<TARGET_OBJECTS:kcollections_dict_objs> $<TARGET_OBJECTS:uint256_objs>)
+	target_link_libraries(Kdict boost_serialization)
 
     add_library(Kcounter STATIC $<TARGET_OBJECTS:kcollections_counter_objs> $<TARGET_OBJECTS:uint256_objs>)
+	target_link_libraries(Kcounter boost_serialization)
 
     # Testing
     add_executable(counterbulktest "${SOURCE_DIR}/TestCounterBulk.cpp" $<TARGET_OBJECTS:kcollections_counter_objs>)
@@ -113,6 +123,16 @@ else()
     add_executable(setbulktest "${SOURCE_DIR}/TestSetBulk.cpp" $<TARGET_OBJECTS:kcollections_set_objs>)
     target_link_libraries(setbulktest Threads::Threads Kset)
     set_target_properties(setbulktest PROPERTIES COMPILE_DEFINITIONS "KSET")
+	
+	# Testing Kset save
+    add_executable(setsavetest "${SOURCE_DIR}/TestSetSave.cpp" $<TARGET_OBJECTS:kcollections_set_objs>)
+    target_link_libraries(setsavetest Threads::Threads Kset)
+    set_target_properties(setsavetest PROPERTIES COMPILE_DEFINITIONS "KSET")
+	
+	# Testing Kcounter save
+    add_executable(countersavetest "${SOURCE_DIR}/TestCounterSave.cpp" $<TARGET_OBJECTS:kcollections_counter_objs>)
+    target_link_libraries(countersavetest Threads::Threads Kset)
+    set_target_properties(countersavetest PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
 endif()
 
 # Additional compiler flags
@@ -134,7 +154,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   # using Clang
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # using GCC
-  string( APPEND CMAKE_CXX_FLAGS " -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free" )
+  #string( APPEND CMAKE_CXX_FLAGS " -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free" )
   message( "Using CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}" )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++

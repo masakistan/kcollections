@@ -5,7 +5,7 @@ from ._Kcounter import Kcounter as KcounterParent
 
 def create_kdict(base):
     class tkdict(base):
-        def __init__( self, k ):
+        def __init__(self, k=0):
             super(tkdict, self).__init__(k)
 
         def __str__( self ):
@@ -88,9 +88,9 @@ def Kdict(val_type, k):
     return create_kdict(eval(type_name))(k)
 
 
-class Kset( KsetParent ):
-    def __init__( self, k ):
-        super( Kset, self ).__init__( k )
+class Kset(KsetParent):
+    def __init__(self, k=0):
+        super(Kset, self).__init__(k)
 
     def __str__( self ):
         return '{' + ','.join( self ) + '}'
@@ -208,9 +208,9 @@ class Kset( KsetParent ):
         return self.difference( other )
 
 
-class Kcounter( KcounterParent ):
-    def __init__( self, k ):
-        super( Kcounter, self ).__init__( k )
+class Kcounter(KcounterParent):
+    def __init__(self, k=0):
+        super(Kcounter, self).__init__(k)
 
     def __str__( self ):
         res = []
@@ -220,12 +220,6 @@ class Kcounter( KcounterParent ):
 
     def __repr__( self ):
         return self.__str__()
-
-    def items( self ):
-        return self.__iter__()
-
-    def iteritems( self ):
-        return self.__iter__()
 
     def keys( self ):
         for kmer, val in self.__iter__():

@@ -1,7 +1,17 @@
 #pragma once
 
+#include <fstream>
+
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+
 #include "uint256_t.h"
 #include "Kcontainer.h"
+#include "globals.h"
+#include "helper.h"
 
 class Kset
 {
@@ -9,8 +19,44 @@ private:
   Kcontainer* kc;
   int m_k;
 public:
+  Kset(){};
   Kset( const int k );
   ~Kset();
+
+  template<class Archive>
+  void save(Archive& ar, const unsigned int version) const {
+    ar & m_k;
+    ar & *kc;
+  }
+
+  template<class Archive>
+  void load(Archive& ar, const unsigned int version) {
+    ar & m_k;
+    CDEPTH = calc_bk(m_k);
+    kc = new Kcontainer(m_k);
+    ar & *kc;
+  }
+
+  BOOST_SERIALIZATION_SPLIT_MEMBER()
+
+  void write(const char* opath) {
+    CDEPTH = calc_bk(get_k());
+    std::ofstream ofs(opath);
+
+    boost::archive::binary_oarchive oa(ofs);
+    oa << *this;
+    CDEPTH = -1;
+  }
+
+  void read(const char* ipath) {
+    std::ifstream ifs(ipath);
+
+    boost::archive::binary_iarchive ia(ifs);
+    ia >> *this;
+
+    CDEPTH = -1;
+  }
+  
   void add( const char* kmer );
   bool contains( const char* kmer );
   void clear();

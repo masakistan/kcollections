@@ -84,6 +84,12 @@ public:
     }
   }
 
+  template<class Archive>
+  void serialize(Archive& ar, const unsigned int version) {
+    ar & k;
+    ar & v;
+  }
+
   class KcontainerIterator {
   public:
     typedef std::input_iterator_tag iterator_category;    // iterator category
@@ -533,7 +539,6 @@ public:
     ti = (ThreadInfo*) calloc(threads, sizeof(ThreadInfo));
     tg = (ThreadGlobals*) calloc(1, sizeof(ThreadGlobals));
 #endif
-
 
     tg_init(threads);
     ti_init(threads);

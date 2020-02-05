@@ -52,9 +52,9 @@ namespace std {  // This is probably not a good idea
 
 class uint128_t{
     private:
-        uint64_t UPPER, LOWER;
 
     public:
+        uint64_t UPPER, LOWER;
         // Constructors
         uint128_t();
         uint128_t(const uint128_t & rhs);

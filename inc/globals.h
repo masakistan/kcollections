@@ -9,3 +9,5 @@
 
 typedef int count_dtype;
 #define MAXCOUNT    UINT16_MAX
+
+extern int CDEPTH;
