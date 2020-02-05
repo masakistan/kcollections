@@ -71,53 +71,15 @@ before_install:
       pip install --user --upgrade twine;
     fi
 install:
-  - if [ $TRAVIS_OS_NAME == "linux" ];
+  - echo $TRAVIS_OS_NAME;
+    if [ $TRAVIS_OS_NAME == "linux" ];
     then
-      mkdir dist wheelhouse
+      echo "linux";
+      mkdir dist wheelhouse;
       echo "building linux...";
       docker pull $DOCKER_IMAGE;
     else
       echo "mac os";
-      if [ $TOXENV == "py27" ];
-      then
-        which python;
-        python --version;
-        echo "building for python 2 ...";
-        python2 -m pip install --upgrade setuptools wheel;
-        python2 -m pip install --upgrade twine;
-        python2 setup.py bdist_wheel;
-        ls dist;
-        mkdir wheelhouse;
-        cp dist/* wheelhouse;
-        pip2 install --user dist/*.whl;
-      else
-        if [ $TOXENV == "py34" ];
-        then
-          pyenv install 3.4.10;
-          pyenv global 3.4.10;
-        elif [ $TOXENV == "py35" ];
-        then
-          pyenv install 3.5.9;
-          pyenv global 3.5.9;
-        elif [ $TOXENV == "py36" ];
-        then
-          pyenv install 3.6.10;
-          pyenv global 3.6.10;
-        elif [ $TOXENV == "py37" ];
-        then
-          pyenv install 3.7.6;
-          pyenv global 3.7.6;
-        fi
-        which python;
-        python --version;
-        echo "building for python 3 ...";
-        python3 -m pip install --upgrade setuptools wheel;
-        python3 -m pip install --upgrade twine;
-        python3 setup.py bdist_wheel;
-        ls dist;
-        mkdir wheelhouse;
-        cp dist/* wheelhouse;
-        pip3 install --user dist/*.whl;
       fi
     fi
 script:
