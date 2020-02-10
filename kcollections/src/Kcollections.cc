@@ -1,15 +1,23 @@
-#if KDICT
+#if defined(KDICT) && defined(PYTHON)
 #include <vector>
 #include <set>
+#include <algorithm>
 #include <pybind11/functional.h>
 #include <pybind11/stl.h>
+#include <pybind11/stl_bind.h>
 #include "Kdict.h"
+#include "globals.h"
+
+
+
 
 
 template<typename T>
 void declare_kdict_member(py::module &m, const std::string &typestr) {
   using CClass = Kdict<T>;
   using VClass = Vertex<T>;
+
+ 
   std::string pyclass_name = std::string("Kdict_") + typestr;
   
   m.doc() = R"pbdoc(
@@ -23,6 +31,8 @@ void declare_kdict_member(py::module &m, const std::string &typestr) {
 
 	   Kdict
       )pbdoc";
+
+
   
   py::class_<CClass>(m, pyclass_name.c_str(), py::buffer_protocol(), py::dynamic_attr())
     .def(py::init<const int>())
@@ -33,7 +43,7 @@ void declare_kdict_member(py::module &m, const std::string &typestr) {
 
 	    Takes two arguments, the kmer represented as a string and the object to set it to.
 	  )pbdoc")
-    .def("__getitem__", &CClass::get, R"pbdoc()pbdoc")
+    .def("__getitem__", &CClass::get, py::return_value_policy::reference)
     .def("__iter__", [](CClass& v) { return py::make_iterator(v.begin(), v.end()); })
     .def("__contains__", &CClass::contains, R"pbdoc(
 	    Checks if a kmer is in Kdict
@@ -61,9 +71,16 @@ void declare_kdict_member(py::module &m, const std::string &typestr) {
     .def("get_child_suffix", &CClass::get_child_suffix )
     .def_property_readonly("k", &CClass::get_k)
     .def("parallel_add_init", &CClass::parallel_add_init, py::call_guard<py::gil_scoped_release>())
+    .def("parallel_add_seq", [](CClass& kd, const char* seq, py::iterable& iter) {
+			   kd.parallel_add_seq(seq, iter);
+	  }
+      )
+    .def("add_seq", [](CClass& kd, const char* seq, py::iterable& iter) {
+			   kd.add_seq(seq, iter);
+	  }
+      )
     .def("parallel_add", &CClass::parallel_add)
-    .def("parallel_add_seq", &CClass::parallel_add_seq)
-    .def("add_seq", &CClass::add_seq)
+    //.def("add_seq", &CClass::add_seq)
     .def("parallel_add_join", &CClass::parallel_add_join, py::call_guard<py::gil_scoped_release>())
     .def("set_merge_func", &CClass::set_merge_func);
   
@@ -72,26 +89,44 @@ void declare_kdict_member(py::module &m, const std::string &typestr) {
     .def( "uc", &VClass::get_uc );
 }
 
+
+template<typename T>
+void make_opaque(py::module& m, const std::string& name) {
+  std::string tname = "ovector_" + name;
+  py::bind_vector<std::vector<T>>(m, tname.c_str(), py::module_local());
+}
+
 template<typename T>
 void declare_kdict(py::module& m, const std::string& name) {
-  
   declare_kdict_member<T>(m, name);
   declare_kdict_member<std::vector<T>>(m, std::string("vector_") + name);
   declare_kdict_member<std::set<T>>(m, std::string("set_") + name);
   declare_kdict_member<std::list<T>>(m, std::string("list_") + name);
 }
-
-//PYBIND11_MAKE_OPAQUE(std::vector<int>);
-
 PYBIND11_MODULE( _Kdict, m )
 {
+  make_opaque<int>(m, "int");
+  make_opaque<float>(m, "float");
+  // NOTE: we use char because std::vector<bool> does not return references to items
+  // using char instead is a hack, should we change this?
+  make_opaque<char>(m, "bool");
+  make_opaque<std::string>(m, "str");
+  //make_opaque<py::object>(m, "object");
+
+  make_opaque<std::vector<int>>(m, "vector_int");
+  make_opaque<std::vector<float>>(m, "vector_float");
+  make_opaque<std::vector<char>>(m, "vector_bool");
+  make_opaque<std::vector<std::string>>(m, "vector_str");
+  //make_opaque<std::vector<py::object>>(m, "vector_object");
+
+      
   declare_kdict<int>(m, "int");
   declare_kdict<float>(m, "float");
   // NOTE: we use char because std::vector<bool> does not return references to items
   // using char instead is a hack, should we change this?
   declare_kdict<char>(m, "bool");
-  declare_kdict<std::string>(m, "string");
-  declare_kdict<py::object>(m, "object");
+  declare_kdict<std::string>(m, "str");
+  //declare_kdict<py::object>(m, "object");
 
   //declare_kdict_member<py::list>(m, "pylist");
   declare_kdict_member<std::vector<std::vector<int>>>(m, "list_list");

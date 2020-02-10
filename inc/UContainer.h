@@ -91,6 +91,7 @@ public:
     }
 #else
     ar & objs;
+    
     suffixes = (uint8_t*) calloc(objs.size() * CDEPTH, sizeof(uint8_t));
     for(size_t i = 0; i < objs.size() * CDEPTH; i++) {
       ar & suffixes[i];

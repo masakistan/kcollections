@@ -24,7 +24,7 @@ project(kcollections)
 #set(BOOST_REQUESTED_VERSION 1.72.0)
 #set(BOOST_ROOT_DIR ${CMAKE_SOURCE_DIR}/libs/boost-${BOOST_REQUESTED_VERSION})
 #list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-find_package(Boost ${BOOST_REQUESTED_VERSION} REQUIRED COMPONENTS serialization)
+find_package(Boost 1.65.1 ${BOOST_REQUESTED_VERSION} REQUIRED COMPONENTS serialization)
 message("boost libs: ${Boost_LIBRARIES} ${Boost_INCLUDE_DIRS}")
 
 # The version number.
@@ -128,7 +128,12 @@ else()
     add_executable(setsavetest "${SOURCE_DIR}/TestSetSave.cpp" $<TARGET_OBJECTS:kcollections_set_objs>)
     target_link_libraries(setsavetest Threads::Threads Kset)
     set_target_properties(setsavetest PROPERTIES COMPILE_DEFINITIONS "KSET")
-	
+
+    # Testing Kdict save
+    add_executable(dictsavetest "${SOURCE_DIR}/TestDictSave.cpp" $<TARGET_OBJECTS:kcollections_dict_objs>)
+    target_link_libraries(dictsavetest Threads::Threads Kset)
+    set_target_properties(dictsavetest PROPERTIES COMPILE_DEFINITIONS "KDICT")
+		
 	# Testing Kcounter save
     add_executable(countersavetest "${SOURCE_DIR}/TestCounterSave.cpp" $<TARGET_OBJECTS:kcollections_counter_objs>)
     target_link_libraries(countersavetest Threads::Threads Kset)
