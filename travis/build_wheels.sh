@@ -34,7 +34,16 @@ export PYBIN=/opt/python/cp"$1"-cp"$1"m/bin
 
 # Compile wheels
 "${PYBIN}/python" /io/setup.py bdist_wheel sdist
-cp /io/dist/*.tar.gz /io/wheelhouse
+
+# NOTE: ci jobs fail because only one of the ci tasks can upload the source files
+# only let one ci task upload the source files to pypi
+if [ $py == "37"];
+then
+    cp /io/dist/*.tar.gz /io/wheelhouse;
+else
+    rm /io/dist/*.tar.gz;
+fi
+
 echo "checking /io/wheelhouse"
 ls /io/wheelhouse
 
