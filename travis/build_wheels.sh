@@ -54,4 +54,4 @@ done
 
 # Install packages and test
 "${PYBIN}/pip" install kcollections --no-index -f /io/wheelhouse
-(cd "$HOME"; "${PYBIN}/python" -c 'from kcollections import Kset, Kcounter, Kdict_int, Kdict_float, Kdict_string')
+(cd "$HOME"; "${PYBIN}/python" -c 'from kcollections import Kset, Kcounter, Kdict_int, Kdict_float, Kdict_str')

@@ -7,10 +7,10 @@
 
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
+#include "globals.h"
 
 #include "uint256_t.h"
 #include "Kcontainer.h"
-#include "globals.h"
 #include "helper.h"
 
 class Kset

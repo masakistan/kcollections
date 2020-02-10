@@ -11,19 +11,23 @@
 #include <stdlib.h>
 #include <string>
 #include <stdexcept>
-#include "Vertex.h"
-#include "helper.h"
 //#include <jemalloc/jemalloc.h>
 #include <math.h>
 #include <functional>
+#include "globals.h"
+#include "helper.h"
+#include "Vertex.h"
+
 
 #if defined(PYTHON)
+#include <pybind11/pybind11.h>
 namespace py = pybind11;
 #endif
 
 #if defined(KDICT) || defined(KCOUNTER)
 template <class T>
 #endif
+
 
 struct ThreadGlobals {
 #if defined(KSET)

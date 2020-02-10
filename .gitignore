@@ -7,3 +7,4 @@ kcollections.egg-info/
 *.so
 *.pyc
 *.dylib
+*.fa

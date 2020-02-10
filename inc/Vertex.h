@@ -7,9 +7,9 @@
 #include <functional>
 
 #include <boost/serialization/split_member.hpp>
+#include "globals.h"
 
 #include "UContainer.h"
-#include "globals.h"
 //#include <jemalloc/jemalloc.h>
 #include "uint256_t.h"
 #include "uint128_t.h"

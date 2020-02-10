@@ -5,7 +5,9 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 
+#include "globals.h"
 #include "Kcontainer.h"
+#include "opaque.h"
 
 template <class T>
 class Kdict
@@ -70,12 +72,12 @@ public:
     this->merge_func = merge_func;
   }     
   
-  void add(char* kmer, T& obj) {
+  void add(const char* kmer, T obj) {
     CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
     kc->kcontainer_add(kmer, obj, overwrite_merge_func);
   }
   
-  bool contains(char* kmer) {
+  bool contains(const char* kmer) {
     CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
     return kc->kcontainer_contains(kmer);
   }
@@ -89,12 +91,12 @@ public:
     return kc->kcontainer_size();
   }
   
-  void remove(char* kmer) {
+  void remove(const char* kmer) {
     CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
     kc->kcontainer_remove(kmer);
   }
 
-  T get(char* kmer) {
+  T& get(const char* kmer) {
     CHECK_KMER_LENGTH(kmer, m_k, "Kdict");
     return kc->kcontainer_get(kmer);
   }
@@ -144,7 +146,7 @@ public:
     kc->parallel_kcontainer_add_init(threads, merge_func);
   }
   
-  void parallel_add(const char* kmer, T& value) {
+  void parallel_add(const char* kmer, T value) {
     kc->parallel_kcontainer_add(kmer, value);
   }
   
