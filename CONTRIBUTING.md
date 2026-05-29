@@ -26,7 +26,7 @@ The trie core is compiled once per kind with distinct type names (see `inc/kc/ks
 
 ## Pull requests
 
-- Target `v3.0-dev` for 3.x work or `master` for 2.x maintenance.
+- Target `master` for 3.x maintenance and releases.
 - Run `pytest tests -q` before opening a PR.
 - Keep serialization format changes documented in `CHANGELOG.md` and `MIGRATION.md`.
 - Prefer focused diffs; avoid drive-by refactors.

@@ -659,18 +659,46 @@ public:
         std::unique_lock<std::mutex> wake(ctg->rsignal_mx[bin]);
         ctg->rsignal_cv[bin].wait(wake, [&] {
           if(ctg->consumer_stop[bin]) {
+            for(int q = 0; q < ctg->work_queues; q++) {
+              if(!(*ctg->kmers)[bin][q].empty()) {
+                return true;
+              }
+            }
             return true;
           }
           return !(*ctg->kmers)[bin][ctg->rbin[bin]].empty();
         });
       }
+
+      if(ctg->consumer_stop[bin]) {
+        bool drained = false;
+        for(int q = 0; q < ctg->work_queues; q++) {
+          std::lock_guard<std::mutex> guard(ctg->blocks[bin][q]);
+          if((*ctg->kmers)[bin][q].empty()) {
+            continue;
+          }
+          drained = true;
+          for(auto i : (*ctg->kmers)[bin][q]) {
+#if defined(KSET)
+            ctg->v[bin]->vertex_insert(i, ctg->k);
+            free(i);
+#elif defined(KDICT) || defined(KCOUNTER)
+            ctg->v[bin]->vertex_insert(i.first, ctg->k, i.second, *ctg->merge_func);
+            free(i.first);
+#endif
+          }
+          (*ctg->kmers)[bin][q].clear();
+        }
+        if(!drained) {
+          break;
+        }
+        continue;
+      }
+
       cur_rbin = ctg->rbin[bin];
       std::lock_guard<std::mutex> guard(ctg->blocks[bin][cur_rbin]);
 
       if((*ctg->kmers)[bin][cur_rbin].size() == 0) {
-        if(ctg->consumer_stop[bin]) {
-          break;
-        }
         continue;
       }
 

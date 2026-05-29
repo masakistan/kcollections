@@ -37,7 +37,14 @@ void declare_kdict_member(py::module& m, const std::string& typestr) {
       })
       .def("parallel_add", &CClass::parallel_add)
       .def("parallel_add_join", &CClass::parallel_add_join, py::call_guard<py::gil_scoped_release>())
-      .def("set_merge_func", &CClass::set_merge_func);
+      .def("set_merge_func", &CClass::set_merge_func)
+      .def("_trie_stats", [](CClass& kd) {
+        auto* root = kd.get_root();
+        py::dict stats;
+        stats["root_vs_size"] = kd.get_vs_size(root);
+        stats["root_uc_size"] = kd.get_uc_size(root);
+        return stats;
+      });
 }
 
 template<typename T>
