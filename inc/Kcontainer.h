@@ -47,6 +47,7 @@ struct ThreadGlobals {
   std::mutex** blocks;
   std::mutex* rsignal_mx;
   std::condition_variable* rsignal_cv;
+  bool* consumer_stop;
   int bk, k, nthreads;
   std::thread* p_threads;
   int* wbin;
@@ -479,6 +480,7 @@ public:
     tg->rsignal_mx = new std::mutex[threads];
     tg->rsignal_cv = new std::condition_variable[threads];
     tg->p_threads = new std::thread[threads];
+    tg->consumer_stop = (bool*) calloc(threads, sizeof(bool));
 
     tg->wbin = (int*) calloc(threads, sizeof(int));
     tg->rbin = (int*) calloc(threads, sizeof(int));
@@ -501,11 +503,13 @@ public:
 
       tg->blocks[i] = new std::mutex[tg->work_queues];
 
+      for(int j = 0; j < tg->work_queues; j++) {
 #if defined(KSET)
         (*tg->kmers)[i].push_back(std::vector<uint8_t*>());
 #elif defined(KDICT) || defined(KCOUNTER)
         (*tg->kmers)[i].push_back(std::vector<std::pair<uint8_t*, T>>());
 #endif
+      }
 
 #if defined(KDICT) || defined(KCOUNTER)
       tg->v[i] = new KC_VERTEX<T>();
@@ -555,8 +559,12 @@ public:
     //std::cout << "joining threads" << std::endl;
 
     for(int i = 0; i < tg->nthreads; i++) {
-      tg->rsignal_cv[i].notify_one();
-      tg->rsignal_cv[i].notify_one();
+      tg->consumer_stop[i] = true;
+      {
+        std::lock_guard<std::mutex> lk(tg->rsignal_mx[i]);
+        tg->rsignal_cv[i].notify_all();
+        tg->rsignal_cv[i].notify_all();
+      }
     }
 
     int total_vs = 0;
@@ -618,6 +626,7 @@ public:
     delete[] tg->p_threads;
     free(tg->wbin);
     free(tg->rbin);
+    free(tg->consumer_stop);
     delete[] tg->blocks;
     tg->kmers->clear();
     delete tg->kmers;
@@ -648,13 +657,21 @@ public:
     while(true) {
       {
         std::unique_lock<std::mutex> wake(ctg->rsignal_mx[bin]);
-        ctg->rsignal_cv[bin].wait(wake);
+        ctg->rsignal_cv[bin].wait(wake, [&] {
+          if(ctg->consumer_stop[bin]) {
+            return true;
+          }
+          return !(*ctg->kmers)[bin][ctg->rbin[bin]].empty();
+        });
       }
       cur_rbin = ctg->rbin[bin];
       std::lock_guard<std::mutex> guard(ctg->blocks[bin][cur_rbin]);
 
       if((*ctg->kmers)[bin][cur_rbin].size() == 0) {
-	break;
+        if(ctg->consumer_stop[bin]) {
+          break;
+        }
+        continue;
       }
 
       for(auto i : (*ctg->kmers)[bin][cur_rbin]) {
@@ -819,6 +836,7 @@ public:
 #endif
     }
     free(bseq64);
+    parallel_kcontainer_add_flush();
 }
 
 #if defined(KSET)
@@ -851,8 +869,18 @@ public:
 	if(tg->wbin[bin] == tg->work_queues) {
 	  tg->wbin[bin] = 0;
 	}
-	tg->rsignal_cv[bin].notify_one();
+	{
+	  std::lock_guard<std::mutex> lk(tg->rsignal_mx[bin]);
+	  tg->rsignal_cv[bin].notify_one();
+	}
       }
+    }
+  }
+
+  void parallel_kcontainer_add_flush() {
+    for(int i = 0; i < tg->nthreads; i++) {
+      std::lock_guard<std::mutex> lk(tg->rsignal_mx[i]);
+      tg->rsignal_cv[i].notify_one();
     }
   }
 private:

@@ -87,7 +87,6 @@ class TestKset:
         kset.symmetric_difference_update([KMER_A])
         assert KMER_A not in kset and KMER_B in kset
 
-    @pytest.mark.skip(reason="parallel_add consumer sync regressed after pthread→std::thread migration")
     def test_parallel_add(self, kset):
         kset.parallel_add_init(4)
         kset.parallel_add_seq(SEQ)
