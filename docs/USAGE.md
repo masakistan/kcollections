@@ -49,7 +49,7 @@ ks.parallel_add_join()
 ## Persistence notes (production)
 
 - Use `save()` / `load()` or `from_file()` — aliases for `write()` / `read()`.
-- Indexes use the native **`kcollections-v1`** format (no Boost). Pin versions; 2.0/2.1 Boost archives are incompatible with 2.2+.
+- Indexes use **`kcollections-v2`** (little-endian). Pin versions; re-save when upgrading from 2.x.
 - Pin `kcollections==X.Y.Z` in production requirements.
 - For long-term archival across machines, export k-mers to a simple text or FASTA-derived format and rebuild the index.
 

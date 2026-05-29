@@ -19,22 +19,17 @@
 | `ks.write(path)` | `ks.save(path)` (preferred) |
 | `scripts/*.py` | `examples/*.py` |
 
-## Deprecated in 2.1 (removed in 3.0)
+## 2.x → 3.0 (breaking)
 
-| API | Use instead |
-|-----|-------------|
+| Removed in 3.0 | Use instead |
+|----------------|-------------|
 | `write()` / `read()` | `save()` / `load()` or `from_file()` |
 | `iteritems()` | `items()` |
 | `Kdict_int`, `Kdict_float`, … | `Kdict(int, k)`, etc. |
 | `get_root()`, `get_uc_kmer()`, … on containers | `kcollections.debug.inspect(obj)` |
-| `Kdict((list, list), k)` nested containers | Scalar or `Kdict(list, k)` only |
-
-Enable warnings in notebooks:
-
-```python
-import warnings
-warnings.simplefilter("always", DeprecationWarning)
-```
+| `Kdict_set_*`, `Kdict_list_*`, `list_list` | `Kdict(int, k)` or `Kdict((list, int), k)` |
+| Python 3.8–3.9 | Python 3.10+ |
+| Archive v1 | Re-save indexes (v2 little-endian format) |
 
 ## When not to use kcollections
 
@@ -42,12 +37,10 @@ Use **KMC**, **Jellyfish**, or **Cuttlefish** for huge on-disk k-mer databases i
 
 ## Serialization compatibility
 
-**2.2+** uses native format `kcollections-v1` (magic `KCOL`, no Boost). Files written by **2.0/2.1** (Boost) must be re-exported or rebuilt.
+**3.0+** uses `kcollections-v2` (magic `KCOL`, version 2, little-endian). Not compatible with 2.2 v1 archives or Boost-era 2.0/2.1 files — rebuild indexes.
 
 Safe when:
 
-- Same `kcollections` major version (2.2.x)
+- Same `kcollections` 3.x version
 - Same container type (`Kset` vs `Kdict` vs `Kcounter`)
-- Same `Kdict` value type (e.g. `int` vs `str`)
-
-Endianness follows the platform that wrote the file. For archival, export k-mers to text and rebuild.
+- Same `Kdict` value type (e.g. `int` vs `(list, int)`)

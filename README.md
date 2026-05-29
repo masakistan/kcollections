@@ -20,7 +20,7 @@ pip install kcollections
 
 From source: `pip install .` · Dev: `pip install -e ".[dev]"`
 
-Requires **Python 3.8+**, **CMake 3.18+**, **C++17** (no Boost).
+Requires **Python 3.10+**, **CMake 3.18+**, **C++17** (no Boost).
 
 ## Quick start
 
@@ -66,7 +66,7 @@ ks.parallel_add_join()
 ## Persistence (production)
 
 - Prefer **`save()` / `load()`** or **`Kset.from_file(path)`**.
-- Pin the package version; binary indexes use the native **`kcollections-v1`** format (see [MIGRATION.md](MIGRATION.md)). Archives from 2.0/2.1 (Boost) are not readable in 2.2+.
+- Pin the package version; binary indexes use **`kcollections-v2`** (see [MIGRATION.md](MIGRATION.md)). Re-save indexes when upgrading major versions.
 
 ## Tests
 

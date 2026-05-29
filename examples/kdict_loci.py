@@ -7,7 +7,7 @@ K = 15
 DNA = "AAACTGTCTTCAAACTGTCTTT"
 
 
-kd = Kdict(list, K)
+kd = Kdict((list, int), K)
 for i in range(len(DNA) - K + 1):
     kmer = DNA[i : i + K]
     if kmer in kd:

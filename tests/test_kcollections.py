@@ -130,31 +130,16 @@ class TestKcounter:
         assert kcounter.most_common(1)[0] == (KMER_A, 5)
 
 
-class TestDeprecation:
-    def test_write_emits_warning(self, kset, tmp_path):
-        kset.add(KMER_A)
-        path = tmp_path / "t.kc"
-        with pytest.warns(DeprecationWarning, match="write"):
-            kset.write(str(path))
-        with pytest.warns(DeprecationWarning, match="read"):
-            other = Kset()
-            other.read(str(path))
-        assert KMER_A in other
-
-    def test_kdict_int_deprecated(self):
-        import kcollections as kc
-
-        with pytest.warns(DeprecationWarning, match="Kdict_int"):
-            cls = kc.Kdict_int
-        assert cls is not None
-
-
 class TestImports:
     def test_version(self):
-        assert kcollections.__version__ == "2.2.0"
+        assert kcollections.__version__ == "3.0.0"
 
     def test_serialization_format_constant(self):
-        assert kcollections.SERIALIZATION_FORMAT == "kcollections-v1"
+        assert kcollections.SERIALIZATION_FORMAT == "kcollections-v2"
+
+    def test_kdict_rejects_nested_types(self):
+        with pytest.raises(TypeError):
+            Kdict((list, list), 10)
 
     def test_kdict_from_file(self, tmp_path):
         kd = Kdict(int, K)
