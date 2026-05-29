@@ -27,7 +27,7 @@ def rev_comp(kmer):
 
 
 def build_reference(reference, k=KMER_SIZE):
-    ref_dict = Kdict(list, k)
+    ref_dict = Kdict((list, str), k)
     with open(reference) as ref_fh:
         for chromosome in SeqIO.parse(ref_fh, "fasta"):
             chromosome_id = chromosome.id.split()[0]
@@ -43,7 +43,7 @@ def build_chromosome(chromosome, chromosome_id, ref_dict, k=KMER_SIZE):
         kmer = kmer.upper()
         if kmer not in ref_dict:
             ref_dict[kmer] = []
-        ref_dict[kmer].append((chromosome_id, locus))
+        ref_dict[kmer].append(f"{chromosome_id}:{locus}")
         locus += 1
 
 

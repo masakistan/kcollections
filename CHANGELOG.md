@@ -1,6 +1,16 @@
 # Changelog
 
-## 3.2.0 (v3.0-dev)
+## 3.2.1
+
+### Fixed
+- Restore trie introspection for `kcollections.debug.inspect()` via native `_trie_stats()`
+- `applications/mapper.py` uses `Kdict((list, str), k)` for 3.x API
+- Parallel consumer drains all work queues on shutdown (fixes flaky `Kcounter.parallel_add`)
+
+### Added
+- Tests: `add_seq` with bytes, `Kdict` save/load, `Kcounter.parallel_add`, `debug.inspect`
+
+## 3.2.0
 
 ### Changed
 - Single native module `_kcollections` (replaces `_Kset`, `_Kdict`, `_Kcounter`)

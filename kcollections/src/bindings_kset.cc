@@ -54,5 +54,12 @@ void bind_kset(py::module& m) {
       .def("parallel_add", &Kset::parallel_add)
       .def("parallel_add_seq", &Kset::parallel_add_seq, py::call_guard<py::gil_scoped_release>())
       .def("parallel_add_join", &Kset::parallel_add_join, py::call_guard<py::gil_scoped_release>())
-      .def_property_readonly("k", &Kset::get_k);
+      .def_property_readonly("k", &Kset::get_k)
+      .def("_trie_stats", [](Kset& ks) {
+        auto* root = ks.get_root();
+        py::dict stats;
+        stats["root_vs_size"] = ks.get_vs_size(root);
+        stats["root_uc_size"] = ks.get_uc_size(root);
+        return stats;
+      });
 }

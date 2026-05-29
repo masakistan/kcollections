@@ -51,9 +51,16 @@ void bind_kcounter(py::module& m) {
       .def("__len__", &Kcounter::size)
       .def("__delitem__", &Kcounter::remove)
       .def("add_seq", &kcounter_add_seq_any)
-      .def("parallel_add_init", &Kcounter::parallel_add_init)
+      .def("parallel_add_init", &Kcounter::parallel_add_init, py::call_guard<py::gil_scoped_release>())
       .def("parallel_add", &Kcounter::parallel_add)
       .def("parallel_add_seq", &Kcounter::parallel_add_seq, py::call_guard<py::gil_scoped_release>())
       .def("parallel_add_join", &Kcounter::parallel_add_join, py::call_guard<py::gil_scoped_release>())
-      .def_property_readonly("k", &Kcounter::get_k);
+      .def_property_readonly("k", &Kcounter::get_k)
+      .def("_trie_stats", [](Kcounter& kc) {
+        auto* root = kc.get_root();
+        py::dict stats;
+        stats["root_vs_size"] = kc.get_vs_size(root);
+        stats["root_uc_size"] = kc.get_uc_size(root);
+        return stats;
+      });
 }
