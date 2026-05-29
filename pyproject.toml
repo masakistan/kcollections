@@ -8,7 +8,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "kcollections"
-version = "3.3.0"
+version = "3.3.1"
 description = "Memory-efficient Bloom Filter Trie for k-mer sets, dicts, and counters"
 readme = "README.md"
 license = { text = "GPL-3.0-or-later" }

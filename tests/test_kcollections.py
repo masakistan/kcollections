@@ -186,7 +186,7 @@ class TestTextIO:
 
 class TestImports:
     def test_version(self):
-        assert kcollections.__version__ == "3.3.0"
+        assert kcollections.__version__ == "3.3.1"
 
     def test_serialization_format_constant(self):
         assert kcollections.SERIALIZATION_FORMAT == "kcollections-v2"

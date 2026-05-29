@@ -22,7 +22,13 @@ The trie core is compiled once per kind with distinct type names (see `inc/kc/ks
 | CMake option | Default | Purpose |
 |--------------|---------|---------|
 | `KCOLLECTIONS_OPENMP` | OFF | Optional OpenMP (experimental) |
-| `KCOLLECTIONS_BUILD_CPP_TESTS` | OFF | Legacy C++ test binaries |
+| `KCOLLECTIONS_BUILD_CPP_TESTS` | OFF | Native C++ smoke test (`tests/cpp/test_kset_io.cc`) |
+
+```bash
+cmake -B build-cpp -DKCOLLECTIONS_BUILD_PYTHON_MODULE=OFF -DKCOLLECTIONS_BUILD_CPP_TESTS=ON
+cmake --build build-cpp
+ctest --test-dir build-cpp
+```
 
 ## Pull requests
 

@@ -39,6 +39,20 @@ jobs:
       - name: Run tests
         run: pytest tests -q
 
+  cpp-tests:
+    name: Native C++ smoke tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y cmake build-essential
+      - run: |
+          cmake -B build-cpp \
+            -DKCOLLECTIONS_BUILD_PYTHON_MODULE=OFF \
+            -DKCOLLECTIONS_BUILD_CPP_TESTS=ON \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-cpp
+          ctest --test-dir build-cpp --output-on-failure
+
   benchmark:
     name: Benchmark smoke
     runs-on: ubuntu-latest
