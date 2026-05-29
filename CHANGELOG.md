@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.3.0
+
+### Added
+- Read **v1** (`kcollections-v1`, 2.2) archives on little-endian hosts; `save()` always writes v2
+- `kcollections.migrate.probe_archive` / `migrate_archive` and `python -m kcollections migrate|probe`
+- GitHub Actions **Publish** workflow (wheels + PyPI on `v*` tags via trusted publishing)
+
+### Changed
+- `load()` / `from_file()` transparently accept v1 or v2 set/dict/counter archives
+
 ## 3.2.1
 
 ### Fixed

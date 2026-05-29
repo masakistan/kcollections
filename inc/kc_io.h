@@ -13,6 +13,7 @@
 namespace kc_io {
 
 constexpr char FILE_MAGIC[4] = {'K', 'C', 'O', 'L'};
+constexpr uint16_t FILE_VERSION_V1 = 1;
 constexpr uint16_t FILE_VERSION = 2;
 
 enum class ContainerKind : uint8_t {
@@ -220,32 +221,103 @@ public:
   }
 };
 
+/** v1 (2.2) archives: native-endian scalars on the build host (little-endian only). */
+class BinaryInArchiveNative {
+  std::istream& is_;
+
+  void read_raw(void* data, size_t nbytes) {
+    is_.read(static_cast<char*>(data), static_cast<std::streamsize>(nbytes));
+    if (!is_) {
+      throw std::runtime_error("kcollections: failed to read archive (truncated or invalid file)");
+    }
+  }
+
+public:
+  explicit BinaryInArchiveNative(std::istream& is) : is_(is) {}
+
+  template <typename T>
+  typename std::enable_if<std::is_arithmetic<typename std::decay<T>::type>::value,
+                          BinaryInArchiveNative&>::type
+  operator&(T& value) {
+    read_raw(&value, sizeof(T));
+    return *this;
+  }
+
+  BinaryInArchiveNative& operator&(std::string& value) {
+    uint64_t len = 0;
+    (*this) & len;
+    value.resize(static_cast<size_t>(len));
+    if (len > 0) {
+      read_raw(&value[0], len);
+    }
+    return *this;
+  }
+
+  BinaryInArchiveNative& operator&(PrefMask& value) {
+    for (int i = 0; i < 4; ++i) {
+      (*this) & value.w[i];
+    }
+    return *this;
+  }
+
+  template <typename T>
+  BinaryInArchiveNative& operator&(std::vector<T>& value) {
+    uint64_t len = 0;
+    (*this) & len;
+    value.resize(static_cast<size_t>(len));
+    for (T& item : value) {
+      (*this) & item;
+    }
+    return *this;
+  }
+};
+
+struct FileHeader {
+  uint16_t version;
+  ContainerKind kind;
+};
+
+inline FileHeader read_file_header_raw(std::istream& is, ContainerKind expected) {
+  char magic[4] = {};
+  for (int i = 0; i < 4; ++i) {
+    magic[i] = static_cast<char>(detail::read_u8(is));
+  }
+  if (magic[0] != FILE_MAGIC[0] || magic[1] != FILE_MAGIC[1] ||
+      magic[2] != FILE_MAGIC[2] || magic[3] != FILE_MAGIC[3]) {
+    throw std::runtime_error("kcollections: invalid file magic (not a kcollections archive)");
+  }
+  FileHeader hdr;
+  hdr.version = detail::read_u16_le(is);
+  const uint8_t kind_byte = detail::read_u8(is);
+  hdr.kind = static_cast<ContainerKind>(kind_byte);
+  if (hdr.version != FILE_VERSION_V1 && hdr.version != FILE_VERSION) {
+    throw std::runtime_error(
+        "kcollections: unsupported archive version (expected v1 or v2)");
+  }
+  if (hdr.kind != expected) {
+    throw std::runtime_error("kcollections: archive container type mismatch");
+  }
+  return hdr;
+}
+
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && \
+    __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+inline void require_little_endian_for_v1(uint16_t version) {
+  if (version == FILE_VERSION_V1) {
+    throw std::runtime_error(
+        "kcollections: v1 archives can only be read on little-endian hosts");
+  }
+}
+#else
+inline void require_little_endian_for_v1(uint16_t) {}
+#endif
+
 inline void write_file_header(BinaryOutArchive& ar, ContainerKind kind) {
   ar & FILE_MAGIC[0] & FILE_MAGIC[1] & FILE_MAGIC[2] & FILE_MAGIC[3];
   const uint16_t version = FILE_VERSION;
   const uint8_t kind_byte = static_cast<uint8_t>(kind);
   ar & version;
   ar & kind_byte;
-}
-
-inline void read_file_header(BinaryInArchive& ar, ContainerKind expected) {
-  char magic[4] = {};
-  ar & magic[0] & magic[1] & magic[2] & magic[3];
-  if (magic[0] != FILE_MAGIC[0] || magic[1] != FILE_MAGIC[1] ||
-      magic[2] != FILE_MAGIC[2] || magic[3] != FILE_MAGIC[3]) {
-    throw std::runtime_error("kcollections: invalid file magic (not a kcollections archive)");
-  }
-  uint16_t version = 0;
-  uint8_t kind_byte = 0;
-  ar & version;
-  ar & kind_byte;
-  if (version != FILE_VERSION) {
-    throw std::runtime_error(
-        "kcollections: unsupported archive version (expected v2, rebuild index)");
-  }
-  if (static_cast<ContainerKind>(kind_byte) != expected) {
-    throw std::runtime_error("kcollections: archive container type mismatch");
-  }
 }
 
 }  // namespace kc_io

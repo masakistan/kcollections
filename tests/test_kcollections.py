@@ -2,12 +2,16 @@
 
 import os
 import tempfile
+from pathlib import Path
 
 import pytest
 
 import kcollections
 from kcollections import Kcounter, Kdict, Kset
 from kcollections.debug import inspect as debug_inspect
+from kcollections.migrate import migrate_archive, probe_archive
+
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
 
 K = 11
@@ -182,7 +186,7 @@ class TestTextIO:
 
 class TestImports:
     def test_version(self):
-        assert kcollections.__version__ == "3.2.1"
+        assert kcollections.__version__ == "3.3.0"
 
     def test_serialization_format_constant(self):
         assert kcollections.SERIALIZATION_FORMAT == "kcollections-v2"
@@ -198,3 +202,20 @@ class TestImports:
         kd.save(str(path))
         kd2 = kcollections.kdict_from_file(int, str(path))
         assert kd2[KMER_A] == 7
+
+
+class TestV1Migration:
+    def test_load_v1_kset_fixture(self):
+        path = FIXTURES / "v1_kset_seq.kc"
+        ks = Kset.from_file(str(path))
+        assert len(ks) == len(SEQ) - K + 1
+        assert KMER_A in ks
+
+    def test_migrate_v1_to_v2(self, tmp_path):
+        src = FIXTURES / "v1_kset_seq.kc"
+        dst = tmp_path / "v2.kc"
+        kind = migrate_archive(src, dst)
+        assert kind == "kset"
+        assert probe_archive(dst) == (2, "kset")
+        ks = Kset.from_file(str(dst))
+        assert len(ks) == len(SEQ) - K + 1
