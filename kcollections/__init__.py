@@ -1,22 +1,15 @@
-"""Memory-efficient k-mer collections built on a Bloom Filter Trie.
-
-Recommended imports::
-
-    from kcollections import Kset, Kdict, Kcounter
-
-See docs/USAGE.md for when to use this library vs KMC/Jellyfish.
-"""
+"""Memory-efficient k-mer collections built on a Bloom Filter Trie."""
 
 from __future__ import annotations
 
 from typing import Any, Callable, Iterable, Iterator, Optional, Union
 
 from . import _Kdict as _kdict_mod
-from ._compat import SERIALIZATION_FORMAT, deprecate
+from ._compat import SERIALIZATION_FORMAT
 from ._Kcounter import Kcounter as KcounterParent
 from ._Kset import Kset as KsetParent
 
-__version__ = "2.2.0"
+__version__ = "3.0.0"
 
 __all__ = [
     "Kset",
@@ -27,22 +20,6 @@ __all__ = [
     "__version__",
 ]
 
-_DEPRECATED_EXPORTS = {
-    "Kdict_int": "Import Kdict(int, k) via kcollections.Kdict instead of Kdict_int.",
-    "Kdict_float": "Use Kdict(float, k) instead of Kdict_float.",
-    "Kdict_bool": "Use Kdict(bool, k) instead of Kdict_bool.",
-    "Kdict_str": "Use Kdict(str, k) instead of Kdict_str.",
-}
-
-_DEBUG_METHODS = frozenset({
-    "get_uc_kmer",
-    "get_uc_size",
-    "get_root",
-    "get_vs_size",
-    "get_child_vertex",
-    "get_child_suffix",
-})
-
 _SCALAR_TYPES: dict[type, str] = {
     int: "int",
     float: "float",
@@ -52,27 +29,11 @@ _SCALAR_TYPES: dict[type, str] = {
 
 
 class _Persistent:
-    """Save/load helpers (delegates to C++ Boost serialization)."""
-
-    def _write_binary(self, path: str) -> None:
-        super(_Persistent, self).write(path)  # type: ignore[misc]
-
-    def _read_binary(self, path: str) -> None:
-        super(_Persistent, self).read(path)  # type: ignore[misc]
-
     def save(self, path: str) -> None:
-        self._write_binary(path)
+        self.write(path)  # type: ignore[misc]
 
     def load(self, path: str) -> None:
-        self._read_binary(path)
-
-    def write(self, path: str) -> None:
-        deprecate("write() is deprecated; use save().", stacklevel=2)
-        self._write_binary(path)
-
-    def read(self, path: str) -> None:
-        deprecate("read() is deprecated; use load().", stacklevel=2)
-        self._read_binary(path)
+        self.read(path)  # type: ignore[misc]
 
     @classmethod
     def from_file(cls, path: str):
@@ -83,15 +44,21 @@ class _Persistent:
 
 def _resolve_kdict_class(val_type: Union[type, tuple]) -> type:
     if isinstance(val_type, type):
-        name = _SCALAR_TYPES.get(val_type, val_type.__name__)
+        if val_type not in _SCALAR_TYPES:
+            raise TypeError(
+                f"unsupported Kdict value type {val_type!r}; "
+                "use int, float, bool, str, or (list, T)"
+            )
+        name = _SCALAR_TYPES[val_type]
         return getattr(_kdict_mod, f"Kdict_{name}")
-    parts = []
-    for t in val_type:
-        if t is list:
-            parts.append("vector")
-        else:
-            parts.append(t.__name__)
-    return getattr(_kdict_mod, "Kdict_" + "_".join(parts))
+    if not (isinstance(val_type, tuple) and len(val_type) == 2 and val_type[0] is list):
+        raise TypeError(
+            "Kdict collection values must be (list, T) with T in int, float, bool, str"
+        )
+    elem = val_type[1]
+    if elem not in _SCALAR_TYPES:
+        raise TypeError(f"unsupported list element type {elem!r}")
+    return getattr(_kdict_mod, "Kdict_vector_" + _SCALAR_TYPES[elem])
 
 
 def _resolve_casters(
@@ -99,15 +66,13 @@ def _resolve_casters(
 ) -> tuple[Optional[Callable], Optional[Callable], Optional[Callable]]:
     if isinstance(val_type, type):
         return None, None, None
-    parts = []
-    for t in val_type:
-        parts.append(t.__name__ if t is not list else "vector")
+    elem = val_type[1]
+    parts = ["vector", _SCALAR_TYPES[elem]]
     caster_name = "o" + "_".join(parts)
     seq_caster_name = "ovector_" + "_".join(parts)
     caster = getattr(_kdict_mod, caster_name, None)
     seq_caster = getattr(_kdict_mod, seq_caster_name, None)
-    rcaster = val_type[0] if val_type else None
-    return caster, seq_caster, rcaster
+    return caster, seq_caster, elem
 
 
 def create_kdict(base: type) -> type:
@@ -146,10 +111,6 @@ def create_kdict(base: type) -> type:
         def items(self) -> Iterator[tuple[str, Any]]:
             for kmer, val in self.__iter__():
                 yield kmer, self._cast_value(val)
-
-        def iteritems(self) -> Iterator[tuple[str, Any]]:
-            deprecate("iteritems() is deprecated; use items().", stacklevel=2)
-            return self.items()
 
         def keys(self) -> Iterator[str]:
             for kmer, _ in self.__iter__():
@@ -213,33 +174,11 @@ def create_kdict(base: type) -> type:
                 values = self.seq_caster(map(self.caster, values))
             super().add_seq(seq, values)
 
-        def __getattr__(self, name: str) -> Any:
-            if name in _DEBUG_METHODS:
-                deprecate(
-                    f"{name}() is for debugging; use kcollections.debug.inspect().",
-                    stacklevel=2,
-                )
-                return getattr(super(), name)
-            raise AttributeError(name)
-
     return tkdict
 
 
 def Kdict(val_type: Union[type, tuple], k: int) -> Any:
-    """Build a k-mer dictionary with values of type ``val_type``.
-
-    Examples::
-
-        kd = Kdict(str, 27)
-        kd = Kdict(int, 27)
-        kd = Kdict(list, 27)   # list-valued entries
-    """
-    if isinstance(val_type, tuple) and len(val_type) > 2:
-        deprecate(
-            "Nested collection types in Kdict(val_type, k) are deprecated; "
-            "use a scalar or list value type.",
-            stacklevel=2,
-        )
+    """Build a k-mer dictionary (scalar or ``(list, T)`` values)."""
     base_cls = _resolve_kdict_class(val_type)
     caster, seq_caster, rcaster = _resolve_casters(val_type)
     wrapper = create_kdict(base_cls)
@@ -247,15 +186,12 @@ def Kdict(val_type: Union[type, tuple], k: int) -> Any:
 
 
 def kdict_from_file(val_type: Union[type, tuple], path: str) -> Any:
-    """Load a saved Kdict. ``k`` and contents are restored from ``path``."""
     kd = Kdict(val_type, 0)
     kd.load(path)
     return kd
 
 
 class Kset(_Persistent, KsetParent):
-    """Set of k-mers with optional persistence via :meth:`save` / :meth:`from_file`."""
-
     def __init__(self, k: int = 0):
         super().__init__(k)
 
@@ -369,19 +305,8 @@ class Kset(_Persistent, KsetParent):
     def __isub__(self, other: Iterable[str]) -> "Kset":
         return self.difference_update(other)
 
-    def __getattr__(self, name: str) -> Any:
-        if name in _DEBUG_METHODS:
-            deprecate(
-                f"{name}() is for debugging; use kcollections.debug.inspect().",
-                stacklevel=2,
-            )
-            return getattr(super(), name)
-        raise AttributeError(name)
-
 
 class Kcounter(_Persistent, KcounterParent):
-    """K-mer counter (like collections.Counter)."""
-
     def __init__(self, k: int = 0):
         super().__init__(k)
 
@@ -394,10 +319,6 @@ class Kcounter(_Persistent, KcounterParent):
     def items(self) -> Iterator[tuple[str, int]]:
         for kmer, val in self.__iter__():
             yield kmer, val
-
-    def iteritems(self) -> Iterator[tuple[str, int]]:
-        deprecate("iteritems() is deprecated; use items().", stacklevel=2)
-        return self.items()
 
     def keys(self) -> Iterator[str]:
         for kmer, _ in self.__iter__():
@@ -453,19 +374,3 @@ class Kcounter(_Persistent, KcounterParent):
         if n is None:
             return items
         return items[:n]
-
-    def __getattr__(self, name: str) -> Any:
-        if name in _DEBUG_METHODS:
-            deprecate(
-                f"{name}() is for debugging; use kcollections.debug.inspect().",
-                stacklevel=2,
-            )
-            return getattr(super(), name)
-        raise AttributeError(name)
-
-
-def __getattr__(name: str) -> Any:
-    if name in _DEPRECATED_EXPORTS:
-        deprecate(_DEPRECATED_EXPORTS[name], stacklevel=2)
-        return getattr(_kdict_mod, name)
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

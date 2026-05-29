@@ -101,8 +101,6 @@ template<typename T>
 void declare_kdict(py::module& m, const std::string& name) {
   declare_kdict_member<T>(m, name);
   declare_kdict_member<std::vector<T>>(m, std::string("vector_") + name);
-  declare_kdict_member<std::set<T>>(m, std::string("set_") + name);
-  declare_kdict_member<std::list<T>>(m, std::string("list_") + name);
 }
 PYBIND11_MODULE( _Kdict, m )
 {
@@ -127,10 +125,6 @@ PYBIND11_MODULE( _Kdict, m )
   // using char instead is a hack, should we change this?
   declare_kdict<char>(m, "bool");
   declare_kdict<std::string>(m, "str");
-  //declare_kdict<py::object>(m, "object");
-
-  //declare_kdict_member<py::list>(m, "pylist");
-  declare_kdict_member<std::vector<std::vector<int>>>(m, "list_list");
 }
 
 #elif KCOUNTER

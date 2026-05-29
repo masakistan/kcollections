@@ -1,5 +1,23 @@
 # Changelog
 
+## 3.0.0 (v3.0-dev)
+
+### Added
+- Serialization v2: little-endian `kcollections-v2` (portable across LE platforms)
+- `ROADMAP-3.0.md`
+
+### Changed
+- Python 3.10+ required
+- `Kdict` bindings: scalar + `(list, T)` / `vector_*` only
+
+### Removed
+- Deprecated `write`/`read`, `iteritems`, `Kdict_*` exports, trie methods on containers
+- `Kdict` `set_`/`list_`/`list_list` C++ types
+
+### Breaking
+- v1 archive files from 2.2 must be re-saved
+- See [MIGRATION.md](MIGRATION.md)
+
 ## 2.2.0
 
 ### Changed
