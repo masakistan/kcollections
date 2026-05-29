@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.3.1
+
+### Added
+- Bioconda recipe template (`conda-recipe/`)
+- Native C++ smoke test (`tests/cpp/test_kset_io.cc`, `KCOLLECTIONS_BUILD_CPP_TESTS`) and CI job
+
+### Removed
+- Vendored `libs/pybind11-2.4.3/` (build uses PyPI pybind11 only)
+
 ## 3.3.0
 
 ### Added

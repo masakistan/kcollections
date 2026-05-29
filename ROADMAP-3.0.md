@@ -8,12 +8,14 @@ Maintenance on `master`.
 - [x] `parallel_add` + work-queue drain fix; `debug.inspect()`; text export/import
 - [x] Read **v1** archives (LE) and `python -m kcollections migrate` helper (3.3)
 - [x] PyPI publish workflow on version tags (3.3)
+- [x] Remove vendored `libs/pybind11-2.4.3/` (3.3.1)
+- [x] Bioconda recipe template under `conda-recipe/` (3.3.1)
+- [x] Native C++ smoke test (`KCOLLECTIONS_BUILD_CPP_TESTS`) + CI job (3.3.1)
 
 ## Planned
 
-- [ ] Bioconda recipe
-- [ ] Remove vendored `libs/pybind11-2.4.3/` from git history
-- [ ] Re-enable C++ unit tests for factored layout
+- [ ] Submit recipe to [bioconda-recipes](https://github.com/bioconda/bioconda-recipes) (update `sha256` per release)
+- [ ] Optional: rewrite git history to drop old `libs/pybind11` blobs (large clone size)
 
 ## Migration
 
@@ -21,7 +23,6 @@ Maintenance on `master`.
 
 ```bash
 python -m kcollections migrate old.kc new.kc
-# or in Python: load with Kset.from_file("old.kc"); save("new.kc")
 ```
 
 Boost-era 2.0/2.1 files are not supported — rebuild indexes.
