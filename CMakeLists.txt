@@ -1,168 +1,113 @@
-cmake_minimum_required (VERSION 3.1)
-include(ExternalProject)
+cmake_minimum_required(VERSION 3.18)
+project(kcollections LANGUAGES CXX)
 
-# Fix behavior of CMAKE_CXX_STANDARD when targeting macOS.
-if (POLICY CMP0025)
-    cmake_policy(SET CMP0025 NEW)
-endif ()
-
-set(CMAKE_VERBOSE_MAKEFILE on)
-set(default_build_type "Release")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
-      STRING "Choose the type of build." FORCE)
-  # Set the possible values of build type for cmake-gui
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-    "Debug" "Release")
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 
-project(kcollections)
+# pybind11: prefer the copy installed by the build backend
+find_package(pybind11 CONFIG REQUIRED)
 
-# BOOST :(
-#set(BOOST_REQUESTED_VERSION 1.72.0)
-#set(BOOST_ROOT_DIR ${CMAKE_SOURCE_DIR}/libs/boost-${BOOST_REQUESTED_VERSION})
-#list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-find_package(Boost 1.65.1 ${BOOST_REQUESTED_VERSION} REQUIRED COMPONENTS serialization)
-message("boost libs: ${Boost_LIBRARIES} ${Boost_INCLUDE_DIRS}")
-
-# The version number.
-set (Kdict_VERSION_MAJOR 1)
-set (Kdict_VERSION_MINOR 0)
-
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-set(SOURCE_DIR "kcollections/src")
-
-message("looking in ${CMAKE_MODULE_PATH}")
-
-set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-set(CMAKE_CXX_STANDARD 14)
-#set(CMAKE_CXX_STANDARD_REQUIRED ON)
-#set(CMAKE_CXX_EXTENSIONS OFF)
+include_directories(${CMAKE_SOURCE_DIR}/inc)
+include_directories(${CMAKE_SOURCE_DIR}/libs/uint256_t)
 
-# Add inc directories
-include_directories(inc)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-include_directories(libs/uint256_t)
+set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/kcollections/src")
 
-# Add src files
 set(uint256_src
-  "libs/uint256_t/uint128_t.cpp"
-  "libs/uint256_t/uint256_t.cpp"
-  )
-add_library(uint256_objs OBJECT ${uint256_src})
+  "${CMAKE_SOURCE_DIR}/libs/uint256_t/uint128_t.cpp"
+  "${CMAKE_SOURCE_DIR}/libs/uint256_t/uint256_t.cpp"
+)
 
 set(kcollections_src
   "${SOURCE_DIR}/globals.cpp"
   "${SOURCE_DIR}/UContainer.cc"
   "${SOURCE_DIR}/Vertex.cc"
   "${SOURCE_DIR}/Kcontainer.cc"
- )
+)
 
-option(PYTHON "compile the python bindings")
-if (${PYTHON})
-    message("compiling python bindings")
-    # pybind11 library
-    add_subdirectory(libs/pybind11-2.4.3)
-    set(PYBIND11_PYTHON_VERSION ${PYTHON_VERSION})
-    include_directories(${PYTHON_INCLUDE_DIR})
-    include_directories(libs/pybind11-2.4.3/include)
+function(add_kcollections_module target_name main_src compile_def)
+  pybind11_add_module(${target_name} MODULE
+    ${kcollections_src}
+    ${main_src}
+    "${SOURCE_DIR}/Kcollections.cc"
+    ${uint256_src}
+  )
+  target_compile_definitions(${target_name} PRIVATE PYTHON ${compile_def})
+  target_link_libraries(${target_name} PRIVATE
+    pybind11::module
+    Threads::Threads
+  )
+  target_include_directories(${target_name} PRIVATE
+    ${CMAKE_SOURCE_DIR}/inc
+    ${CMAKE_SOURCE_DIR}/libs/uint256_t
+  )
+  install(TARGETS ${target_name} LIBRARY DESTINATION kcollections)
+endfunction()
 
-    pybind11_add_module(_Kset ${kcollections_src} "${SOURCE_DIR}/Kset.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})
-    target_link_libraries(_Kset PRIVATE pybind11::module boost_serialization)
-    target_compile_definitions(_Kset PUBLIC "PYTHON" PUBLIC "KSET")
+add_kcollections_module(_Kset "${SOURCE_DIR}/Kset.cc" KSET)
+add_kcollections_module(_Kdict "${SOURCE_DIR}/Kdict.cc" KDICT)
+add_kcollections_module(_Kcounter "${SOURCE_DIR}/Kcounter.cc" KCOUNTER)
 
-    pybind11_add_module(_Kdict ${kcollections_src} "${SOURCE_DIR}/Kdict.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})
-    target_link_libraries(_Kdict PRIVATE pybind11::module boost_serialization)
-    target_compile_definitions(_Kdict PUBLIC "PYTHON" PUBLIC "KDICT")
+option(KCOLLECTIONS_BUILD_CPP_TESTS "Build C++ unit test binaries" OFF)
+if(KCOLLECTIONS_BUILD_CPP_TESTS)
+  add_library(uint256_objs OBJECT ${uint256_src})
 
-    pybind11_add_module(_Kcounter ${kcollections_src} "${SOURCE_DIR}/Kcounter.cc" "${SOURCE_DIR}/Kcollections.cc" ${uint256_src})
-    target_link_libraries(_Kcounter PRIVATE pybind11::module boost_serialization)
-    target_compile_definitions(_Kcounter PUBLIC "PYTHON" PUBLIC "KCOUNTER")
-else()
-    message("compiling other stuff")
-    add_library(kcollections_set_objs OBJECT ${kcollections_src} "${SOURCE_DIR}/Kset.cc")
-    target_compile_definitions(kcollections_set_objs PUBLIC "KSET")
+  macro(add_cpp_test exe_name extra_src compile_def link_lib)
+    add_executable(${exe_name}
+      ${kcollections_src}
+      ${extra_src}
+      $<TARGET_OBJECTS:uint256_objs>
+    )
+    target_compile_definitions(${exe_name} PRIVATE ${compile_def})
+    target_include_directories(${exe_name} PRIVATE
+      ${CMAKE_SOURCE_DIR}/inc
+      ${CMAKE_SOURCE_DIR}/libs/uint256_t
+    )
+    target_link_libraries(${exe_name} PRIVATE Threads::Threads ${link_lib})
+  endmacro()
 
-    add_library(kcollections_dict_objs OBJECT ${kcollections_src} "${SOURCE_DIR}/Kdict.cc")
-    target_compile_definitions(kcollections_dict_objs PUBLIC "KDICT")
+  add_library(kcollections_set_objs OBJECT ${kcollections_src} "${SOURCE_DIR}/Kset.cc")
+  target_compile_definitions(kcollections_set_objs PRIVATE KSET)
+  add_library(kcollections_dict_objs OBJECT ${kcollections_src} "${SOURCE_DIR}/Kdict.cc")
+  target_compile_definitions(kcollections_dict_objs PRIVATE KDICT)
+  add_library(kcollections_counter_objs OBJECT ${kcollections_src} "${SOURCE_DIR}/Kcounter.cc")
+  target_compile_definitions(kcollections_counter_objs PRIVATE KCOUNTER)
 
-    add_library(kcollections_counter_objs OBJECT ${kcollections_src} "${SOURCE_DIR}/Kcounter.cc")
-    target_compile_definitions(kcollections_counter_objs PUBLIC "KCOUNTER")
+  add_library(Kset STATIC $<TARGET_OBJECTS:kcollections_set_objs> $<TARGET_OBJECTS:uint256_objs>)
+  add_library(Kdict STATIC $<TARGET_OBJECTS:kcollections_dict_objs> $<TARGET_OBJECTS:uint256_objs>)
+  add_library(Kcounter STATIC $<TARGET_OBJECTS:kcollections_counter_objs> $<TARGET_OBJECTS:uint256_objs>)
 
-    add_library(Kset STATIC $<TARGET_OBJECTS:kcollections_set_objs> $<TARGET_OBJECTS:uint256_objs>)
-	target_link_libraries(Kset boost_serialization)
+  add_executable(setbulktest "${SOURCE_DIR}/TestSetBulk.cpp")
+  target_link_libraries(setbulktest Threads::Threads Kset)
+  target_compile_definitions(setbulktest PRIVATE KSET)
 
-    add_library(Kdict STATIC $<TARGET_OBJECTS:kcollections_dict_objs> $<TARGET_OBJECTS:uint256_objs>)
-	target_link_libraries(Kdict boost_serialization)
+  add_executable(dictbulktest "${SOURCE_DIR}/TestDictBulk.cpp")
+  target_link_libraries(dictbulktest Threads::Threads Kdict)
+  target_compile_definitions(dictbulktest PRIVATE KDICT)
 
-    add_library(Kcounter STATIC $<TARGET_OBJECTS:kcollections_counter_objs> $<TARGET_OBJECTS:uint256_objs>)
-	target_link_libraries(Kcounter boost_serialization)
+  add_executable(counterbulktest "${SOURCE_DIR}/TestCounterBulk.cpp")
+  target_link_libraries(counterbulktest Threads::Threads Kcounter)
+  target_compile_definitions(counterbulktest PRIVATE KCOUNTER)
 
-    # Testing
-    add_executable(counterbulktest "${SOURCE_DIR}/TestCounterBulk.cpp" $<TARGET_OBJECTS:kcollections_counter_objs>)
-    target_link_libraries(counterbulktest Threads::Threads Kcounter)
-    set_target_properties(counterbulktest PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
+  add_executable(setsavetest "${SOURCE_DIR}/TestSetSave.cpp")
+  target_link_libraries(setsavetest Threads::Threads Kset)
+  target_compile_definitions(setsavetest PRIVATE KSET)
 
-	# Testing kcounter serial
-    add_executable(counterserialtest "${SOURCE_DIR}/TestCounterSerial.cpp" $<TARGET_OBJECTS:kcollections_counter_objs>)
-    target_link_libraries(counterserialtest Threads::Threads Kcounter)
-    set_target_properties(counterserialtest PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
+  add_executable(dictsavetest "${SOURCE_DIR}/TestDictSave.cpp")
+  target_link_libraries(dictsavetest Threads::Threads Kdict)
+  target_compile_definitions(dictsavetest PRIVATE KDICT)
 
-	# Testing Kdict
-    add_executable(dictbulktest "${SOURCE_DIR}/TestDictBulk.cpp" $<TARGET_OBJECTS:kcollections_dict_objs>)
-    target_link_libraries(dictbulktest Threads::Threads Kdict)
-    set_target_properties(dictbulktest PROPERTIES COMPILE_DEFINITIONS "KDICT")
-
-	# Testing Kset
-    add_executable(setbulktest "${SOURCE_DIR}/TestSetBulk.cpp" $<TARGET_OBJECTS:kcollections_set_objs>)
-    target_link_libraries(setbulktest Threads::Threads Kset)
-    set_target_properties(setbulktest PROPERTIES COMPILE_DEFINITIONS "KSET")
-	
-	# Testing Kset save
-    add_executable(setsavetest "${SOURCE_DIR}/TestSetSave.cpp" $<TARGET_OBJECTS:kcollections_set_objs>)
-    target_link_libraries(setsavetest Threads::Threads Kset)
-    set_target_properties(setsavetest PROPERTIES COMPILE_DEFINITIONS "KSET")
-
-    # Testing Kdict save
-    add_executable(dictsavetest "${SOURCE_DIR}/TestDictSave.cpp" $<TARGET_OBJECTS:kcollections_dict_objs>)
-    target_link_libraries(dictsavetest Threads::Threads Kset)
-    set_target_properties(dictsavetest PROPERTIES COMPILE_DEFINITIONS "KDICT")
-		
-	# Testing Kcounter save
-    add_executable(countersavetest "${SOURCE_DIR}/TestCounterSave.cpp" $<TARGET_OBJECTS:kcollections_counter_objs>)
-    target_link_libraries(countersavetest Threads::Threads Kset)
-    set_target_properties(countersavetest PROPERTIES COMPILE_DEFINITIONS "KCOUNTER")
-endif()
-
-# Additional compiler flags
-message("compiler id ${CMAKE_CXX_COMPILER_ID}")
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
-        string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls")
-        message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
-        if(APPLE)
-            add_custom_command(TARGET counterbulktest POST_BUILD
-                COMMAND dsymutil dictbulktest
-                )
-             add_custom_command(TARGET counterbulktest POST_BUILD
-                COMMAND dsymutil counterbulktest
-                )
-            message( "Detected Mac OS with clang, modifying exe with dsymutil for debugging." )
-        endif()
-    endif()
-  # using Clang
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  # using GCC
-  #string( APPEND CMAKE_CXX_FLAGS " -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free" )
-  message( "Using CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS}" )
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  # using Intel C++
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  # using Visual Studio C++
+  add_executable(countersavetest "${SOURCE_DIR}/TestCounterSave.cpp")
+  target_link_libraries(countersavetest Threads::Threads Kcounter)
+  target_compile_definitions(countersavetest PRIVATE KCOUNTER)
 endif()

@@ -16,6 +16,7 @@
 #include <functional>
 #include "globals.h"
 #include "helper.h"
+#include "kc_io.h"
 #include "Vertex.h"
 
 
@@ -89,7 +90,13 @@ public:
   }
 
   template<class Archive>
-  void serialize(Archive& ar, const unsigned int version) {
+  void save(Archive& ar, const unsigned int version) const {
+    ar & k;
+    ar & v;
+  }
+
+  template<class Archive>
+  void load(Archive& ar, const unsigned int version) {
     ar & k;
     ar & v;
   }

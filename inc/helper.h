@@ -8,15 +8,18 @@
 #include <iostream>
 #include <cstring>
 
-#define CHECK_KMER_LENGTH(kmer, k, type) ({     \
-      if(strlen(kmer) != (size_t) k)		\
-    {\
-        char buffer[1000];\
-        sprintf( buffer, "kmer %s of length %d does not match the %s length of %d",\
-		 kmer, (int) strlen(kmer), type, k );			\
-        throw std::length_error(std::string(buffer));\
-    }\
-})
+inline void check_kmer_length(const char* kmer, int k, const char* type) {
+  size_t len = strlen(kmer);
+  if (len != static_cast<size_t>(k)) {
+    char buffer[1000];
+    snprintf(buffer, sizeof(buffer),
+             "kmer %s of length %zu does not match the %s length of %d",
+             kmer, len, type, k);
+    throw std::length_error(std::string(buffer));
+  }
+}
+
+#define CHECK_KMER_LENGTH(kmer, k, type) check_kmer_length((kmer), (k), (type))
 
 
 /*

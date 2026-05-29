@@ -1,0 +1,62 @@
+[build-system]
+requires = [
+    "scikit-build-core>=0.10",
+    "pybind11>=2.11",
+    "setuptools>=61",
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "kcollections"
+version = "2.2.0"
+description = "Memory-efficient Bloom Filter Trie for k-mer sets, dicts, and counters"
+readme = "README.md"
+license = { text = "GPL-3.0-or-later" }
+authors = [
+    { name = "M. Stanley Fujimoto", email = "sfujimoto@gmail.com" },
+    { name = "Cole A. Lyman" },
+]
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: C++",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+keywords = ["bioinformatics", "k-mer", "bloom-filter", "genomics"]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "pytest-cov>=4"]
+bio = ["biopython>=1.79"]
+
+[project.urls]
+Homepage = "https://github.com/masakistan/kcollections"
+Repository = "https://github.com/masakistan/kcollections"
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+build-dir = "build/{wheel_tag}"
+wheel.packages = ["kcollections"]
+cmake.version = ">=3.18"
+cmake.build-type = "Release"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.cibuildwheel]
+build = "cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*"
+skip = "*-musllinux*"
+test-command = "pytest {project}/tests -q"
+test-requires = ["pytest>=7"]
+before-all = ".github/scripts/cibw-before-all.sh"
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64", "aarch64"]
+
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64"]

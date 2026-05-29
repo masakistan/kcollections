@@ -35,6 +35,7 @@ void declare_kdict_member(py::module &m, const std::string &typestr) {
 
   
   py::class_<CClass>(m, pyclass_name.c_str(), py::buffer_protocol(), py::dynamic_attr())
+    .def(py::init<>())
     .def(py::init<const int>())
     .def("write", &CClass::write, R"pbdoc(Write a kset to disk)pbdoc")
     .def("read", &CClass::read, R"pbdoc(Read a kset from disk)pbdoc")
@@ -149,6 +150,7 @@ PYBIND11_MODULE( _Kcounter, m ) {
       )pbdoc";
     
     py::class_<Kcounter>(m, "Kcounter")
+      .def(py::init<>())
       .def(py::init<const int>())
       .def("write", &Kcounter::write, R"pbdoc(Write a kset to disk)pbdoc")
       .def("read", &Kcounter::read, R"pbdoc(Read a kset from disk)pbdoc")
@@ -216,6 +218,7 @@ PYBIND11_MODULE( _Kset, m )
       )pbdoc";
     
     py::class_<Kset>(m, "Kset")
+      .def(py::init<>())
       .def(py::init<const int>())
       .def("write", &Kset::write, R"pbdoc(Write a kset to disk)pbdoc")
       .def("read", &Kset::read, R"pbdoc(Read a kset from disk)pbdoc")

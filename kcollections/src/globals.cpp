@@ -1,3 +1,3 @@
 #include "globals.h"
 
-int CDEPTH;
+thread_local int CDEPTH = 0;

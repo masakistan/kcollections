@@ -2,13 +2,8 @@
 
 #include <fstream>
 
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
 #include "globals.h"
-
+#include "kc_io.h"
 #include "uint256_t.h"
 #include "Kcontainer.h"
 #include "helper.h"
@@ -26,7 +21,7 @@ public:
   template<class Archive>
   void save(Archive& ar, const unsigned int version) const {
     ar & m_k;
-    ar & *kc;
+    kc->save(ar, version);
   }
 
   template<class Archive>
@@ -34,26 +29,23 @@ public:
     ar & m_k;
     CDEPTH = calc_bk(m_k);
     kc = new Kcontainer(m_k);
-    ar & *kc;
+    kc->load(ar, version);
   }
-
-  BOOST_SERIALIZATION_SPLIT_MEMBER()
 
   void write(const char* opath) {
     CDEPTH = calc_bk(get_k());
-    std::ofstream ofs(opath);
-
-    boost::archive::binary_oarchive oa(ofs);
-    oa << *this;
+    std::ofstream ofs(opath, std::ios::binary);
+    kc_io::BinaryOutArchive ar(ofs);
+    kc_io::write_file_header(ar, kc_io::ContainerKind::KIND_SET);
+    save(ar, 0);
     CDEPTH = -1;
   }
 
   void read(const char* ipath) {
-    std::ifstream ifs(ipath);
-
-    boost::archive::binary_iarchive ia(ifs);
-    ia >> *this;
-
+    std::ifstream ifs(ipath, std::ios::binary);
+    kc_io::BinaryInArchive ar(ifs);
+    kc_io::read_file_header(ar, kc_io::ContainerKind::KIND_SET);
+    load(ar, 0);
     CDEPTH = -1;
   }
   
@@ -113,4 +105,3 @@ public:
     return kc->end();
   }
 };
-

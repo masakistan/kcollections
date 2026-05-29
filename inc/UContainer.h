@@ -5,37 +5,11 @@
 #include <iostream>
 #include <vector>
 
-#include <boost/serialization/split_member.hpp>
-
 #include "globals.h"
 #include "helper.h"
+#include "kc_io.h"
 //#include <pybind11/pybind11.h>
 //#include <jemalloc/jemalloc.h>
-
-//namespace py = pybind11;
-
-#if defined(KDICT) || defined(KCOUNTER)
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/list.hpp>
-#endif
-
-#if defined(KDICT) && defined(PYTHON)
-#include <pybind11/pybind11.h>
-
-namespace py = pybind11;
-
-namespace boost {
-namespace serialization {
-
-template<class Archive>
-void serialize(Archive&ar, py::object& obj, const unsigned int version) {
-  ar & obj;
-}
-
-} // namespace serialization
-} // namespace boost
-#endif
 
 #if defined(KDICT) || defined(KCOUNTER)
 template <class T>
@@ -98,9 +72,6 @@ public:
     }
 #endif
   }
-
-  BOOST_SERIALIZATION_SPLIT_MEMBER()
-
 
   UC& operator=(UC&& o) {
     suffixes = o.suffixes;

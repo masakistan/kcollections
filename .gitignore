@@ -1,6 +1,11 @@
 build/
+dist/
+wheelhouse/
 data/
 __pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
 kcollections.egg-info/
 *.swp
 *.dump
@@ -8,3 +13,5 @@ kcollections.egg-info/
 *.pyc
 *.dylib
 *.fa
+_skbuild/
+cmake-build-*/

@@ -1,369 +1,471 @@
-from ._Kdict import *
-from ._Kset import Kset as KsetParent
+"""Memory-efficient k-mer collections built on a Bloom Filter Trie.
+
+Recommended imports::
+
+    from kcollections import Kset, Kdict, Kcounter
+
+See docs/USAGE.md for when to use this library vs KMC/Jellyfish.
+"""
+
+from __future__ import annotations
+
+from typing import Any, Callable, Iterable, Iterator, Optional, Union
+
+from . import _Kdict as _kdict_mod
+from ._compat import SERIALIZATION_FORMAT, deprecate
 from ._Kcounter import Kcounter as KcounterParent
+from ._Kset import Kset as KsetParent
+
+__version__ = "2.2.0"
+
+__all__ = [
+    "Kset",
+    "Kdict",
+    "Kcounter",
+    "kdict_from_file",
+    "SERIALIZATION_FORMAT",
+    "__version__",
+]
+
+_DEPRECATED_EXPORTS = {
+    "Kdict_int": "Import Kdict(int, k) via kcollections.Kdict instead of Kdict_int.",
+    "Kdict_float": "Use Kdict(float, k) instead of Kdict_float.",
+    "Kdict_bool": "Use Kdict(bool, k) instead of Kdict_bool.",
+    "Kdict_str": "Use Kdict(str, k) instead of Kdict_str.",
+}
+
+_DEBUG_METHODS = frozenset({
+    "get_uc_kmer",
+    "get_uc_size",
+    "get_root",
+    "get_vs_size",
+    "get_child_vertex",
+    "get_child_suffix",
+})
+
+_SCALAR_TYPES: dict[type, str] = {
+    int: "int",
+    float: "float",
+    bool: "bool",
+    str: "str",
+}
 
 
-def create_kdict(base):
-    class tkdict(base):
-        def __init__(self, k=0, caster=None, seq_caster=None, rcaster=None):
-            super(tkdict, self).__init__(k)
+class _Persistent:
+    """Save/load helpers (delegates to C++ Boost serialization)."""
+
+    def _write_binary(self, path: str) -> None:
+        super(_Persistent, self).write(path)  # type: ignore[misc]
+
+    def _read_binary(self, path: str) -> None:
+        super(_Persistent, self).read(path)  # type: ignore[misc]
+
+    def save(self, path: str) -> None:
+        self._write_binary(path)
+
+    def load(self, path: str) -> None:
+        self._read_binary(path)
+
+    def write(self, path: str) -> None:
+        deprecate("write() is deprecated; use save().", stacklevel=2)
+        self._write_binary(path)
+
+    def read(self, path: str) -> None:
+        deprecate("read() is deprecated; use load().", stacklevel=2)
+        self._read_binary(path)
+
+    @classmethod
+    def from_file(cls, path: str):
+        inst = cls()
+        inst.load(path)
+        return inst
+
+
+def _resolve_kdict_class(val_type: Union[type, tuple]) -> type:
+    if isinstance(val_type, type):
+        name = _SCALAR_TYPES.get(val_type, val_type.__name__)
+        return getattr(_kdict_mod, f"Kdict_{name}")
+    parts = []
+    for t in val_type:
+        if t is list:
+            parts.append("vector")
+        else:
+            parts.append(t.__name__)
+    return getattr(_kdict_mod, "Kdict_" + "_".join(parts))
+
+
+def _resolve_casters(
+    val_type: Union[type, tuple],
+) -> tuple[Optional[Callable], Optional[Callable], Optional[Callable]]:
+    if isinstance(val_type, type):
+        return None, None, None
+    parts = []
+    for t in val_type:
+        parts.append(t.__name__ if t is not list else "vector")
+    caster_name = "o" + "_".join(parts)
+    seq_caster_name = "ovector_" + "_".join(parts)
+    caster = getattr(_kdict_mod, caster_name, None)
+    seq_caster = getattr(_kdict_mod, seq_caster_name, None)
+    rcaster = val_type[0] if val_type else None
+    return caster, seq_caster, rcaster
+
+
+def create_kdict(base: type) -> type:
+    class tkdict(_Persistent, base):
+        def __init__(
+            self,
+            k: int = 0,
+            caster: Optional[Callable] = None,
+            seq_caster: Optional[Callable] = None,
+            rcaster: Optional[Callable] = None,
+        ):
+            super().__init__(k)
             self.caster = caster
             self.rcaster = rcaster
             self.seq_caster = seq_caster
 
-        def __str__( self ):
-            res = []
-            for key, val in self.items():
-                res.append( key + ':' + str( val ) )
-            return '{' + ','.join( res ) + '}'
+        def __str__(self) -> str:
+            return "{" + ",".join(f"{key}:{val}" for key, val in self.items()) + "}"
 
-        '''
-        def __getitem__(self, key):
-            if key in self:
-                val = super(tkdict, self).__getitem__(key)
-                print(self.rcaster)
-                try:
-                    return self.rcaster(val)
-                except:
-                    return val
-            else:
-                 raise KeyError("kmer {} not in kdict".format(key))
-        '''
-        def __setitem__(self, key, val):
-            #print('setitem')
-            if self.caster is not None:
-                #print('casting', val)
-                val = self.caster(val)
-                #print(type(val))
-            super(tkdict, self).__setitem__(key, val)
-
-        def __repr__( self ):
+        def __repr__(self) -> str:
             return self.__str__()
 
-        def items( self ):
-           for kmer, val in self.__iter__():
-               try:
-                   yield kmer, self.rcaster(val)
-               except:
-                   yield kmer, val
-
-        def parallel_add_seq(self, seq, values):
-            if self.seq_caster:
-                values = self.seq_caster(map(self.caster, values))
-            super(tkdict, self).parallel_add_seq(seq, values)
-
-        def add_seq(self, seq, values):
-            if self.seq_caster:
-                values = self.seq_caster(map(self.caster, values))
-            super(tkdict, self).add_seq(seq, values)
-            
-        def iteritems( self ):
-           for kmer, val in self.__iter__():
-               try:
-                   yield kmer, self.rcaster(val)
-               except:
-                   yield kmer, val
-
-        def keys( self ):
-            for kmer, val in self.__iter__():
-                yield kmer
-
-        def values( self ):
-            for kmer, val in self.__iter__():
-                try:
-                    yield self.rcaster(val)
-                except:
-                    yield val
-
-        def copy( self ):
-            new_kdict = Kdict( self.k )
-            for kmer in self:
-                new_kdict[ kmer ] = self[ kmer ]
-            return new_kdict
-
-        def get( self, key, value = None ):
-            if key in self:
-                val = self[key]
+        def _cast_value(self, val: Any) -> Any:
+            if self.rcaster is not None:
                 try:
                     return self.rcaster(val)
-                except:
-                    return val
-            else:
-                return value
+                except (TypeError, ValueError, AttributeError):
+                    pass
+            return val
 
-        def popitem( self ):
-            kmer, item = next( self.items() )
-            del self[ kmer ]
-            try:
-                item = self.rcaster(item)
-            except:
-                pass
-            return ( kmer, item )
+        def __setitem__(self, key: str, val: Any) -> None:
+            if self.caster is not None:
+                val = self.caster(val)
+            super().__setitem__(key, val)
 
-        def setdefault( self, key, value = None ):
-            if key not in self:
-                self[ key ] = value
-                return value
-            else:
-                value = self[ key ]
-                try:
-                    return self.rcaster(value)
-                except:
-                    return value
+        def items(self) -> Iterator[tuple[str, Any]]:
+            for kmer, val in self.__iter__():
+                yield kmer, self._cast_value(val)
 
-        def pop( self, key, *default ):
+        def iteritems(self) -> Iterator[tuple[str, Any]]:
+            deprecate("iteritems() is deprecated; use items().", stacklevel=2)
+            return self.items()
+
+        def keys(self) -> Iterator[str]:
+            for kmer, _ in self.__iter__():
+                yield kmer
+
+        def values(self) -> Iterator[Any]:
+            for _, val in self.__iter__():
+                yield self._cast_value(val)
+
+        def copy(self) -> "tkdict":
+            new_kdict = type(self)(self.k, self.caster, self.seq_caster, self.rcaster)
+            for kmer in self:
+                new_kdict[kmer] = self[kmer]
+            return new_kdict
+
+        def get(self, key: str, default: Any = None) -> Any:
             if key in self:
-                value = self[ key ]
-                del self[ key ]
-                try:
-                    return self.rcaster(value)
-                except:
-                    return value
-            else:
-                if len( default ) > 0:
-                    return default
-                else:
-                    raise KeyError( key )
+                return self._cast_value(super().__getitem__(key))
+            return default
 
-        def update( self, *others ):
+        def popitem(self) -> tuple[str, Any]:
+            kmer, item = next(self.items())
+            del self[kmer]
+            return kmer, item
+
+        def setdefault(self, key: str, value: Any = None) -> Any:
+            if key not in self:
+                self[key] = value
+                return value
+            return self._cast_value(self[key])
+
+        def pop(self, key: str, *default: Any) -> Any:
+            if key in self:
+                value = self._cast_value(self[key])
+                del self[key]
+                return value
+            if default:
+                return default[0]
+            raise KeyError(key)
+
+        def update(self, *others: Iterable) -> None:
             for other in others:
                 for item in other:
                     try:
                         key, val = item
-                    except:
+                    except (TypeError, ValueError):
                         key = item
-                        val = other[ key ]
+                        val = other[key]
                     try:
-                        self[ key ] = self.caster(val)
-                    except:
+                        self[key] = self.caster(val) if self.caster else val
+                    except (TypeError, ValueError):
                         self[key] = val
 
-                        '''
-        def add_seq(self, seq, values):
-            if self.caster:
-                caster = self.caster.__name__
-                split = caster.find('_')
-                caster = eval(caster[:split] + '_vector' + caster[split:])
-                values = caster(values)
-            super(tkdict, self).add_seq(seq, values)
+        def parallel_add_seq(self, seq: str, values: Iterable) -> None:
+            if self.seq_caster and self.caster:
+                values = self.seq_caster(map(self.caster, values))
+            super().parallel_add_seq(seq, values)
 
-        def parallel_add_seq(self, seq, values):
-            if self.caster:
-                print('casting')
-                caster = self.caster.__name__
-                split = caster.find('_')
-                caster = eval(caster[:split] + '_vector' + caster[split:])
-                print(caster)
-                values = caster(values)
-                print(type(values))
-            super(tkdict, self).parallel_add_seq(seq, values)
-'''
-            
+        def add_seq(self, seq: str, values: Iterable) -> None:
+            if self.seq_caster and self.caster:
+                values = self.seq_caster(map(self.caster, values))
+            super().add_seq(seq, values)
+
+        def __getattr__(self, name: str) -> Any:
+            if name in _DEBUG_METHODS:
+                deprecate(
+                    f"{name}() is for debugging; use kcollections.debug.inspect().",
+                    stacklevel=2,
+                )
+                return getattr(super(), name)
+            raise AttributeError(name)
 
     return tkdict
 
-def Kdict(val_type, k):
-    try:
-        iter(val_type)
-    except:
-        type_name = 'Kdict_' + val_type.__name__
-        caster = None
-        rcaster = None
-        seq_caster = None
-        kd = create_kdict(eval(type_name))(k)
-    else:
-        type_name = 'Kdict_' + '_'.join([x.__name__ if x != list else 'vector' for x in val_type])
-        # NOTE: for now, we just store everything as a list
-        caster = 'o' + '_'.join([x.__name__ if x != list else 'vector' for x in val_type])
-        seq_caster = 'ovector_' + '_'.join([x.__name__ if x != list else 'vector' for x in val_type])
-        # NOTE: this does not allow for nexted collections
-        rcaster = val_type[0]
-        kd = create_kdict(eval(type_name))(k, eval(caster), eval(seq_caster), rcaster)
+
+def Kdict(val_type: Union[type, tuple], k: int) -> Any:
+    """Build a k-mer dictionary with values of type ``val_type``.
+
+    Examples::
+
+        kd = Kdict(str, 27)
+        kd = Kdict(int, 27)
+        kd = Kdict(list, 27)   # list-valued entries
+    """
+    if isinstance(val_type, tuple) and len(val_type) > 2:
+        deprecate(
+            "Nested collection types in Kdict(val_type, k) are deprecated; "
+            "use a scalar or list value type.",
+            stacklevel=2,
+        )
+    base_cls = _resolve_kdict_class(val_type)
+    caster, seq_caster, rcaster = _resolve_casters(val_type)
+    wrapper = create_kdict(base_cls)
+    return wrapper(k, caster, seq_caster, rcaster)
+
+
+def kdict_from_file(val_type: Union[type, tuple], path: str) -> Any:
+    """Load a saved Kdict. ``k`` and contents are restored from ``path``."""
+    kd = Kdict(val_type, 0)
+    kd.load(path)
     return kd
 
 
-class Kset(KsetParent):
-    def __init__(self, k=0):
-        super(Kset, self).__init__(k)
+class Kset(_Persistent, KsetParent):
+    """Set of k-mers with optional persistence via :meth:`save` / :meth:`from_file`."""
 
-    def __str__( self ):
-        return '{' + ','.join( self ) + '}'
+    def __init__(self, k: int = 0):
+        super().__init__(k)
 
-    def __repr__( self ):
+    def __str__(self) -> str:
+        return "{" + ",".join(self) + "}"
+
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def copy( self ):
-        new_set = Kset( self.k )
+    def copy(self) -> "Kset":
+        new_set = Kset(self.k)
         for kmer in self:
-            new_set.add( kmer )
+            new_set.add(kmer)
         return new_set
 
-    def update( self, *iters ):
+    def update(self, *iters: Iterable[str]) -> "Kset":
         for _iter in iters:
             for item in _iter:
-                self.add( item )
+                self.add(item)
         return self
 
-    def discard( self, item ):
+    def discard(self, item: str) -> None:
         if item in self:
-            del self[ item ]
+            del self[item]
 
-    def pop( self ):
-        kmer = next( self.__iter__())
-        del self[ kmer ]
+    def pop(self) -> str:
+        kmer = next(iter(self))
+        del self[kmer]
         return kmer
 
-    def isdisjoint( self, other ):
-        for kmer in other:
-            if kmer in self:
-                return False
-        return True
+    def isdisjoint(self, other: Iterable[str]) -> bool:
+        return not any(kmer in self for kmer in other)
 
-    def issubset( self, other ):
+    def issubset(self, other: Iterable[str]) -> bool:
+        return all(kmer in other for kmer in self)
+
+    def issuperset(self, other: Iterable[str]) -> bool:
+        return all(kmer in self for kmer in other)
+
+    def intersection(self, *other_sets: Iterable[str]) -> "Kset":
+        new_set = Kset(self.k)
         for kmer in self:
-            if kmer not in other:
-                return False
-        return True
-
-    def issuperset( self, other ):
-        for kmer in other:
-            if kmer not in self:
-                return False
-        return True
-
-    def intersection( self, *other_sets ):
-        new_set = Kset( self.k )
-        for kmer in self:
-            good = True
-            for other_set in other_sets:
-                if kmer not in other_set:
-                    good = False
-                    break
-            if good:
-                new_set.add( kmer )
+            if all(kmer in other for other in other_sets):
+                new_set.add(kmer)
         return new_set
 
-    def intersection_update( self, *other_sets ):
-        self = self.intersection( *other_sets )
+    def intersection_update(self, *other_sets: Iterable[str]) -> "Kset":
+        for kmer in list(self):
+            if not all(kmer in other for other in other_sets):
+                del self[kmer]
         return self
 
-    def difference( self, other ):
-        new_set = Kset( self.k )
+    def difference(self, other: Iterable[str]) -> "Kset":
+        new_set = Kset(self.k)
         for kmer in self:
             if kmer not in other:
-                new_set.add( kmer )
+                new_set.add(kmer)
         return new_set
 
-    def difference_update( self, *other_sets ):
+    def difference_update(self, *other_sets: Iterable[str]) -> "Kset":
         for other_set in other_sets:
             for kmer in other_set:
-                self.discard( kmer )
+                self.discard(kmer)
         return self
 
-    def symmetric_difference( self, other_set ):
-        new_set = Kset( self.k )
-        for kmer in self.__iter__():
-            if kmer not in new_set:
-                if (
-                        ( kmer not in self and kmer in other_set )
-                        or ( kmer in self and kmer not in other_set )
-                        ):
-                    new_set.add( kmer )
+    def symmetric_difference(self, other_set: Iterable[str]) -> "Kset":
+        new_set = Kset(self.k)
+        for kmer in self:
+            if kmer not in other_set:
+                new_set.add(kmer)
         for kmer in other_set:
-            if kmer not in new_set:
-                if(
-                        ( kmer not in self and kmer in other_set )
-                        or (kmer in self and kmer not in other_set )
-                        ):
-                    new_set.add( kmer )
+            if kmer not in self:
+                new_set.add(kmer)
         return new_set
 
-    def symmetric_difference_update( self, other_set ):
-        self = self.symmetric_difference( other_set )
+    def symmetric_difference_update(self, other_set: Iterable[str]) -> "Kset":
+        for kmer in other_set:
+            if kmer in self:
+                del self[kmer]
+            else:
+                self.add(kmer)
         return self
 
-    def union( self, *other_sets ):
-        new_set = Kset( self.k )
+    def union(self, *other_sets: Iterable[str]) -> "Kset":
+        new_set = self.copy()
         for other_set in other_sets:
-            for kmer in other_set:
-                new_set.add( kmer )
+            new_set.update(other_set)
         return new_set
 
-    def __and__( self, other ):
-        return self.intersection( other )
+    def __and__(self, other: Iterable[str]) -> "Kset":
+        return self.intersection(other)
 
-    def __or__( self, other ):
-        return self.update( other )
+    def __or__(self, other: Iterable[str]) -> "Kset":
+        return self.union(other)
 
-    def __xor__( self, other ):
-        return self.symmetric_difference( other )
+    def __xor__(self, other: Iterable[str]) -> "Kset":
+        return self.symmetric_difference(other)
 
-    def __sub__( self, other ):
-        return self.difference( other )
+    def __sub__(self, other: Iterable[str]) -> "Kset":
+        return self.difference(other)
+
+    def __iand__(self, other: Iterable[str]) -> "Kset":
+        return self.intersection_update(other)
+
+    def __ior__(self, other: Iterable[str]) -> "Kset":
+        return self.update(other)
+
+    def __ixor__(self, other: Iterable[str]) -> "Kset":
+        return self.symmetric_difference_update(other)
+
+    def __isub__(self, other: Iterable[str]) -> "Kset":
+        return self.difference_update(other)
+
+    def __getattr__(self, name: str) -> Any:
+        if name in _DEBUG_METHODS:
+            deprecate(
+                f"{name}() is for debugging; use kcollections.debug.inspect().",
+                stacklevel=2,
+            )
+            return getattr(super(), name)
+        raise AttributeError(name)
 
 
-class Kcounter(KcounterParent):
-    def __init__(self, k=0):
-        super(Kcounter, self).__init__(k)
+class Kcounter(_Persistent, KcounterParent):
+    """K-mer counter (like collections.Counter)."""
 
-    def __str__( self ):
-        res = []
-        for key, val in self.items():
-            res.append( key + ':' + str( val ) )
-        return '{' + ','.join( res ) + '}'
+    def __init__(self, k: int = 0):
+        super().__init__(k)
 
-    def __repr__( self ):
+    def __str__(self) -> str:
+        return "{" + ",".join(f"{key}:{val}" for key, val in self.items()) + "}"
+
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def keys( self ):
+    def items(self) -> Iterator[tuple[str, int]]:
         for kmer, val in self.__iter__():
+            yield kmer, val
+
+    def iteritems(self) -> Iterator[tuple[str, int]]:
+        deprecate("iteritems() is deprecated; use items().", stacklevel=2)
+        return self.items()
+
+    def keys(self) -> Iterator[str]:
+        for kmer, _ in self.__iter__():
             yield kmer
 
-    def values( self ):
-        for kmer, val in self.__iter__():
+    def values(self) -> Iterator[int]:
+        for _, val in self.__iter__():
             yield val
 
-    def copy( self ):
-        new_kcounter = Kcounter( self.k )
+    def copy(self) -> "Kcounter":
+        new_kcounter = Kcounter(self.k)
         for kmer in self:
-            new_kcounter[ kmer ] = self[ kmer ]
+            new_kcounter[kmer] = self[kmer]
         return new_kcounter
 
-    def get( self, key, value = 0 ):
+    def get(self, key: str, default: int = 0) -> int:
         if key in self:
-            return self[ key ]
-        else:
-            return value
+            return self[key]
+        return default
 
-    def popitem( self ):
-        kmer, item = next( self.items() )
-        del self[ kmer ]
-        return ( kmer, item )
+    def popitem(self) -> tuple[str, int]:
+        kmer, item = next(self.items())
+        del self[kmer]
+        return kmer, item
 
-    def setdefault( self, key, value = 0 ):
+    def setdefault(self, key: str, value: int = 0) -> int:
         if key not in self:
-            self[ key ] = value
+            self[key] = value
             return value
-        else:
-            return self[ key ]
+        return self[key]
 
-    def pop( self, key, *default ):
+    def pop(self, key: str, *default: Any) -> int:
         if key in self:
-            value = self[ key ]
-            del self[ key ]
+            value = self[key]
+            del self[key]
             return value
-        else:
-            if len( default ) > 0:
-                return default
-            else:
-                raise KeyError( key )
+        if default:
+            return default[0]
+        raise KeyError(key)
 
-    def update( self, *others ):
+    def update(self, *others: Iterable) -> None:
         for other in others:
             for item in other:
                 try:
                     key, val = item
-                except:
+                except (TypeError, ValueError):
                     key = item
-                    val = other[ key ]
-                self[ key ] = val
+                    val = other[key]
+                self[key] = val
+
+    def most_common(self, n: Optional[int] = None) -> list[tuple[str, int]]:
+        items = sorted(self.items(), key=lambda x: x[1], reverse=True)
+        if n is None:
+            return items
+        return items[:n]
+
+    def __getattr__(self, name: str) -> Any:
+        if name in _DEBUG_METHODS:
+            deprecate(
+                f"{name}() is for debugging; use kcollections.debug.inspect().",
+                stacklevel=2,
+            )
+            return getattr(super(), name)
+        raise AttributeError(name)
+
+
+def __getattr__(name: str) -> Any:
+    if name in _DEPRECATED_EXPORTS:
+        deprecate(_DEPRECATED_EXPORTS[name], stacklevel=2)
+        return getattr(_kdict_mod, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

@@ -6,30 +6,13 @@
 
 #include <functional>
 
-#include <boost/serialization/split_member.hpp>
 #include "globals.h"
+#include "kc_io.h"
 
 #include "UContainer.h"
 //#include <jemalloc/jemalloc.h>
 #include "uint256_t.h"
 #include "uint128_t.h"
-
-namespace boost {
-namespace serialization {
-template<class Archive>
-void serialize(Archive& ar, uint256_t& obj, const unsigned int version) {
-  ar & obj.UPPER;
-  ar & obj.LOWER;
-}
-
-template<class Archive>
-void serialize(Archive& ar, uint128_t& obj, const unsigned int version) {
-  ar & obj.UPPER;
-  ar & obj.LOWER;
-}
-
-} // namespace serialization
-} // namespace boost
 
 #if defined(PYTHON)
 namespace py = pybind11;
@@ -94,8 +77,6 @@ public:
     }
     CDEPTH += 1;
   }
-
-  BOOST_SERIALIZATION_SPLIT_MEMBER()
 
   Vertex& operator=(Vertex&& o) {
     uc = std::move(o.uc);
@@ -354,3 +335,53 @@ public:
     uc.clear();
   }
 };
+
+namespace kc_io {
+
+#if defined(KDICT) || defined(KCOUNTER)
+template <class T>
+inline BinaryOutArchive& operator&(BinaryOutArchive& ar, const UC<T>& uc) {
+  uc.save(ar, 0);
+  return ar;
+}
+
+template <class T>
+inline BinaryInArchive& operator&(BinaryInArchive& ar, UC<T>& uc) {
+  uc.load(ar, 0);
+  return ar;
+}
+
+template <class T>
+inline BinaryOutArchive& operator&(BinaryOutArchive& ar, const Vertex<T>& vertex) {
+  vertex.save(ar, 0);
+  return ar;
+}
+
+template <class T>
+inline BinaryInArchive& operator&(BinaryInArchive& ar, Vertex<T>& vertex) {
+  vertex.load(ar, 0);
+  return ar;
+}
+#else
+inline BinaryOutArchive& operator&(BinaryOutArchive& ar, const UC& uc) {
+  uc.save(ar, 0);
+  return ar;
+}
+
+inline BinaryInArchive& operator&(BinaryInArchive& ar, UC& uc) {
+  uc.load(ar, 0);
+  return ar;
+}
+
+inline BinaryOutArchive& operator&(BinaryOutArchive& ar, const Vertex& vertex) {
+  vertex.save(ar, 0);
+  return ar;
+}
+
+inline BinaryInArchive& operator&(BinaryInArchive& ar, Vertex& vertex) {
+  vertex.load(ar, 0);
+  return ar;
+}
+#endif
+
+}  // namespace kc_io
