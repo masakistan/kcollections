@@ -45,9 +45,16 @@ public:
 
   void read(const char* ipath) {
     std::ifstream ifs(ipath, std::ios::binary);
-    kc_io::BinaryInArchive ar(ifs);
-    kc_io::read_file_header(ar, kc_io::ContainerKind::KIND_COUNTER);
-    load(ar, 0);
+    const kc_io::FileHeader hdr =
+        kc_io::read_file_header_raw(ifs, kc_io::ContainerKind::KIND_COUNTER);
+    kc_io::require_little_endian_for_v1(hdr.version);
+    if (hdr.version == kc_io::FILE_VERSION) {
+      kc_io::BinaryInArchive ar(ifs);
+      load(ar, 0);
+    } else {
+      kc_io::BinaryInArchiveNative ar(ifs);
+      load(ar, 0);
+    }
     CDEPTH = -1;
   }
   

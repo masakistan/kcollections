@@ -29,7 +29,8 @@
 | `get_root()`, `get_uc_kmer()`, … on containers | `kcollections.debug.inspect(obj)` |
 | `Kdict_set_*`, `Kdict_list_*`, `list_list` | `Kdict(int, k)` or `Kdict((list, int), k)` |
 | Python 3.8–3.9 | Python 3.10+ |
-| Archive v1 | Re-save indexes (v2 little-endian format) |
+| Archive v1 (2.2 native) | `python -m kcollections migrate old.kc new.kc` or load + `save()` (LE hosts) |
+| Boost 2.0/2.1 archives | Rebuild indexes (not supported) |
 
 ## When not to use kcollections
 
@@ -37,7 +38,7 @@ Use **KMC**, **Jellyfish**, or **Cuttlefish** for huge on-disk k-mer databases i
 
 ## Serialization compatibility
 
-**3.0+** uses `kcollections-v2` (magic `KCOL`, version 2, little-endian). Not compatible with 2.2 v1 archives or Boost-era 2.0/2.1 files — rebuild indexes.
+**3.3+** reads v1 (2.2) or v2 archives on little-endian platforms; `save()` always writes v2 (`KCOL`, version 2). Use `python -m kcollections migrate` to rewrite v1 files. Boost-era 2.0/2.1 files are not supported.
 
 Safe when:
 

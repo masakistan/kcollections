@@ -352,6 +352,18 @@ inline BinaryInArchive& operator&(BinaryInArchive& ar, KC_VERTEX<T>& vertex) {
   vertex.load(ar, 0);
   return ar;
 }
+
+template <class T>
+inline BinaryInArchiveNative& operator&(BinaryInArchiveNative& ar, KC_UC<T>& uc) {
+  uc.load(ar, 0);
+  return ar;
+}
+
+template <class T>
+inline BinaryInArchiveNative& operator&(BinaryInArchiveNative& ar, KC_VERTEX<T>& vertex) {
+  vertex.load(ar, 0);
+  return ar;
+}
 #else
 inline BinaryOutArchive& operator&(BinaryOutArchive& ar, const KC_UC& uc) {
   uc.save(ar, 0);
@@ -369,6 +381,16 @@ inline BinaryOutArchive& operator&(BinaryOutArchive& ar, const KC_VERTEX& vertex
 }
 
 inline BinaryInArchive& operator&(BinaryInArchive& ar, KC_VERTEX& vertex) {
+  vertex.load(ar, 0);
+  return ar;
+}
+
+inline BinaryInArchiveNative& operator&(BinaryInArchiveNative& ar, KC_UC& uc) {
+  uc.load(ar, 0);
+  return ar;
+}
+
+inline BinaryInArchiveNative& operator&(BinaryInArchiveNative& ar, KC_VERTEX& vertex) {
   vertex.load(ar, 0);
   return ar;
 }

@@ -11,7 +11,7 @@ _kdict_mod = _kc
 KsetParent = _kc.Kset
 KcounterParent = _kc.Kcounter
 
-__version__ = "3.2.1"
+__version__ = "3.3.0"
 
 __all__ = [
     "Kset",
