@@ -3,14 +3,12 @@
 #include <fstream>
 #include <functional>
 
-#include "globals.h"
-#include "kc_io.h"
-#include "Kcontainer.h"
+#include "kc/kcounter_core.h"
 
 class Kcounter
 {
 private:
-  Kcontainer<int>* kc;
+  KcCounterContainer<int>* kc;
   int m_k;
   std::function<int(int&, int&)> merge_func = [] (int& prev_val, int& new_val)->int&{
 						prev_val += new_val;
@@ -32,7 +30,7 @@ public:
   void load(Archive& ar, const unsigned int version) {
     ar & m_k;
     CDEPTH = calc_bk(m_k);
-    kc = new Kcontainer<int>(m_k);
+    kc = new KcCounterContainer<int>(m_k);
     kc->load(ar, version);
   }
 
@@ -59,9 +57,10 @@ public:
   uint64_t size();
   void remove( const char* kmer );
   void add_seq(const char* seq);
+  void add_seq(const char* seq, size_t length);
   count_dtype get( const char* kmer );
   int get_k() { return m_k; }
-  Kcontainer<int>* get_kc() { return kc; }
+  KcCounterContainer<int>* get_kc() { return kc; }
   void parallel_add_init(int threads) {
     kc->parallel_kcontainer_add_init(threads, merge_func);
   };
@@ -74,36 +73,36 @@ public:
 
   void parallel_add_seq(const char* seq);
 
-  std::string get_uc_kmer( Vertex<int>* v, int k, int idx )
+  std::string get_uc_kmer( KcCounterVertex<int>* v, int k, int idx )
   {
-    UC<int>* uc = v->get_uc();
+    KcCounterUC<int>* uc = v->get_uc();
     char* kmer = deserialize_kmer(k, uc->get_suffix(k, idx));
     std::string skmer(kmer);
     free(kmer);
     return skmer;
   }
 
-  int get_uc_size( Vertex<int>* v )
+  int get_uc_size( KcCounterVertex<int>* v )
   {
     return v->get_uc()->get_size();
   }
 
-  Vertex<int>* get_root() { return kc->get_v(); }
-  int get_vs_size( Vertex<int>* v ){ return v->get_vs_size(); }
-  Vertex<int>* get_child_vertex( Vertex<int>* v, int idx )
+  KcCounterVertex<int>* get_root() { return kc->get_v(); }
+  int get_vs_size( KcCounterVertex<int>* v ){ return v->get_vs_size(); }
+  KcCounterVertex<int>* get_child_vertex( KcCounterVertex<int>* v, int idx )
   {
     return &v->get_vs()[idx];
   }
-  std::string get_child_suffix( Vertex<int>* v, int idx )
+  std::string get_child_suffix( KcCounterVertex<int>* v, int idx )
   {
     return kc->kcontainer_get_child_suffix(v, idx);
   }
 
-  Kcontainer<int>::iterator begin() {
+  KcCounterContainer<int>::iterator begin() {
     return kc->begin();
   }
 
-  Kcontainer<int>::iterator end() {
+  KcCounterContainer<int>::iterator end() {
     return kc->end();
   }
 };

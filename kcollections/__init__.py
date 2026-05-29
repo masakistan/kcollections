@@ -4,18 +4,22 @@ from __future__ import annotations
 
 from typing import Any, Callable, Iterable, Iterator, Optional, Union
 
-from . import _Kdict as _kdict_mod
+from . import _kcollections as _kc
 from ._compat import SERIALIZATION_FORMAT
-from ._Kcounter import Kcounter as KcounterParent
-from ._Kset import Kset as KsetParent
 
-__version__ = "3.0.0"
+_kdict_mod = _kc
+KsetParent = _kc.Kset
+KcounterParent = _kc.Kcounter
+
+__version__ = "3.2.0"
 
 __all__ = [
     "Kset",
     "Kdict",
     "Kcounter",
     "kdict_from_file",
+    "export_kmers",
+    "import_kmers",
     "SERIALIZATION_FORMAT",
     "__version__",
 ]
@@ -310,6 +314,11 @@ class Kcounter(_Persistent, KcounterParent):
     def __init__(self, k: int = 0):
         super().__init__(k)
 
+    def __getitem__(self, key: str) -> int:
+        if key in self:
+            return super().__getitem__(key)
+        return 0
+
     def __str__(self) -> str:
         return "{" + ",".join(f"{key}:{val}" for key, val in self.items()) + "}"
 
@@ -374,3 +383,52 @@ class Kcounter(_Persistent, KcounterParent):
         if n is None:
             return items
         return items[:n]
+
+
+def _export_kmers(container: Any, path: str, *, include_counts: bool = False) -> int:
+    """Write one k-mer per line (optional count column for Kcounter)."""
+    n = 0
+    with open(path, "w", encoding="ascii") as fh:
+        if include_counts:
+            for kmer, count in container.items():
+                fh.write(f"{kmer}\t{count}\n")
+                n += 1
+        elif hasattr(container, "items"):
+            for kmer, _ in container.items():
+                fh.write(f"{kmer}\n")
+                n += 1
+        else:
+            for kmer in container:
+                fh.write(f"{kmer}\n")
+                n += 1
+    return n
+
+
+def export_kmers(container: Any, path: str) -> int:
+    return _export_kmers(container, path, include_counts=isinstance(container, Kcounter))
+
+
+def import_kmers(container: Any, path: str, *, clear: bool = False) -> int:
+    """Load k-mers from a text file (one per line; optional tab count)."""
+    if clear:
+        container.clear()
+    n = 0
+    with open(path, encoding="ascii") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            if "\t" in line:
+                kmer, val = line.split("\t", 1)
+                if isinstance(container, Kcounter):
+                    container[kmer] = int(val)
+                else:
+                    container[kmer] = val
+            elif isinstance(container, Kset):
+                container.add(line)
+            elif isinstance(container, Kcounter):
+                container[line] = container.get(line, 0) + 1
+            else:
+                container[line] = True
+            n += 1
+    return n

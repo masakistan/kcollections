@@ -7,6 +7,7 @@
 
 #include "globals.h"
 #include "helper.h"
+#include "kc/class_names.h"
 #include "kc_io.h"
 //#include <pybind11/pybind11.h>
 //#include <jemalloc/jemalloc.h>
@@ -16,7 +17,7 @@ template <class T>
 #endif
 
 
-class UC {
+class KC_UC {
 private:
   uint8_t* suffixes;
 #if defined(KDICT) || defined(KCOUNTER)
@@ -26,13 +27,13 @@ private:
 #endif
 
 public:
-  UC() : suffixes(NULL) {
+  KC_UC() : suffixes(NULL) {
 #if defined(KSET)
     size = 0;
 #endif
   }
 
-  ~UC() {
+  ~KC_UC() {
     clear();
   }
 
@@ -73,7 +74,7 @@ public:
 #endif
   }
 
-  UC& operator=(UC&& o) {
+  KC_UC& operator=(KC_UC&& o) {
     suffixes = o.suffixes;
     o.suffixes = NULL;
     #if defined(KDICT) || defined(KCOUNTER)

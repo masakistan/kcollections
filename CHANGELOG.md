@@ -1,5 +1,27 @@
 # Changelog
 
+## 3.2.0 (v3.0-dev)
+
+### Changed
+- Single native module `_kcollections` (replaces `_Kset`, `_Kdict`, `_Kcounter`)
+- C++ core uses per-translation-unit type names (`KcSetContainer`, `KcDictContainer<T>`, `KcCounterContainer<int>`) to avoid macro/ODR issues
+
+## 3.1.0 (v3.0-dev)
+
+### Added
+- `export_kmers` / `import_kmers` text I/O helpers
+- `add_seq` support for `bytes`, `bytearray`, and buffer objects
+- Split pybind11 bindings (`bindings_kset.cc`, etc.)
+- `CONTRIBUTING.md`, CI benchmark smoke job, Boost-free CI
+
+### Changed
+- `PrefMask` replaces vendored `uint256_t`
+- Parallel add uses `std::thread` / `std::mutex` (no `sem_open`)
+- `Kcounter.__getitem__` returns `0` for missing keys (Python wrapper)
+
+### Removed
+- `uint256_t` from the build (headers remain under `libs/` for reference)
+
 ## 3.0.0 (v3.0-dev)
 
 ### Added

@@ -8,7 +8,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "kcollections"
-version = "3.0.0"
+version = "3.2.0"
 description = "Memory-efficient Bloom Filter Trie for k-mer sets, dicts, and counters"
 readme = "README.md"
 license = { text = "GPL-3.0-or-later" }
@@ -46,7 +46,7 @@ cmake.build-type = "Release"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = ["test_*.py"]
+python_files = ["test_*.py", "benchmark_*.py"]
 
 [tool.cibuildwheel]
 build = "cp310-* cp311-* cp312-* cp313-*"

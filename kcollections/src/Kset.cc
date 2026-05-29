@@ -2,7 +2,7 @@
 
 Kset::Kset( int k )
 {
-  kc = new Kcontainer(k);
+  kc = new KcSetContainer(k);
   m_k = k;
 }
 
@@ -14,7 +14,7 @@ Kset::~Kset()
 void Kset::clear()
 {
   delete kc;
-  kc = new Kcontainer(m_k);
+  kc = new KcSetContainer(m_k);
 }
 
 void Kset::add(const char* kmer)
@@ -43,6 +43,11 @@ void Kset::remove(const char* kmer)
 void Kset::add_seq(const char* seq)
 {
   kc->kcontainer_add_seq(seq, strlen(seq));
+}
+
+void Kset::add_seq(const char* seq, size_t length)
+{
+  kc->kcontainer_add_seq(seq, static_cast<uint32_t>(length));
 }
 
 void Kset::parallel_add_seq(const char* seq) {

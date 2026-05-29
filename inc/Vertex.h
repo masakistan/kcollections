@@ -11,8 +11,8 @@
 
 #include "UContainer.h"
 //#include <jemalloc/jemalloc.h>
-#include "uint256_t.h"
-#include "uint128_t.h"
+#include "pref_mask.h"
+#include "kc/class_names.h"
 
 #if defined(PYTHON)
 namespace py = pybind11;
@@ -21,27 +21,27 @@ namespace py = pybind11;
 #if defined(KDICT) || defined(KCOUNTER)
 template <class T>
 #endif
-class Vertex {
+class KC_VERTEX {
 private:
 #if defined(KDICT) || defined(KCOUNTER)
-  Vertex<T>* vs;
+  KC_VERTEX<T>* vs;
 #else
-  Vertex* vs;
+  KC_VERTEX* vs;
 #endif
-  uint256_t pref_pres;
+  PrefMask pref_pres;
 
 #if defined(KDICT) || defined(KCOUNTER)
-  UC<T> uc;
+  KC_UC<T> uc;
 #else
-  UC uc;
+  KC_UC uc;
 #endif
 
   uint16_t vs_size;
 public:
-  Vertex() : vs(NULL), pref_pres(0), vs_size(0) {
+  KC_VERTEX() : vs(NULL), vs_size(0) {
   }
 
-  ~Vertex() {
+  ~KC_VERTEX() {
     clear();
   }
 
@@ -66,9 +66,9 @@ public:
     ar & uc;
 
 #if defined(KDICT) || defined(KCOUNTER)
-    vs = new Vertex<T>[vs_size];
+    vs = new KC_VERTEX<T>[vs_size];
 #else
-    vs = new Vertex[vs_size];
+    vs = new KC_VERTEX[vs_size];
 #endif
 
     CDEPTH -= 1;
@@ -78,7 +78,7 @@ public:
     CDEPTH += 1;
   }
 
-  Vertex& operator=(Vertex&& o) {
+  KC_VERTEX& operator=(KC_VERTEX&& o) {
     uc = std::move(o.uc);
     
     vs = o.vs;
@@ -92,7 +92,7 @@ public:
   void clear() {
     //std::cout << "vertex clear" << std::endl;
     //delete uc;
-    pref_pres = 0;
+    pref_pres = PrefMask();
     uc.clear();
 
     if(vs != NULL) {
@@ -105,44 +105,34 @@ public:
     }
   }
 
-  int calc_vidx(uint256_t vertices, uint8_t bts) {
-    vertices <<= (256 - (unsigned) bts);
-    uint64_t* t = (uint64_t*) &vertices;
-    int vidx = __builtin_popcountll(t[0]);
-    vidx += __builtin_popcountll(t[1]);
-    vidx += __builtin_popcountll(t[2]);
-    vidx += __builtin_popcountll(t[3]);
-    return vidx;
-  }
-
 #if defined(KDICT) || defined(KCOUNTER)
-  Vertex<T>* get_vs() { return vs; }
+  KC_VERTEX<T>* get_vs() { return vs; }
 #else
-  Vertex* get_vs() { return vs; }
+  KC_VERTEX* get_vs() { return vs; }
 #endif
 
 #if defined(KDICT) || defined(KCOUNTER)
-  UC<T>* get_uc() { return &uc; }
+  KC_UC<T>* get_uc() { return &uc; }
 #else
-  UC* get_uc() { return &uc; }
+  KC_UC* get_uc() { return &uc; }
 #endif
 
-  uint256_t get_pref_pres() { return pref_pres; }
-  void set_pref_pres(uint256_t pref_pres) { this->pref_pres = pref_pres; }
+  PrefMask get_pref_pres() { return pref_pres; }
+  void set_pref_pres(const PrefMask& p) { pref_pres = p; }
   uint16_t get_vs_size() { return vs_size; }
   void set_vs_size(uint16_t vs_size) { this->vs_size = vs_size; }
 
 #if defined(KDICT) || defined(KCOUNTER)
-  void set_vs(Vertex<T>* vs) { this->vs = vs; }
+  void set_vs(KC_VERTEX<T>* vs) { this->vs = vs; }
 #else
-  void set_vs(Vertex* vs) { this->vs = vs; }
+  void set_vs(KC_VERTEX* vs) { this->vs = vs; }
 #endif
 
   void vertex_remove(uint8_t* bseq, int k) {
     uint8_t prefix = bseq[0];
 
-    if((pref_pres >> (unsigned) prefix) & 0x1) {
-      int vidx = calc_vidx(pref_pres, prefix);
+    if((pref_pres >> (unsigned)prefix).test_bit(0)) {
+      int vidx = PrefMask::popcount_vidx(pref_pres, prefix);
       vs[vidx].vertex_remove(&bseq[1], k - 4);
     }
 
@@ -171,8 +161,8 @@ public:
   bool vertex_contains(uint8_t* bseq, int k)
   {
     uint8_t prefix = bseq[0];
-    if((pref_pres >> (unsigned) prefix) & 0x1) {
-      int vidx = calc_vidx(pref_pres, prefix);
+    if((pref_pres >> (unsigned)prefix).test_bit(0)) {
+      int vidx = PrefMask::popcount_vidx(pref_pres, prefix);
       return vs[vidx].vertex_contains(&bseq[1], k - 4);
     }
 
@@ -192,8 +182,8 @@ public:
 #endif
     uint8_t prefix = bseq[0];
 
-    if((pref_pres >> (unsigned) prefix) & 0x1) {
-      int vidx = calc_vidx(pref_pres, prefix);
+    if((pref_pres >> (unsigned)prefix).test_bit(0)) {
+      int vidx = PrefMask::popcount_vidx(pref_pres, prefix);
       return vs[vidx].vertex_get(&bseq[1], k - 4);
     }
 
@@ -222,16 +212,16 @@ public:
 
 #if defined(KDICT) || defined(KCOUNTER)
   void vertex_insert(uint8_t* bseq, int k, T obj, std::function<T(T&, T&)>& merge_func)
-#elif KSET
+#elif defined(KSET)
   void vertex_insert(uint8_t* bseq, int k)
 #endif
   {
     uint8_t prefix = bseq[ 0 ];
-    if((pref_pres >> (unsigned) prefix) & 0x1) {
-      int vidx = calc_vidx(pref_pres, prefix);
+    if((pref_pres >> (unsigned)prefix).test_bit(0)) {
+      int vidx = PrefMask::popcount_vidx(pref_pres, prefix);
 #if defined(KDICT) || defined(KCOUNTER)
       vs[vidx].vertex_insert(&bseq[1], k - 4, obj, merge_func);
-#elif KSET
+#elif defined(KSET)
       vs[vidx].vertex_insert(&bseq[1], k - 4);
 #endif
       return;
@@ -256,7 +246,7 @@ public:
 
 #if defined(KDICT) || defined(KCOUNTER)
     uc.uc_insert(bseq, k, uc_idx, obj);
-#elif KSET
+#elif defined(KSET)
     uc.uc_insert(bseq, k, uc_idx);
 #endif
 
@@ -272,9 +262,9 @@ public:
   void realloc_vertex_array(uint16_t insert_at = 0)
   {
 #if defined(KDICT) || defined(KCOUNTER)
-    Vertex<T>* vs_temp = new Vertex<T>[vs_size + 1];
+    KC_VERTEX<T>* vs_temp = new KC_VERTEX<T>[vs_size + 1];
 #else
-    Vertex* vs_temp = new Vertex[vs_size + 1];
+    KC_VERTEX* vs_temp = new KC_VERTEX[vs_size + 1];
 #endif
     uint16_t insert_idx = 0, orig_idx = 0;
     for(; orig_idx < vs_size; insert_idx++, orig_idx++) {
@@ -315,12 +305,12 @@ public:
       uint8_t prefix = bseq[ 0 ];
       uint8_t* suffix = &bseq[ 1 ];
       uint8_t bits_to_shift = (unsigned) prefix;
-      uint16_t vidx = calc_vidx(pref_pres, prefix);
+      uint16_t vidx = PrefMask::popcount_vidx(pref_pres, prefix);
 
       // check if there is already a vertex that represents this prefix
-      if(!((pref_pres >> (unsigned) bits_to_shift) & 0x1)) {
+      if(!(pref_pres >> (unsigned)bits_to_shift).test_bit(0)) {
 	realloc_vertex_array(vidx);
-	pref_pres |= ((uint256_t) 0x1 << (unsigned) bits_to_shift);
+	pref_pres.set_bit(bits_to_shift);
       } else {
 	//std::cout << "\t" << vidx << "\tusing existing vertex" << std::endl;
       }
@@ -340,45 +330,45 @@ namespace kc_io {
 
 #if defined(KDICT) || defined(KCOUNTER)
 template <class T>
-inline BinaryOutArchive& operator&(BinaryOutArchive& ar, const UC<T>& uc) {
+inline BinaryOutArchive& operator&(BinaryOutArchive& ar, const KC_UC<T>& uc) {
   uc.save(ar, 0);
   return ar;
 }
 
 template <class T>
-inline BinaryInArchive& operator&(BinaryInArchive& ar, UC<T>& uc) {
+inline BinaryInArchive& operator&(BinaryInArchive& ar, KC_UC<T>& uc) {
   uc.load(ar, 0);
   return ar;
 }
 
 template <class T>
-inline BinaryOutArchive& operator&(BinaryOutArchive& ar, const Vertex<T>& vertex) {
+inline BinaryOutArchive& operator&(BinaryOutArchive& ar, const KC_VERTEX<T>& vertex) {
   vertex.save(ar, 0);
   return ar;
 }
 
 template <class T>
-inline BinaryInArchive& operator&(BinaryInArchive& ar, Vertex<T>& vertex) {
+inline BinaryInArchive& operator&(BinaryInArchive& ar, KC_VERTEX<T>& vertex) {
   vertex.load(ar, 0);
   return ar;
 }
 #else
-inline BinaryOutArchive& operator&(BinaryOutArchive& ar, const UC& uc) {
+inline BinaryOutArchive& operator&(BinaryOutArchive& ar, const KC_UC& uc) {
   uc.save(ar, 0);
   return ar;
 }
 
-inline BinaryInArchive& operator&(BinaryInArchive& ar, UC& uc) {
+inline BinaryInArchive& operator&(BinaryInArchive& ar, KC_UC& uc) {
   uc.load(ar, 0);
   return ar;
 }
 
-inline BinaryOutArchive& operator&(BinaryOutArchive& ar, const Vertex& vertex) {
+inline BinaryOutArchive& operator&(BinaryOutArchive& ar, const KC_VERTEX& vertex) {
   vertex.save(ar, 0);
   return ar;
 }
 
-inline BinaryInArchive& operator&(BinaryInArchive& ar, Vertex& vertex) {
+inline BinaryInArchive& operator&(BinaryInArchive& ar, KC_VERTEX& vertex) {
   vertex.load(ar, 0);
   return ar;
 }
