@@ -11,7 +11,7 @@ _kdict_mod = _kc
 KsetParent = _kc.Kset
 KcounterParent = _kc.Kcounter
 
-__version__ = "3.3.1"
+__version__ = "3.3.2"
 
 __all__ = [
     "Kset",
@@ -21,6 +21,8 @@ __all__ = [
     "export_kmers",
     "import_kmers",
     "SERIALIZATION_FORMAT",
+    "migrate_archive",
+    "probe_archive",
     "__version__",
 ]
 
@@ -432,3 +434,6 @@ def import_kmers(container: Any, path: str, *, clear: bool = False) -> int:
                 container[line] = True
             n += 1
     return n
+
+
+from .migrate import migrate_archive, probe_archive  # noqa: E402

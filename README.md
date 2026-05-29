@@ -45,7 +45,7 @@ print(kc.most_common(5))
 
 More examples: [`examples/`](examples/) · Full guide: [`docs/USAGE.md`](docs/USAGE.md) · Upgrading: [`MIGRATION.md`](MIGRATION.md)
 
-**Conda:** recipe template in [`conda-recipe/`](conda-recipe/) (submit to Bioconda with release `sha256`).
+**Conda:** recipe in [`conda-recipe/`](conda-recipe/) · **Releases:** [`RELEASE.md`](RELEASE.md) (tag → PyPI + GitHub release).
 
 ## Parallel bulk insert
 

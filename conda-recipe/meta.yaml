@@ -1,5 +1,5 @@
 {% set name = "kcollections" %}
-{% set version = "3.3.0" %}
+{% set version = "3.3.1" %}
 
 package:
   name: {{ name|lower }}
@@ -7,7 +7,8 @@ package:
 
 source:
   url: https://github.com/masakistan/kcollections/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: REPLACE_AT_RELEASE  # curl -sL URL | sha256sum
+  # Regenerate after tagging: ../../scripts/conda_sha256.sh {{ version }}
+  sha256: 196151d503d1fdce4ea996a27af784f61a2e2e7490f3e0399557b57e5fff8978
 
 build:
   number: 0

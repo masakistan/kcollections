@@ -9,12 +9,14 @@ Maintenance on `master`.
 - [x] Read **v1** archives (LE) and `python -m kcollections migrate` helper (3.3)
 - [x] PyPI publish workflow on version tags (3.3)
 - [x] Remove vendored `libs/pybind11-2.4.3/` (3.3.1)
-- [x] Bioconda recipe template under `conda-recipe/` (3.3.1)
-- [x] Native C++ smoke test (`KCOLLECTIONS_BUILD_CPP_TESTS`) + CI job (3.3.1)
+- [x] Bioconda recipe template + `sha256` helper script (3.3.1–3.3.2)
+- [x] Native C++ smoke tests (Kset, Kcounter) + CI job (3.3.1–3.3.2)
+- [x] `RELEASE.md` and GitHub Release workflow (3.3.2)
 
 ## Planned
 
-- [ ] Submit recipe to [bioconda-recipes](https://github.com/bioconda/bioconda-recipes) (update `sha256` per release)
+- [ ] Submit recipe to [bioconda-recipes](https://github.com/bioconda/bioconda-recipes) (copy `conda-recipe/meta.yaml`)
+- [ ] Tag `v3.3.1` / `v3.3.2` and confirm PyPI trusted publishing
 - [ ] Optional: rewrite git history to drop old `libs/pybind11` blobs (large clone size)
 
 ## Migration

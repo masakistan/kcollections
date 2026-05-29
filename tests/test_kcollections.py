@@ -1,6 +1,8 @@
 """Core tests for kcollections (no BioPython required)."""
 
 import os
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -186,7 +188,7 @@ class TestTextIO:
 
 class TestImports:
     def test_version(self):
-        assert kcollections.__version__ == "3.3.1"
+        assert kcollections.__version__ == "3.3.2"
 
     def test_serialization_format_constant(self):
         assert kcollections.SERIALIZATION_FORMAT == "kcollections-v2"
@@ -219,3 +221,18 @@ class TestV1Migration:
         assert probe_archive(dst) == (2, "kset")
         ks = Kset.from_file(str(dst))
         assert len(ks) == len(SEQ) - K + 1
+
+    def test_migrate_cli(self, tmp_path):
+        src = FIXTURES / "v1_kset_seq.kc"
+        dst = tmp_path / "v2_cli.kc"
+        subprocess.run(
+            [sys.executable, "-m", "kcollections", "migrate", str(src), str(dst)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        assert probe_archive(dst) == (2, "kset")
+
+    def test_migrate_exports(self):
+        assert hasattr(kcollections, "migrate_archive")
+        assert hasattr(kcollections, "probe_archive")

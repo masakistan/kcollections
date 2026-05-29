@@ -51,13 +51,26 @@ endif()
 option(KCOLLECTIONS_BUILD_CPP_TESTS "Build native C++ smoke tests (no Python)" OFF)
 if(KCOLLECTIONS_BUILD_CPP_TESTS)
   enable_testing()
-  set(KC_NATIVE_SOURCES
-    "${SOURCE_DIR}/globals.cpp"
+
+  function(kc_add_native_test target test_src core_src wrapper_src)
+    add_executable(${target} ${test_src} ${SOURCE_DIR}/globals.cpp ${core_src} ${wrapper_src})
+    target_include_directories(${target} PRIVATE ${CMAKE_SOURCE_DIR}/inc)
+    target_link_libraries(${target} PRIVATE Threads::Threads)
+  endfunction()
+
+  kc_add_native_test(
+    kcollections_test_kset_io
+    tests/cpp/test_kset_io.cc
     "${SOURCE_DIR}/core/kset_core.cc"
     "${SOURCE_DIR}/Kset.cc"
   )
-  add_executable(kcollections_test_kset_io tests/cpp/test_kset_io.cc ${KC_NATIVE_SOURCES})
-  target_include_directories(kcollections_test_kset_io PRIVATE ${CMAKE_SOURCE_DIR}/inc)
-  target_link_libraries(kcollections_test_kset_io PRIVATE Threads::Threads)
   add_test(NAME kset_io COMMAND kcollections_test_kset_io)
+
+  kc_add_native_test(
+    kcollections_test_kcounter_io
+    tests/cpp/test_kcounter_io.cc
+    "${SOURCE_DIR}/core/kcounter_core.cc"
+    "${SOURCE_DIR}/Kcounter.cc"
+  )
+  add_test(NAME kcounter_io COMMAND kcollections_test_kcounter_io)
 endif()
