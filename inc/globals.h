@@ -10,6 +10,6 @@
 typedef int count_dtype;
 #define MAXCOUNT    UINT16_MAX
 
-extern thread_local int CDEPTH;
+extern thread_local int CDEPTH;  // one definition per extension module (.cpp)
 
 

@@ -3,16 +3,18 @@
 #include <fstream>
 #include <functional>
 
-#include "globals.h"
-#include "kc_io.h"
-#include "Kcontainer.h"
+#include "kc/kdict_core.h"
+#if defined(PYTHON)
+#include <pybind11/pybind11.h>
+namespace py = pybind11;
+#endif
 #include "opaque.h"
 
 template <class T>
 class Kdict
 {
 private:
-  Kcontainer<T>* kc;
+  KcDictContainer<T>* kc;
   int m_k;
   std::function<T(T&, T&)> merge_func;
   std::function<T(T&, T&)> overwrite_merge_func;
@@ -22,7 +24,7 @@ public:
     overwrite_merge_func = [] (T& prev_val, T& new_val)->T&{ return new_val;};
   }
   Kdict(const int k) : m_k(k) {
-    kc = new Kcontainer<T>(k);
+    kc = new KcDictContainer<T>(k);
     merge_func = [] (T& prev_val, T& new_val)->T&{ return new_val;};
     overwrite_merge_func = [] (T& prev_val, T& new_val)->T&{ return new_val;};
   }
@@ -42,7 +44,7 @@ public:
     ar & m_k;
     CDEPTH = calc_bk(m_k);
 
-    kc = new Kcontainer<T>(m_k);
+    kc = new KcDictContainer<T>(m_k);
     kc->load(ar, version);
   }
 
@@ -80,7 +82,7 @@ public:
   
   void clear() {
     delete kc;
-    kc = new Kcontainer<T>(m_k);
+    kc = new KcDictContainer<T>(m_k);
   }
 
   uint64_t size() {
@@ -98,7 +100,7 @@ public:
   }
   
   int get_k() { return m_k; }
-  Kcontainer<T>* get_kc() { return kc; }
+  KcDictContainer<T>* get_kc() { return kc; }
   
 #if defined(PYTHON)
   void add_seq(const char* seq, py::iterable& values)
@@ -110,33 +112,33 @@ public:
     kc->kcontainer_add_seq(seq, strlen(seq), values, merge_func);
   }
 
-  std::string get_uc_kmer( Vertex<T>* v, int k, int idx )
+  std::string get_uc_kmer( KcDictVertex<T>* v, int k, int idx )
   {
-    UC<T>* uc = v->get_uc();
+    KcDictUC<T>* uc = v->get_uc();
     char* kmer = deserialize_kmer(k, uc->get_suffix(k, idx));
     std::string skmer(kmer);
     free(kmer);
     return skmer;
   }
 
-  int get_uc_size( Vertex<T>* v )
+  int get_uc_size( KcDictVertex<T>* v )
   {
     return v->get_uc()->get_size();
   }
   
-  int get_vs_size( Vertex<T>* v ){ return v->get_vs_size(); }
+  int get_vs_size( KcDictVertex<T>* v ){ return v->get_vs_size(); }
   
-  Vertex<T>* get_child_vertex( Vertex<T>* v, int idx )
+  KcDictVertex<T>* get_child_vertex( KcDictVertex<T>* v, int idx )
   {
     return &v->get_vs()[idx];
   }
   
-  std::string get_child_suffix( Vertex<T>* v, int idx )
+  std::string get_child_suffix( KcDictVertex<T>* v, int idx )
   {
     return kc->kcontainer_get_child_suffix(v, idx);
   }
   
-  Vertex<T>* get_root() { return kc->get_v(); }
+  KcDictVertex<T>* get_root() { return kc->get_v(); }
 
   void parallel_add_init(int threads)  {
     kc->parallel_kcontainer_add_init(threads, merge_func);
@@ -161,7 +163,7 @@ public:
     kc->parallel_kcontainer_add_seq(seq, strlen(seq), values);
   }
 
-  typedef typename Kcontainer<T>::iterator iterator;
+  typedef typename KcDictContainer<T>::iterator iterator;
   iterator begin() {
     return kc->begin();
   }

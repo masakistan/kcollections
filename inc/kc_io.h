@@ -8,8 +8,7 @@
 #include <type_traits>
 #include <vector>
 
-#include "uint128_t.h"
-#include "uint256_t.h"
+#include "pref_mask.h"
 
 namespace kc_io {
 
@@ -150,15 +149,10 @@ public:
     return *this;
   }
 
-  BinaryOutArchive& operator&(const uint128_t& value) {
-    (*this) & value.UPPER;
-    (*this) & value.LOWER;
-    return *this;
-  }
-
-  BinaryOutArchive& operator&(const uint256_t& value) {
-    (*this) & value.UPPER;
-    (*this) & value.LOWER;
+  BinaryOutArchive& operator&(const PrefMask& value) {
+    for (int i = 0; i < 4; ++i) {
+      (*this) & value.w[i];
+    }
     return *this;
   }
 
@@ -207,15 +201,10 @@ public:
     return *this;
   }
 
-  BinaryInArchive& operator&(uint128_t& value) {
-    (*this) & value.UPPER;
-    (*this) & value.LOWER;
-    return *this;
-  }
-
-  BinaryInArchive& operator&(uint256_t& value) {
-    (*this) & value.UPPER;
-    (*this) & value.LOWER;
+  BinaryInArchive& operator&(PrefMask& value) {
+    for (int i = 0; i < 4; ++i) {
+      (*this) & value.w[i];
+    }
     return *this;
   }
 

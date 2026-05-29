@@ -4,5 +4,4 @@ include README.md
 include pyproject.toml
 recursive-include inc *
 recursive-include kcollections *
-graft libs/uint256_t
 global-exclude *.pyc __pycache__ .git*
