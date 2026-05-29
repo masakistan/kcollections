@@ -1,0 +1,22 @@
+name: Validate conda recipe
+
+on:
+  pull_request:
+    paths:
+      - "conda-recipe/**"
+  push:
+    branches: [master, main]
+    paths:
+      - "conda-recipe/**"
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject placeholder sha256
+        run: |
+          if grep -q 'REPLACE_AT_RELEASE' conda-recipe/meta.yaml; then
+            echo "conda-recipe/meta.yaml still has REPLACE_AT_RELEASE"
+            exit 1
+          fi

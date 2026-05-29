@@ -5,8 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal, Tuple, Union
 
-from . import Kcounter, Kdict, Kset
-
 ContainerKind = Literal["kset", "kdict", "kcounter"]
 _KIND_BYTE = {1: "kset", 2: "kdict", 3: "kcounter"}
 
@@ -41,6 +39,8 @@ def migrate_archive(
 
     if version == 2 and src_p.resolve() == dst_p.resolve():
         return kind
+
+    from . import Kcounter, Kdict, Kset
 
     if kind == "kset":
         obj = Kset.from_file(str(src_p))

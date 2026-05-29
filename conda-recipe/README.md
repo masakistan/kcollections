@@ -5,11 +5,10 @@ This recipe is a template for submitting **kcollections** to [Bioconda](https://
 ## Before submitting
 
 1. Tag a release on GitHub, e.g. `v3.3.0`.
-2. Update `sha256` in `meta.yaml`:
+2. Update `sha256` in `meta.yaml` (from repo root):
 
    ```bash
-   url="https://github.com/masakistan/kcollections/archive/refs/tags/v3.3.0.tar.gz"
-   curl -sL "$url" | sha256sum
+   ./scripts/conda_sha256.sh 3.3.1
    ```
 
 3. Copy `meta.yaml` into a new folder under [bioconda-recipes](https://github.com/bioconda/bioconda-recipes/tree/master/recipes) and open a PR there (Bioconda does not build from this repo directly).

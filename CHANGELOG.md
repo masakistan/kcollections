@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.3.2
+
+### Added
+- `migrate_archive` / `probe_archive` on top-level `kcollections` package
+- Native C++ smoke test for `Kcounter` I/O; `scripts/conda_sha256.sh`; `RELEASE.md`
+- GitHub Release workflow on tags; CI check that conda recipe has no placeholder `sha256`
+
+### Changed
+- `conda-recipe/meta.yaml` pinned to 3.3.1 with release tarball `sha256`
+
 ## 3.3.1
 
 ### Added
